@@ -84,6 +84,8 @@ interface DiaryContextValue {
   addLoveCoupon: (title: string, description: string, category: string) => void;
   redeemLoveCoupon: (id: string) => void;
   toggleSoundtrack: () => void;
+  loadExistingCoupleSpace: (userId: string, remoteCouple: any) => void;
+  logout: () => Promise<void>;
   toasts: ToastInfo[];
   showToast: (message: string, type?: ToastInfo['type']) => void;
   dismissToast: (id: string) => void;
@@ -95,17 +97,22 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<OurDiaryData>(initialDiaryData);
   const [isHydrated, setIsHydrated] = useState(false);
   const [isLiveUser, setIsLiveUser] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastInfo[]>([]);
 
   // Ephemeral Demo Mode vs Live Couple Space Hydration:
   // If in demo mode, modifications are in-memory only and reset on refresh.
-  // Real registered couples persist under their dedicated key.
+  // Real registered couples persist under their dedicated per-user key.
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const isLive = localStorage.getItem('ourdiary_is_live_user') === 'true';
+      const storedUserId = localStorage.getItem('ourdiary_current_user_id');
       setIsLiveUser(isLive);
+      if (storedUserId) setCurrentUserId(storedUserId);
+
       if (isLive) {
-        const savedReal = localStorage.getItem('ourdiary_real_couple_v1');
+        const userKey = storedUserId ? `ourdiary_space_${storedUserId}` : 'ourdiary_real_couple_v1';
+        const savedReal = localStorage.getItem(userKey) || localStorage.getItem('ourdiary_real_couple_v1');
         if (savedReal) {
           try {
             setData(JSON.parse(savedReal));
@@ -121,12 +128,15 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     setIsHydrated(true);
   }, []);
 
-  // Save changes ONLY for real authenticated couples
+  // Save changes ONLY for real authenticated couples (keyed by user ID)
   useEffect(() => {
     if (isHydrated && isLiveUser && typeof window !== 'undefined') {
+      if (currentUserId) {
+        localStorage.setItem(`ourdiary_space_${currentUserId}`, JSON.stringify(data));
+      }
       localStorage.setItem('ourdiary_real_couple_v1', JSON.stringify(data));
     }
-  }, [data, isHydrated, isLiveUser]);
+  }, [data, isHydrated, isLiveUser, currentUserId]);
 
   const showToast = (message: string, type: ToastInfo['type'] = 'success') => {
     const id = Math.random().toString(36).substring(2, 9);
@@ -281,6 +291,14 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
   };
 
   const initCleanCoupleSpace = (couple: Couple) => {
+    // Provide cute romantic avatars by default if none or placeholder is provided
+    const defaultAvatar1 = couple.user1.avatar && !couple.user1.avatar.includes('/avatars/')
+      ? couple.user1.avatar
+      : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80';
+    const defaultAvatar2 = couple.user2.avatar && !couple.user2.avatar.includes('/avatars/')
+      ? couple.user2.avatar
+      : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80';
+
     const freshCleanData: OurDiaryData = {
       couple: {
         ...couple,
@@ -288,6 +306,14 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         animationsEnabled: true,
         inviteCode: couple.inviteCode || Math.random().toString(36).substring(2, 8).toUpperCase(),
         isLocked: false,
+        user1: {
+          ...couple.user1,
+          avatar: defaultAvatar1,
+        },
+        user2: {
+          ...couple.user2,
+          avatar: defaultAvatar2,
+        },
       },
       activeProfileId: 'user_1',
       memories: [],
@@ -354,10 +380,78 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     setIsLiveUser(true);
     if (typeof window !== 'undefined') {
       localStorage.setItem('ourdiary_is_live_user', 'true');
+      if (currentUserId) {
+        localStorage.setItem(`ourdiary_space_${currentUserId}`, JSON.stringify(freshCleanData));
+      }
       localStorage.setItem('ourdiary_real_couple_v1', JSON.stringify(freshCleanData));
     }
     setData(freshCleanData);
     showToast(`Created private couple space for ${couple.name}! 💕 (Clean slate ready)`, 'heart');
+  };
+
+  const loadExistingCoupleSpace = (userId: string, remoteCouple: any) => {
+    setIsLiveUser(true);
+    setCurrentUserId(userId);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ourdiary_is_live_user', 'true');
+      localStorage.setItem('ourdiary_current_user_id', userId);
+      const userKey = `ourdiary_space_${userId}`;
+      const saved = localStorage.getItem(userKey);
+      if (saved) {
+        try {
+          setData(JSON.parse(saved));
+          return;
+        } catch (e) {
+          console.warn('Failed to parse cached user space:', e);
+        }
+      }
+    }
+
+    const defaultAvatar1 = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80';
+    const defaultAvatar2 = 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80';
+
+    setData((prev) => ({
+      ...prev,
+      couple: {
+        id: remoteCouple.id,
+        name: remoteCouple.name || 'Our Couple Space',
+        startDate: remoteCouple.relationship_start_date || '2024-01-01',
+        anniversaryDate: remoteCouple.anniversary_date || remoteCouple.relationship_start_date || '2024-01-01',
+        theme: remoteCouple.theme || 'candy',
+        animationsEnabled: true,
+        inviteCode: remoteCouple.invite_code,
+        isLocked: false,
+        user1: {
+          id: 'user_1',
+          name: remoteCouple.creator_name || 'You',
+          avatar: defaultAvatar1,
+        },
+        user2: {
+          id: 'user_2',
+          name: remoteCouple.partner_name || 'Partner',
+          avatar: defaultAvatar2,
+        },
+      },
+    }));
+  };
+
+  const logout = async () => {
+    const supabase = getSupabaseBrowserClient();
+    if (supabase) {
+      try {
+        await supabase.auth.signOut();
+      } catch (e) {
+        console.warn('Supabase sign out error:', e);
+      }
+    }
+    setIsLiveUser(false);
+    setCurrentUserId(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('ourdiary_is_live_user');
+      localStorage.removeItem('ourdiary_current_user_id');
+    }
+    setData(JSON.parse(JSON.stringify(initialDiaryData)));
+    showToast('Logged out successfully. See you soon! 💕', 'heart');
   };
 
   const regenerateCoupleCode = async (): Promise<string> => {
@@ -874,6 +968,8 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         addLoveCoupon,
         redeemLoveCoupon,
         toggleSoundtrack,
+        loadExistingCoupleSpace,
+        logout,
         toasts,
         showToast,
         dismissToast,

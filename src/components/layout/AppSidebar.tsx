@@ -18,6 +18,7 @@ import {
   Sparkles,
   Dices,
   Ticket,
+  LogOut,
 } from 'lucide-react';
 
 export const navItems = [
@@ -121,7 +122,7 @@ export const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { data } = useDiary();
+  const { data, isLiveUser, logout } = useDiary();
 
   return (
     <aside className="hidden lg:flex flex-col w-64 border-r border-[#EFE4D6] bg-white/70 backdrop-blur-md p-4 min-h-[calc(100vh-4rem)]">
@@ -186,8 +187,27 @@ export function AppSidebar() {
         })}
       </nav>
 
-      {/* Fun footer tip */}
-      <div className="mt-auto pt-4 border-t border-slate-100">
+      {/* Fun footer tip & Logout button */}
+      <div className="mt-auto pt-4 border-t border-slate-100 space-y-3">
+        {isLiveUser ? (
+          <button
+            type="button"
+            onClick={() => logout()}
+            className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-all cursor-pointer shadow-xs"
+          >
+            <LogOut className="w-4 h-4 text-rose-500" />
+            <span>Sign Out / Log Out</span>
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl border border-purple-200 bg-purple-50/70 hover:bg-purple-100 text-purple-700 font-bold text-xs transition-all shadow-xs"
+          >
+            <Sparkles className="w-4 h-4 text-purple-500" />
+            <span>Login or Create Space →</span>
+          </Link>
+        )}
+
         <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-100 text-xs text-amber-900">
           <div className="flex items-center gap-1 font-semibold text-amber-800 mb-1">
             <Sparkles className="w-3.5 h-3.5 text-amber-600" />

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
 import {
@@ -18,6 +19,7 @@ import {
   Bell,
   Smartphone,
   Send,
+  LogOut,
 } from 'lucide-react';
 import {
   isNotificationSupported,
@@ -35,6 +37,8 @@ export default function SettingsPage() {
     exportJSON,
     importJSON,
     showToast,
+    isLiveUser,
+    logout,
   } = useDiary();
 
   const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
@@ -489,6 +493,48 @@ export default function SettingsPage() {
                 🤖 <strong>Android (Chrome):</strong> Tap <em>Menu (⋮)</em> &rarr; <em>Install App / Add to Home Screen</em>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Couple Space Account & Session */}
+        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 sm:p-8 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+            <div className="flex items-center gap-2">
+              <LogOut className="w-5 h-5 text-rose-500" />
+              <h2 className="font-extrabold text-lg text-slate-900">Couple Space Account & Session</h2>
+            </div>
+            <span
+              className={`text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider self-start sm:self-auto ${
+                isLiveUser ? 'bg-purple-100 text-purple-800' : 'bg-amber-100 text-amber-800'
+              }`}
+            >
+              {isLiveUser ? 'Live Cloud Space 🔒' : 'Local Demo Mode 🧪'}
+            </span>
+          </div>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            {isLiveUser
+              ? 'You are signed into your private couple cloud space. Logging out will clear your live session on this device and safely preserve your data in the cloud.'
+              : 'You are currently browsing the interactive local demo space. You can sign in with your email or register a real couple space to sync across your devices.'}
+          </p>
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            {isLiveUser ? (
+              <button
+                type="button"
+                onClick={() => logout()}
+                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm flex items-center gap-2 transition-all cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Log Out of OurDiary</span>
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-bold text-xs shadow-sm flex items-center gap-2 transition-all"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Go to Live Couple Login →</span>
+              </Link>
+            )}
           </div>
         </div>
 

@@ -9,7 +9,7 @@ import { useDiary } from '@/store/DiaryContext';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { switchProfile, showToast, setIsLiveUser } = useDiary();
+  const { switchProfile, showToast, setIsLiveUser, loadExistingCoupleSpace } = useDiary();
   const [isSignUp, setIsSignUp] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -57,6 +57,7 @@ export default function LoginPage() {
           setIsLiveUser(true);
           if (typeof window !== 'undefined') {
             localStorage.setItem('ourdiary_is_live_user', 'true');
+            localStorage.setItem('ourdiary_current_user_id', data.session.user.id);
           }
           showToast('Account created successfully! Welcome to OurDiary 💕', 'success');
           router.push('/onboarding');
@@ -82,17 +83,20 @@ export default function LoginPage() {
           setIsLiveUser(true);
           if (typeof window !== 'undefined') {
             localStorage.setItem('ourdiary_is_live_user', 'true');
+            localStorage.setItem('ourdiary_current_user_id', data.session.user.id);
           }
 
           // Check if this user already has an established couple space
           const { data: memberData } = await supabase
             .from('couple_members')
-            .select('couple_id, couples(*)')
+            .select('couple_id, role, couples(*)')
             .eq('user_id', data.session.user.id)
             .maybeSingle();
 
           if (memberData && memberData.couples) {
-            showToast('Welcome back to your couple space! 💕', 'success');
+            const coupleObj = memberData.couples as any;
+            loadExistingCoupleSpace(data.session.user.id, coupleObj);
+            showToast(`Welcome back to ${coupleObj.name}! 💕`, 'heart');
             router.push('/dashboard');
           } else {
             showToast('Signed in! Set up your couple space to get started 💕', 'success');

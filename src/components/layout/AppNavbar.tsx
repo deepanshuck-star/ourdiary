@@ -14,13 +14,19 @@ import {
   Calendar,
   Settings,
   Flame,
+  LogOut,
 } from 'lucide-react';
 
 export function AppNavbar() {
-  const { data, activeProfile, partnerProfile, switchProfile } = useDiary();
+  const { data, activeProfile, partnerProfile, switchProfile, logout, isLiveUser } = useDiary();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const daysTogether = calculateDaysTogether(data.couple.startDate);
+
+  const handleLogout = async () => {
+    setShowProfileMenu(false);
+    await logout();
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#FFF8EE]/90 backdrop-blur-md border-b border-[#EFE4D6]">
@@ -52,11 +58,15 @@ export function AppNavbar() {
           {/* Mode Pill */}
           <Link
             href="/login"
-            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200/80 text-amber-800 text-[11px] font-semibold hover:bg-amber-100/80 transition-colors"
+            className={`hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors ${
+              isLiveUser
+                ? 'bg-purple-100/80 border border-purple-200 text-purple-900 hover:bg-purple-200'
+                : 'bg-amber-50 border border-amber-200/80 text-amber-800 hover:bg-amber-100/80'
+            }`}
             title="Click to view Authentication & Database status"
           >
-            <Sparkles className="w-3 h-3 text-amber-500 fill-amber-400" />
-            <span>Local Demo Mode</span>
+            <Sparkles className={`w-3 h-3 ${isLiveUser ? 'text-purple-600 fill-purple-400' : 'text-amber-500 fill-amber-400'}`} />
+            <span>{isLiveUser ? 'Cloud Couple Space 🔒' : 'Local Demo Mode 🧪'}</span>
           </Link>
         </div>
 
@@ -166,13 +176,24 @@ export function AppNavbar() {
                       <Settings className="w-3.5 h-3.5" />
                       Settings
                     </Link>
-                    <Link
-                      href="/login"
-                      onClick={() => setShowProfileMenu(false)}
-                      className="text-xs text-rose-500 hover:text-rose-700 font-semibold"
-                    >
-                      Auth & Setup →
-                    </Link>
+                    {isLiveUser ? (
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="text-xs text-rose-600 hover:text-rose-800 font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>Log Out</span>
+                      </button>
+                    ) : (
+                      <Link
+                        href="/login"
+                        onClick={() => setShowProfileMenu(false)}
+                        className="text-xs text-rose-500 hover:text-rose-700 font-semibold"
+                      >
+                        Auth & Setup →
+                      </Link>
+                    )}
                   </div>
                 </div>
               </>

@@ -23,12 +23,29 @@ import { useDiary } from '@/store/DiaryContext';
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { initCleanCoupleSpace, switchProfile, showToast, setIsLiveUser } = useDiary();
+  const { initCleanCoupleSpace, switchProfile, showToast, setIsLiveUser, loadExistingCoupleSpace } = useDiary();
   const [activeTab, setActiveTab] = useState<'create' | 'join'>('create');
 
   const supabase = getSupabaseBrowserClient();
   const [authLoading, setAuthLoading] = useState(true);
   const [authenticatedUser, setAuthenticatedUser] = useState<any>(null);
+
+  // Cute Bitmoji avatar presets
+  const CUTE_AVATARS_1 = [
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=Alex&backgroundColor=b6e3f4',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=Leo&backgroundColor=c0aede',
+    'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&auto=format&fit=crop&q=80',
+  ];
+  const CUTE_AVATARS_2 = [
+    'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=Maya&backgroundColor=ffd5dc',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=Zoe&backgroundColor=ffdfbf',
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=80',
+  ];
+
+  const [avatar1, setAvatar1] = useState(CUTE_AVATARS_1[0]);
+  const [avatar2, setAvatar2] = useState(CUTE_AVATARS_2[0]);
 
   // Create form state
   const [coupleName, setCoupleName] = useState('');
@@ -43,7 +60,7 @@ export default function OnboardingPage() {
   const [joinError, setJoinError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
 
-  // Check auth state on mount (without kicking guests out)
+  // Check auth state on mount & auto-redirect if couple space already exists!
   useEffect(() => {
     setStartDate(new Date().toISOString().split('T')[0]);
     async function checkAuth() {
@@ -59,6 +76,22 @@ export default function OnboardingPage() {
         const { data: { session } } = await supabase.auth.getSession();
         if (session && session.user) {
           setAuthenticatedUser(session.user);
+
+          // Check if this user ALREADY has a couple space!
+          const { data: memberData } = await supabase
+            .from('couple_members')
+            .select('couple_id, role, couples(*)')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          if (memberData && memberData.couples) {
+            const coupleObj = memberData.couples as any;
+            loadExistingCoupleSpace(session.user.id, coupleObj);
+            showToast(`Welcome back to ${coupleObj.name}! 💕`, 'heart');
+            router.push('/dashboard');
+            return;
+          }
+
           const userDisplayName =
             session.user.user_metadata?.display_name ||
             (session.user.email ? session.user.email.split('@')[0] : 'You');
@@ -79,7 +112,7 @@ export default function OnboardingPage() {
     }
 
     checkAuth();
-  }, [supabase]);
+  }, [supabase, router]);
 
   // Auto-redirect countdown when couple space is created
   useEffect(() => {
@@ -138,7 +171,7 @@ export default function OnboardingPage() {
       }
     }
 
-    // Initialize clean couple space with 0 dummy memories/events/letters/bucket items
+    // Initialize clean couple space with cute Bitmoji avatars
     initCleanCoupleSpace({
       id: coupleId,
       name: coupleName.trim(),
@@ -151,18 +184,18 @@ export default function OnboardingPage() {
       user1: {
         id: 'user_1',
         name: partner1Name.trim() || 'You',
-        avatar: '/avatars/user-1.png',
+        avatar: avatar1,
       },
       user2: {
         id: 'user_2',
         name: partner2Name.trim() || 'Partner',
-        avatar: '/avatars/user-2.png',
+        avatar: avatar2,
       },
     });
 
     setGeneratedCode(code);
     setIsSubmitting(false);
-    showToast('Clean couple space created! All dummy data erased. 🎉', 'heart');
+    showToast('Clean couple space created with cute bitmojis! 🎉', 'heart');
   };
 
   const handleJoinCouple = async (e: React.FormEvent) => {
@@ -355,6 +388,58 @@ export default function OnboardingPage() {
                     placeholder="e.g. Maya & Alex's Love Story"
                     className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-300 focus:outline-hidden"
                   />
+                </div>
+
+                {/* Cute Bitmoji Selectors */}
+                <div className="p-3 rounded-2xl bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200/60 space-y-2">
+                  <span className="text-[11px] font-bold text-slate-700 block">
+                    Choose Your Cute Bitmoji / Avatars:
+                  </span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <span className="text-[10px] text-slate-500 font-semibold block mb-1">
+                        Your Avatar:
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {CUTE_AVATARS_1.map((url) => (
+                          <button
+                            key={url}
+                            type="button"
+                            onClick={() => setAvatar1(url)}
+                            className={`w-9 h-9 rounded-full overflow-hidden border-2 transition-all ${
+                              avatar1 === url
+                                ? 'border-purple-600 ring-2 ring-purple-300 scale-105'
+                                : 'border-white opacity-70 hover:opacity-100'
+                            }`}
+                          >
+                            <img src={url} alt="Avatar" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-slate-500 font-semibold block mb-1">
+                        Partner&apos;s Avatar:
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {CUTE_AVATARS_2.map((url) => (
+                          <button
+                            key={url}
+                            type="button"
+                            onClick={() => setAvatar2(url)}
+                            className={`w-9 h-9 rounded-full overflow-hidden border-2 transition-all ${
+                              avatar2 === url
+                                ? 'border-rose-600 ring-2 ring-rose-300 scale-105'
+                                : 'border-white opacity-70 hover:opacity-100'
+                            }`}
+                          >
+                            <img src={url} alt="Avatar" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
