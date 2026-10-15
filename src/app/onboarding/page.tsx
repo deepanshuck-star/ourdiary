@@ -1,0 +1,521 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import {
+  Heart,
+  Sparkles,
+  UserPlus,
+  Users,
+  Key,
+  Calendar,
+  ArrowRight,
+  CheckCircle2,
+  Copy,
+  Lock,
+  ShieldCheck,
+  AlertCircle,
+  Loader2,
+} from 'lucide-react';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { useDiary } from '@/store/DiaryContext';
+
+export default function OnboardingPage() {
+  const router = useRouter();
+  const { initCleanCoupleSpace, switchProfile, showToast, setIsLiveUser } = useDiary();
+  const [activeTab, setActiveTab] = useState<'create' | 'join'>('create');
+
+  const supabase = getSupabaseBrowserClient();
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authenticatedUser, setAuthenticatedUser] = useState<any>(null);
+
+  // Create form state
+  const [coupleName, setCoupleName] = useState('');
+  const [partner1Name, setPartner1Name] = useState('');
+  const [partner2Name, setPartner2Name] = useState('');
+  const [startDate, setStartDate] = useState('2024-01-01');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+
+  // Join form state
+  const [inviteCode, setInviteCode] = useState('');
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
+
+  // Check auth state on mount (without kicking guests out)
+  useEffect(() => {
+    setStartDate(new Date().toISOString().split('T')[0]);
+    async function checkAuth() {
+      if (!supabase) {
+        setAuthLoading(false);
+        setPartner1Name('You');
+        setPartner2Name('Partner');
+        setCoupleName('Our Couple Space');
+        return;
+      }
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.user) {
+          setAuthenticatedUser(session.user);
+          const userDisplayName =
+            session.user.user_metadata?.display_name ||
+            (session.user.email ? session.user.email.split('@')[0] : 'You');
+
+          setPartner1Name(userDisplayName);
+          setPartner2Name('Partner');
+          setCoupleName(`${userDisplayName} & Partner's Space`);
+        } else {
+          setPartner1Name('You');
+          setPartner2Name('Partner');
+          setCoupleName('Our Couple Space');
+        }
+      } catch (err) {
+        console.error('Auth verification note:', err);
+      } finally {
+        setAuthLoading(false);
+      }
+    }
+
+    checkAuth();
+  }, [supabase]);
+
+  // Auto-redirect countdown when couple space is created
+  useEffect(() => {
+    if (!generatedCode) return;
+    setCountdown(5);
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          router.push('/dashboard');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [generatedCode, router]);
+
+  const handleCreateCouple = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const coupleId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'c_' + Date.now();
+
+    // If Supabase is live and user is authenticated, insert into remote database
+    if (supabase && authenticatedUser) {
+      try {
+        const { error: coupleErr } = await supabase
+          .from('couples')
+          .insert({
+            id: coupleId,
+            name: coupleName.trim(),
+            relationship_start_date: startDate,
+            anniversary_date: startDate,
+            invite_code: code,
+            theme: 'candy',
+          });
+
+        if (coupleErr) {
+          console.warn('Supabase couple insert note:', coupleErr.message);
+        } else {
+          // Map creator to couple_members
+          const { error: memberErr } = await supabase.from('couple_members').insert({
+            couple_id: coupleId,
+            user_id: authenticatedUser.id,
+            role: 'creator',
+          });
+
+          if (memberErr) {
+            console.warn('Could not map member in Supabase:', memberErr.message);
+          }
+        }
+      } catch (err: any) {
+        console.error('Remote couple space creation note:', err);
+      }
+    }
+
+    // Initialize clean couple space with 0 dummy memories/events/letters/bucket items
+    initCleanCoupleSpace({
+      id: coupleId,
+      name: coupleName.trim(),
+      startDate,
+      anniversaryDate: startDate,
+      theme: 'candy',
+      animationsEnabled: true,
+      inviteCode: code,
+      isLocked: false,
+      user1: {
+        id: 'user_1',
+        name: partner1Name.trim() || 'You',
+        avatar: '/avatars/user-1.png',
+      },
+      user2: {
+        id: 'user_2',
+        name: partner2Name.trim() || 'Partner',
+        avatar: '/avatars/user-2.png',
+      },
+    });
+
+    setGeneratedCode(code);
+    setIsSubmitting(false);
+    showToast('Clean couple space created! All dummy data erased. 🎉', 'heart');
+  };
+
+  const handleJoinCouple = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setJoinError(null);
+    const cleanedCode = inviteCode.trim().toUpperCase();
+    if (!cleanedCode) return;
+
+    setIsSubmitting(true);
+
+    if (supabase && authenticatedUser) {
+      try {
+        // Query couple by invite code
+        const { data: foundCouple, error: findErr } = await supabase
+          .from('couples')
+          .select('*')
+          .eq('invite_code', cleanedCode)
+          .maybeSingle();
+
+        if (findErr || !foundCouple) {
+          setJoinError('Invalid invite code! Please check with your partner and try again.');
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Verify member count (max 2)
+        const { count, error: countErr } = await supabase
+          .from('couple_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('couple_id', foundCouple.id);
+
+        if (count && count >= 2) {
+          setJoinError('This couple space is already full (strictly limited to 2 partners).');
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Insert joining partner
+        await supabase.from('couple_members').insert({
+          couple_id: foundCouple.id,
+          user_id: authenticatedUser.id,
+          role: 'partner',
+        });
+
+        const myName =
+          authenticatedUser.user_metadata?.display_name ||
+          (authenticatedUser.email ? authenticatedUser.email.split('@')[0] : 'Partner');
+
+        initCleanCoupleSpace({
+          id: foundCouple.id,
+          name: foundCouple.name,
+          startDate: foundCouple.relationship_start_date || '2023-01-01',
+          anniversaryDate: foundCouple.anniversary_date,
+          theme: foundCouple.theme || 'candy',
+          animationsEnabled: true,
+          inviteCode: foundCouple.invite_code,
+          isLocked: false,
+          user1: {
+            id: 'user_1',
+            name: 'Partner',
+            avatar: '/avatars/user-1.png',
+          },
+          user2: {
+            id: 'user_2',
+            name: myName,
+            avatar: '/avatars/user-2.png',
+          },
+        });
+
+        switchProfile('user_2');
+        showToast(`Joined ${foundCouple.name}! Welcome to your shared space 💕`, 'success');
+        router.push('/dashboard');
+        return;
+      } catch (err: any) {
+        setJoinError(err?.message || 'Error connecting to couple space.');
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    // Mock / Offline join
+    initCleanCoupleSpace({
+      id: 'c_' + Date.now(),
+      name: 'Our Couple Space',
+      startDate: new Date().toISOString().split('T')[0],
+      anniversaryDate: new Date().toISOString().split('T')[0],
+      theme: 'candy',
+      animationsEnabled: true,
+      inviteCode: cleanedCode,
+      isLocked: false,
+      user1: { id: 'user_1', name: 'Partner', avatar: '/avatars/user-1.png' },
+      user2: { id: 'user_2', name: 'You', avatar: '/avatars/user-2.png' },
+    });
+    switchProfile('user_2');
+    showToast(`Successfully connected with code ${cleanedCode}! 💕`, 'success');
+    router.push('/dashboard');
+  };
+
+  const copyCode = () => {
+    if (generatedCode) {
+      navigator.clipboard.writeText(generatedCode);
+      showToast('Invite code copied to clipboard! 📋', 'success');
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#FFF8EE] via-[#F8C8D8]/20 to-[#CBBEF4]/20 flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <Loader2 className="w-8 h-8 animate-spin text-purple-600 mx-auto" />
+          <p className="text-xs font-semibold text-slate-600">Verifying your account session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF8EE] via-[#F8C8D8]/20 to-[#CBBEF4]/20 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-lg text-center">
+        <Link href="/" className="inline-flex items-center gap-2 mb-4 group">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#F8C8D8] via-[#CBBEF4] to-[#B6DDF4] flex items-center justify-center shadow-md">
+            <Heart className="w-6 h-6 text-rose-500 fill-rose-500" />
+          </div>
+          <span className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-rose-500 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            OurDiary
+          </span>
+        </Link>
+        <h2 className="text-2xl font-extrabold text-slate-900">
+          Set Up Your Clean Couple Space 💕
+        </h2>
+        <p className="mt-2 text-xs text-slate-500">
+          Strictly invite-only for exactly two people. Logged in as{' '}
+          <strong className="text-slate-700">{authenticatedUser?.email || 'Authenticated User'}</strong>.
+        </p>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
+        <div className="bg-white py-8 px-6 shadow-xl rounded-3xl border border-[#EFE4D6] sm:px-10 space-y-6">
+          {/* Tabs */}
+          <div className="flex rounded-2xl bg-slate-100 p-1">
+            <button
+              onClick={() => {
+                setActiveTab('create');
+                setJoinError(null);
+              }}
+              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                activeTab === 'create'
+                  ? 'bg-white text-rose-700 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <UserPlus className="w-4 h-4" />
+              Create Space (Clean Slate)
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('join');
+                setJoinError(null);
+              }}
+              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                activeTab === 'join'
+                  ? 'bg-white text-purple-700 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Key className="w-4 h-4" />
+              Join With Code
+            </button>
+          </div>
+
+          {activeTab === 'create' ? (
+            !generatedCode ? (
+              <form onSubmit={handleCreateCouple} className="space-y-4">
+                <div className="p-3 rounded-2xl bg-rose-50/70 border border-rose-100 text-xs text-rose-900 flex items-start gap-2.5">
+                  <ShieldCheck className="w-4 h-4 text-rose-500 mt-0.5 flex-shrink-0" />
+                  <p>
+                    <strong>Clean Slate Guarantee:</strong> All initial dummy demo data (Alex & Maya) will be completely cleared. Your diary will start with 0 memories so you can build your real memories from scratch!
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Couple / Space Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={coupleName}
+                    onChange={(e) => setCoupleName(e.target.value)}
+                    placeholder="e.g. Maya & Alex's Love Story"
+                    className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-300 focus:outline-hidden"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Your Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={partner1Name}
+                      onChange={(e) => setPartner1Name(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-300 focus:outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Partner&apos;s Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={partner2Name}
+                      onChange={(e) => setPartner2Name(e.target.value)}
+                      placeholder="e.g. Partner"
+                      className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-300 focus:outline-hidden"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Relationship Start Date
+                  </label>
+                  <div className="relative">
+                    <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <input
+                      type="date"
+                      required
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-300 focus:outline-hidden"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-3 px-4 rounded-2xl shadow-md bg-gradient-to-r from-rose-500 to-purple-600 text-white text-xs font-extrabold hover:opacity-95 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      Create Clean Space & Generate Invite Code
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            ) : (
+              <div className="space-y-5 text-center">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-extrabold text-slate-900">
+                    Couple Space Created!
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Send this private 6-character code to {partner2Name} to join your space.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-between">
+                  <span className="text-2xl font-mono font-black text-rose-600 tracking-widest">
+                    {generatedCode}
+                  </span>
+                  <button
+                    onClick={copyCode}
+                    className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 shadow-xs flex items-center gap-1.5 text-xs font-bold"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Copy
+                  </button>
+                </div>
+
+                <p className="text-[11px] text-slate-400">
+                  Don't worry! You can also view or regenerate this code anytime directly from your dashboard settings if it ever gets exposed.
+                </p>
+
+                {countdown !== null && (
+                  <p className="text-xs text-purple-600 font-bold animate-pulse">
+                    Entering dashboard automatically in {countdown}s...
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => router.push('/dashboard')}
+                  className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-rose-500 to-purple-600 text-white text-xs sm:text-sm font-extrabold shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <span>Enter Our Space Now →</span>
+                </button>
+              </div>
+            )
+          ) : (
+            <form onSubmit={handleJoinCouple} className="space-y-4">
+              {joinError && (
+                <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                  <span>{joinError}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Partner&apos;s 6-Character Invite Code
+                </label>
+                <div className="relative">
+                  <Key className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <input
+                    type="text"
+                    required
+                    maxLength={10}
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                    placeholder="e.g. 7X8K2M"
+                    className="w-full pl-10 pr-4 py-2.5 font-mono text-center tracking-widest text-base font-bold rounded-2xl border border-slate-200 focus:ring-2 focus:ring-purple-300 focus:outline-hidden"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1.5">
+                  Ask your partner for the invite code generated when they created your space.
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-3 px-4 rounded-2xl shadow-md bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-extrabold hover:opacity-95 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    Join Partner Space
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          <div className="pt-3 border-t border-slate-100 text-center">
+            <Link href="/login" className="text-xs text-slate-500 hover:text-slate-700 font-semibold">
+              ← Back to Sign In
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

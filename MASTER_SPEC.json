@@ -1,0 +1,164 @@
+{
+  "project": {
+    "name": "OurDiary",
+    "goal": "Build a production-ready, private, playful and colorful relationship web app for exactly two partners, with an animated toy train journey, memories, notes, calendar, gallery, letters, bucket list and statistics.",
+    "design": "Modern polished app, rounded cards, cheerful pink, lavender, coral, mint, yellow and sky-blue accents; not a paper or vintage diary.",
+    "users": 2,
+    "budget": "Prefer free tiers and avoid paid dependencies unless approved."
+  },
+  "agent_command": "Implement the complete OurDiary application in the repository, not just a plan. Inspect existing files first, work incrementally, and validate each phase. Do not create third-party accounts or invent credentials. Build integration code with environment placeholders and provide precise manual setup steps for the owner.",
+  "stack": {
+    "frontend": "Next.js App Router, React, TypeScript, Tailwind CSS, shadcn/ui, Lucide React, Motion for React",
+    "database": "Supabase PostgreSQL",
+    "authentication": "Supabase Auth",
+    "authorization": "Supabase Row Level Security and verified server-side checks",
+    "realtime": "Supabase Realtime",
+    "media_storage": "Cloudinary for all images and videos",
+    "hosting": "Vercel when ready",
+    "validation": "Zod",
+    "dates": "date-fns"
+  },
+  "credentials_and_accounts": {
+    "owner_must_create": [
+      "A Supabase account and project",
+      "A Cloudinary account and cloud environment",
+      "A Vercel account only when deployment is desired"
+    ],
+    "agent_must_do": [
+      "Create .env.example containing only placeholder names and descriptions",
+      "Document where to find each configuration value in the providers' dashboards",
+      "Create .env.local from placeholders only if necessary, ensure it is gitignored, and never commit it",
+      "Never ask the owner to paste secrets into the master JSON, chat, source files, or Git repository",
+      "Generate SQL migration files and setup instructions; never pretend remote migrations or dashboard settings were applied",
+      "If credentials are unavailable, implement the integrations and a clearly marked local demo mode with mock data, without claiming live authentication, storage or synchronization works"
+    ],
+    "environment_example": {
+      "NEXT_PUBLIC_SUPABASE_URL": "https://YOUR_PROJECT.supabase.co",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "YOUR_SUPABASE_PUBLISHABLE_KEY",
+      "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "YOUR_CLOUD_NAME",
+      "CLOUDINARY_API_KEY": "YOUR_CLOUDINARY_API_KEY_SERVER_ONLY",
+      "CLOUDINARY_API_SECRET": "YOUR_CLOUDINARY_API_SECRET_SERVER_ONLY"
+    },
+    "security_notes": [
+      "The Supabase URL and publishable key may be exposed to the browser; RLS is still mandatory",
+      "Never expose the Supabase service-role/secret key or Cloudinary API secret to client-side code",
+      "Cloudinary API key and secret must be server-only; never prefix them with NEXT_PUBLIC_",
+      "Do not use unsigned uploads for real personal media",
+      "Use separate development and production environment variables when possible"
+    ]
+  },
+  "access_model": {
+    "signup": "Invite-only onboarding; disable open public signup after the two approved accounts are established, where supported by provider settings",
+    "couple": "One couple with exactly two approved member user IDs; enforce membership in database and server authorization, not just UI",
+    "profiles": "Each partner has a profile, name, avatar and session",
+    "shared_content": "Only the two couple members may read or modify authorized shared content",
+    "private_notes": "Only the note author may read, list, edit or delete their private notes; do not leak note content or metadata via APIs, counts, joins or Realtime",
+    "writes": "Validate user identity, couple membership, resource ownership and input on every mutation",
+    "login": "Use Supabase Auth with email/password or magic link; implement proper session handling and protected routes"
+  },
+  "database": {
+    "tables": {
+      "profiles": ["id", "display_name", "avatar_public_id", "created_at"],
+      "couples": ["id", "name", "relationship_start_date", "anniversary_date", "theme", "created_at"],
+      "couple_members": ["couple_id", "user_id", "role", "created_at"],
+      "memories": ["id", "couple_id", "memory_date", "title", "story", "mood", "category", "location", "created_by", "created_at", "updated_at"],
+      "memory_media": ["id", "memory_id", "cloudinary_public_id", "cloudinary_asset_id", "resource_type", "delivery_type", "caption", "uploaded_by", "created_at"],
+      "memory_notes": ["id", "memory_id", "author_id", "content", "visibility", "created_at", "updated_at"],
+      "memory_reactions": ["id", "memory_id", "user_id", "emoji", "created_at"],
+      "events": ["id", "couple_id", "title", "event_date", "category", "description", "created_by"],
+      "letters": ["id", "couple_id", "author_id", "recipient_id", "title", "content", "status", "unlock_at", "created_at"],
+      "bucket_items": ["id", "couple_id", "title", "category", "is_completed", "completed_at", "created_by"]
+    },
+    "requirements": [
+      "Create versioned SQL migrations, foreign keys, indexes and timestamps",
+      "Enable and test RLS on every user-content table",
+      "Use couple-membership checks in RLS for shared resources",
+      "Use author-only RLS for private notes; avoid policies that expose them through shared-memory access",
+      "Use secure SQL functions or backend authorization for operations requiring elevated privileges",
+      "Use Supabase client/server helpers appropriate for current Next.js and Supabase packages",
+      "Store Cloudinary identifiers and metadata in PostgreSQL, not image binaries",
+      "Never store passwords in custom tables"
+    ]
+  },
+  "cloudinary": {
+    "purpose": "Store and optimize photos and videos uploaded to OurDiary",
+    "upload_flow": [
+      "Authenticated browser requests upload authorization from a Next.js Route Handler",
+      "Server validates the Supabase session, couple membership, media type and size",
+      "Server issues a short-lived Cloudinary signed upload authorization with controlled folder and parameters",
+      "Browser uploads directly to Cloudinary",
+      "Server verifies and records the uploaded asset metadata in Supabase, linked to an authorized memory",
+      "Use server-authorized deletion of assets and associated database records"
+    ],
+    "privacy": [
+      "Relationship media is sensitive: do not assume Cloudinary's default public delivery URLs are private",
+      "Configure an appropriate restricted delivery mode and server-authorized access/signatures; verify provider plan and feature support before promising private delivery",
+      "Never persist or return unrestricted public media URLs for private assets",
+      "Validate access to a memory before issuing a media URL",
+      "Keep secrets server-side and rate-limit upload-signing endpoints",
+      "Do not rely on Cloudinary folders as an access-control boundary"
+    ],
+    "optimization": [
+      "Use consistent thumbnail, card and detail sizes",
+      "Use automatic format and quality where compatible with the chosen secure delivery setup",
+      "Limit video file sizes and duration to control free-tier usage",
+      "Track storage, bandwidth and transformation credits; keep original backups elsewhere"
+    ]
+  },
+  "features": {
+    "dashboard": ["Couple overview", "Days together", "Anniversary countdown", "Recent memories", "Upcoming events", "Random memory", "Dynamic statistics"],
+    "journey": ["Candy Crush-inspired winding SVG path", "Chronological colorful memory stations", "Animated toy train that follows path direction", "Station preview and click-through", "Responsive touch interaction", "Reduced-motion support", "Year/chapter navigation"],
+    "memories": ["Create, edit, delete and search memories", "Date, story, mood, category, location and tags", "Photo/video upload", "Memory detail page", "Shared perspectives", "Reactions", "Filter and sort"],
+    "notes": ["Shared notes visible to both partners", "Private notes visible only to their author", "Edit/delete own notes", "Enforce visibility using RLS, not frontend filtering alone"],
+    "calendar": ["Monthly navigation", "Memory markers", "Anniversaries and events", "Event create/edit/delete", "Open memories from dates"],
+    "gallery": ["Photo/video grid", "Lightbox and video playback", "Captions", "Filter by memory", "Authorized media delivery"],
+    "letters": ["Write letters", "Drafts", "Recipient-based access", "Future unlock dates enforced server-side, not just hidden in UI"],
+    "bucket_list": ["Create/edit/delete goals", "Categories", "Completion status", "Progress indicators", "Link completed goals to memories"],
+    "stats": ["Days together", "Memories and media counts", "Monthly trends", "Mood distribution", "Bucket-list completion"],
+    "settings": ["Couple details", "Profile editing", "Theme preferences", "Account and session management", "Data export"]
+  },
+  "routes": ["/", "/login", "/onboarding", "/dashboard", "/journey", "/memories", "/memories/new", "/memories/[id]", "/calendar", "/gallery", "/letters", "/bucket-list", "/our-stats", "/settings"],
+  "realtime": {
+    "provider": "Supabase Realtime",
+    "requirements": [
+      "Refresh authorized shared memories, events and notes across both logged-in devices",
+      "Configure Realtime publications and policies correctly",
+      "Do not broadcast private-note content to the other partner",
+      "Handle reconnects and concurrent edits gracefully"
+    ]
+  },
+  "development_workflow": {
+    "phases": [
+      "1. Inspect repository, scaffold Next.js, create design system and responsive layout",
+      "2. Implement realistic local demo data and fully interactive dashboard, memories, notes and navigation",
+      "3. Build animated SVG train journey and station interactions",
+      "4. Build calendar, gallery, letters, bucket list, statistics and settings",
+      "5. Add Supabase Auth, onboarding and protected routes using placeholders",
+      "6. Write Supabase SQL migrations, RLS policies and database integration",
+      "7. Add secure Cloudinary signed upload, restricted delivery and deletion integration",
+      "8. Add Supabase Realtime and two-device updates",
+      "9. Test security, accessibility, responsive behavior and production build; document deployment"
+    ],
+    "checks": ["TypeScript typecheck", "ESLint", "Production build", "Unit tests for authorization logic", "RLS integration tests", "E2E tests for memory CRUD and profile access", "Test private notes cannot be fetched by the other user", "Test unauthorized upload-signature requests are rejected"],
+    "output_expectations": [
+      "Create working project files and reusable components",
+      "Provide .env.example with placeholders only",
+      "Provide README with exact Supabase and Cloudinary dashboard setup instructions",
+      "Explain how the owner applies SQL migrations and configures auth redirects",
+      "Clearly distinguish mock mode from fully connected mode",
+      "Report what was actually tested and what still requires real credentials"
+    ]
+  },
+  "definition_of_done": [
+    "Both authorized partners can log in separately",
+    "Only approved couple members can access relationship data",
+    "Shared memories and notes synchronize across devices",
+    "Private notes cannot be read by the other partner, including via direct API requests",
+    "Photos/videos are uploaded to Cloudinary with authorized signed uploads and appropriately restricted delivery",
+    "Cloudinary asset IDs and memory metadata are stored in Supabase",
+    "Train journey, calendar and gallery update when memories change",
+    "All advertised controls work on desktop and mobile",
+    "No credentials are embedded in code, JSON or Git history",
+    "Project builds successfully and includes reproducible setup instructions"
+  ]
+}
