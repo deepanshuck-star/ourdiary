@@ -359,8 +359,6 @@ export async function fetchMemoryNotesRemote(
     authorName: '',
     content: r.content,
     visibility: r.visibility,
-    passcode: r.passcode || undefined,
-    isLocked: r.is_locked,
     createdAt: r.created_at,
   }));
 }
@@ -376,8 +374,6 @@ export async function createMemoryNoteRemote(
       author_id: authorId,
       content: note.content,
       visibility: note.visibility,
-      passcode: note.passcode || null,
-      is_locked: !!note.isLocked,
     })
     .select()
     .single();
@@ -393,12 +389,11 @@ export async function createMemoryNoteRemote(
 export async function updateMemoryNoteRemote(
   supabase: SupabaseClient,
   id: string,
-  updates: { content?: string; visibility?: 'shared' | 'private'; isLocked?: boolean }
+  updates: { content?: string; visibility?: 'shared' | 'private' }
 ) {
   const patch: Record<string, unknown> = {};
   if (updates.content !== undefined) patch.content = updates.content;
   if (updates.visibility !== undefined) patch.visibility = updates.visibility;
-  if (updates.isLocked !== undefined) patch.is_locked = updates.isLocked;
   if (Object.keys(patch).length === 0) return;
   const { error } = await supabase.from('memory_notes').update(patch).eq('id', id);
   if (error) throw new Error(error.message);
@@ -427,8 +422,6 @@ export async function fetchMemoryNotesForMemoriesRemote(
       authorName: '',
       content: r.content,
       visibility: r.visibility,
-      passcode: r.passcode || undefined,
-      isLocked: r.is_locked,
       createdAt: r.created_at,
     };
     const list = byMemory.get(r.memory_id) || [];

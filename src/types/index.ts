@@ -56,9 +56,10 @@ export interface MemoryNote {
   authorId: ProfileId;
   authorName: string;
   content: string;
+  // 'private' = locked: only the author can see this note at all (enforced
+  // by the database, not just hidden in the UI). 'shared' = unlocked: both
+  // partners can see it. The author can flip it back and forth any time.
   visibility: 'shared' | 'private';
-  passcode?: string;
-  isLocked?: boolean;
   createdAt: string;
 }
 

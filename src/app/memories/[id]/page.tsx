@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
 import { formatDate } from '@/lib/date-utils';
-import { MemoryNote } from '@/types';
 import {
   Calendar,
   MapPin,
@@ -27,9 +26,6 @@ import {
   Share2,
   Compass,
   Unlock,
-  Key,
-  Copy,
-  AlertCircle,
 } from 'lucide-react';
 
 const EMOJI_OPTIONS = [
@@ -59,8 +55,7 @@ function MemoryDetailContent() {
     addNote,
     deleteNote,
     updateNote,
-    unlockNote,
-    showToast,
+    toggleNoteLock,
   } = useDiary();
 
   const memory = data.memories.find((m) => m.id === id);
@@ -71,14 +66,9 @@ function MemoryDetailContent() {
   const [editingPerspectiveProfile, setEditingPerspectiveProfile] = useState<string | null>(null);
   const [perspectiveDraft, setPerspectiveDraft] = useState('');
 
-  // Note form & passcode states
-  const generatePasscode = () => 'PASS-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+  // Note form state
   const [newNoteContent, setNewNoteContent] = useState('');
   const [newNoteVisibility, setNewNoteVisibility] = useState<'shared' | 'private'>('shared');
-  const [generatedPasscode, setGeneratedPasscode] = useState<string>(generatePasscode);
-  const [unlockingNote, setUnlockingNote] = useState<MemoryNote | null>(null);
-  const [enteredPasscode, setEnteredPasscode] = useState('');
-  const [unlockError, setUnlockError] = useState<string | null>(null);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingNoteContent, setEditingNoteContent] = useState('');
 
@@ -128,12 +118,7 @@ function MemoryDetailContent() {
   const handleAddNote = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newNoteContent.trim()) return;
-    if (newNoteVisibility === 'private') {
-      addNote(memory.id, newNoteContent.trim(), 'private', generatedPasscode);
-      setGeneratedPasscode(generatePasscode());
-    } else {
-      addNote(memory.id, newNoteContent.trim(), 'shared');
-    }
+    addNote(memory.id, newNoteContent.trim(), newNoteVisibility);
     setNewNoteContent('');
   };
 
@@ -157,14 +142,13 @@ function MemoryDetailContent() {
     router.push('/memories');
   };
 
-  // Group notes: shared, my private notes, and partner's locked/unlocked capsules
+  // Group notes: shared (both can see) vs. my own locked notes. A locked
+  // note belonging to the partner is never in this list at all — the
+  // database simply never sends it to anyone but its author.
   const allNotes = memory.notes || [];
   const sharedNotes = allNotes.filter((n) => n.visibility === 'shared');
   const myPrivateNotes = allNotes.filter(
     (n) => n.visibility === 'private' && n.authorId === activeProfile.id
-  );
-  const partnerPrivateNotes = allNotes.filter(
-    (n) => n.visibility === 'private' && n.authorId !== activeProfile.id
   );
 
   // Related memories (same category or nearby)
@@ -585,33 +569,15 @@ function MemoryDetailContent() {
               </button>
             </div>
 
-            {/* Secret Passcode Banner for Private Notes */}
+            {/* Locked note explainer */}
             {newNoteVisibility === 'private' && (
-              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-900 space-y-1.5 animate-in fade-in">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold flex items-center gap-1.5 text-rose-700">
-                    <Key className="w-3.5 h-3.5" />
-                    Auto-Generated Secret Passcode:
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <span className="font-mono font-black text-rose-600 bg-white px-2.5 py-0.5 rounded-lg border border-rose-200 text-xs tracking-wider">
-                      {generatedPasscode}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(generatedPasscode);
-                        showToast('Secret passcode copied to clipboard! 📋', 'success');
-                      }}
-                      className="p-1 hover:bg-rose-100 rounded text-rose-600 transition-colors"
-                      title="Copy passcode"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
+              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-900 space-y-1 animate-in fade-in">
+                <p className="font-bold flex items-center gap-1.5 text-rose-700">
+                  <Lock className="w-3.5 h-3.5" />
+                  This note will be locked
+                </p>
                 <p className="text-[11px] text-rose-600 leading-relaxed">
-                  🔒 <strong>Save this code!</strong> This note will be sealed. When you want {partnerProfile.name} to unlock and read this note, share this passcode with them.
+                  Only you can see it. You can unlock it for {partnerProfile.name} any time from the note itself — and lock it again whenever you want.
                 </p>
               </div>
             )}
@@ -667,6 +633,13 @@ function MemoryDetailContent() {
 
                       {note.authorId === activeProfile.id && editingNoteId !== note.id && (
                         <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => toggleNoteLock(memory.id, note.id)}
+                            className="p-1 text-slate-400 hover:text-rose-600"
+                            title={`Lock this note (hide from ${partnerProfile.name})`}
+                          >
+                            <Lock className="w-3.5 h-3.5" />
+                          </button>
                           <button
                             onClick={() => {
                               setEditingNoteId(note.id);
@@ -760,31 +733,20 @@ function MemoryDetailContent() {
                         )}
                       </div>
 
-                      {/* Display Passcode for Author */}
-                      {note.passcode && (
-                        <div className="mt-1 pt-2 border-t border-rose-200/60 flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 text-[11px] text-rose-700 font-semibold">
-                            <Key className="w-3.5 h-3.5 text-rose-500" />
-                            <span>
-                              Passcode:{' '}
-                              <strong className="font-mono font-black text-rose-900 bg-white px-2 py-0.5 rounded border border-rose-200">
-                                {note.passcode}
-                              </strong>
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              navigator.clipboard.writeText(note.passcode || '');
-                              showToast(`Passcode ${note.passcode} copied! Share it with ${partnerProfile.name} 💕`, 'heart');
-                            }}
-                            className="px-2.5 py-1 rounded-lg bg-white border border-rose-200 text-rose-700 hover:bg-rose-100 text-[11px] font-bold shadow-2xs flex items-center gap-1 transition-colors"
-                          >
-                            <Copy className="w-3 h-3" />
-                            <span>Share Passcode</span>
-                          </button>
-                        </div>
-                      )}
+                      {/* Lock / unlock toggle — the author can share or re-seal it any time */}
+                      <div className="mt-1 pt-2 border-t border-rose-200/60 flex items-center justify-between">
+                        <span className="text-[11px] text-rose-600">
+                          Locked — only you can see this note.
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => toggleNoteLock(memory.id, note.id)}
+                          className="px-2.5 py-1 rounded-lg bg-white border border-rose-200 text-rose-700 hover:bg-rose-100 text-[11px] font-bold shadow-2xs flex items-center gap-1 transition-colors"
+                        >
+                          <Unlock className="w-3 h-3" />
+                          <span>Unlock for {partnerProfile.name}</span>
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -792,81 +754,6 @@ function MemoryDetailContent() {
                 <p className="text-xs text-slate-400 italic">No private notes recorded under your profile.</p>
               )}
             </div>
-
-            {/* Partner's Secret Notes & Sealed Capsules */}
-            {partnerPrivateNotes.length > 0 && (
-              <div className="pt-4 border-t border-slate-100">
-                <h4 className="text-xs font-bold text-purple-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-purple-500" />
-                  Secret Notes from {partnerProfile.name} ({partnerPrivateNotes.length})
-                </h4>
-                <div className="space-y-2.5">
-                  {partnerPrivateNotes.map((note) => {
-                    const isUnlocked = note.isLocked === false;
-
-                    if (isUnlocked) {
-                      return (
-                        <div
-                          key={note.id}
-                          className="p-4 rounded-2xl bg-purple-50/70 border border-purple-200 shadow-2xs space-y-1.5 animate-in fade-in"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-xs text-purple-900">{note.authorName}</span>
-                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center gap-1">
-                                <Unlock className="w-3 h-3 text-emerald-600" />
-                                Unlocked Secret
-                              </span>
-                            </div>
-                            <span className="text-[10px] text-purple-400">{formatDate(note.createdAt)}</span>
-                          </div>
-                          <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-medium">
-                            {note.content}
-                          </p>
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <div
-                        key={note.id}
-                        className="p-4 rounded-2xl bg-gradient-to-r from-purple-50 via-pink-50 to-amber-50 border border-purple-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-2xl bg-purple-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
-                            <Lock className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-xs text-slate-900">
-                                Wax-Sealed Secret Capsule from {note.authorName}
-                              </span>
-                              <span className="text-[10px] text-slate-400">{formatDate(note.createdAt)}</span>
-                            </div>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                              Ask {note.authorName} for the secret passcode to unlock and read this note.
-                            </p>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setUnlockingNote(note);
-                            setEnteredPasscode('');
-                            setUnlockError(null);
-                          }}
-                          className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold shadow-xs hover:opacity-95 transition-opacity flex items-center gap-1.5 flex-shrink-0"
-                        >
-                          <Key className="w-3.5 h-3.5" />
-                          <span>Enter Passcode to Reveal</span>
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -940,66 +827,6 @@ function MemoryDetailContent() {
           </div>
         )}
 
-        {/* Unlock Passcode Modal for Partner's Private Note */}
-        {unlockingNote && (
-          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 space-y-4 animate-in fade-in zoom-in-95">
-              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center">
-                <Key className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Unlock Secret Note</h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Enter the passcode {unlockingNote.authorName} gave you to unlock this sealed secret.
-                </p>
-              </div>
-
-              {unlockError && (
-                <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-500" />
-                  <span>{unlockError}</span>
-                </div>
-              )}
-
-              <div>
-                <input
-                  type="text"
-                  autoFocus
-                  value={enteredPasscode}
-                  onChange={(e) => setEnteredPasscode(e.target.value.toUpperCase())}
-                  placeholder="e.g. PASS-8X2M"
-                  className="w-full px-3.5 py-2.5 font-mono text-center tracking-widest text-base font-bold rounded-2xl border border-slate-200 focus:ring-2 focus:ring-purple-300 focus:outline-hidden"
-                />
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setUnlockingNote(null)}
-                  className="flex-1 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!enteredPasscode.trim()) return;
-                    const success = unlockNote(memory.id, unlockingNote.id, enteredPasscode.trim());
-                    if (success) {
-                      showToast('Secret note unlocked successfully! 💖', 'heart');
-                      setUnlockingNote(null);
-                    } else {
-                      setUnlockError('Incorrect passcode! Please check with ' + unlockingNote.authorName + '.');
-                    }
-                  }}
-                  className="flex-1 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold shadow-md hover:opacity-95"
-                >
-                  Unlock Note
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </AppShell>
   );

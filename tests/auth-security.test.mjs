@@ -421,3 +421,49 @@ test('Migration 10: passcode-locked private notes are fetchable by the couple, n
   // A true private note (no passcode) must still be author-only.
   assert.ok(sql.includes("visibility = 'private' AND author_id = auth.uid()"));
 });
+
+// ==============================================================================
+// TEST SUITE: Consistent sync-failure toasts + lock/unlock replaces passcode
+// ==============================================================================
+
+test('Reliability: every background database write shows a toast on failure, not just console.error', () => {
+  const ctx = read('src', 'store', 'DiaryContext.tsx');
+  const lines = ctx.split('\n');
+  const silent = [];
+  lines.forEach((line, i) => {
+    if (!line.includes("console.error('[OurDiary] Failed")) return;
+    // The toast call is on the same line or one of the next couple of lines.
+    const nearby = lines.slice(i, i + 3).join('\n');
+    if (!nearby.includes('showToast(')) silent.push(line.trim());
+  });
+  assert.deepEqual(silent, [], 'every failed-sync console.error must be paired with a showToast');
+
+  const failureCount = (ctx.match(/console\.error\('\[OurDiary\] Failed/g) || []).length;
+  assert.ok(failureCount >= 20, 'expected at least 20 handled background writes');
+});
+
+test('Security: passcode notes are gone — replaced by a real server-enforced lock/unlock toggle', () => {
+  const ctx = read('src', 'store', 'DiaryContext.tsx');
+  const sync = read('src', 'lib', 'supabase', 'sync.ts');
+  const types = read('src', 'types', 'index.ts');
+  const notePage = read('src', 'app', 'memories', '[id]', 'page.tsx');
+
+  assert.ok(ctx.includes('const toggleNoteLock ='));
+  assert.ok(!ctx.includes('const unlockNote ='));
+  assert.ok(!sync.includes('passcode'));
+  assert.ok(!sync.includes('is_locked'));
+  assert.ok(!types.includes('passcode'));
+  assert.ok(!notePage.includes('passcode'));
+  assert.ok(!notePage.includes('unlockNote'));
+});
+
+test('Migration 11: drops passcode columns and restores the plain author-only private-note policy', () => {
+  const sql = fs.readFileSync(
+    path.join(process.cwd(), 'supabase', 'migrations', '20261014000011_replace_passcode_with_lock_toggle.sql'),
+    'utf8'
+  );
+  assert.ok(sql.includes('DROP COLUMN IF EXISTS passcode'));
+  assert.ok(sql.includes('DROP COLUMN IF EXISTS is_locked'));
+  assert.ok(sql.includes("visibility = 'private' AND author_id = auth.uid()"));
+  assert.ok(!sql.includes('passcode IS NOT NULL'));
+});

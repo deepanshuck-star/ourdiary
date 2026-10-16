@@ -67,8 +67,8 @@ interface DiaryContextValue {
   setIsLiveUser: (live: boolean) => void;
   initCleanCoupleSpace: (couple: Couple) => void;
   regenerateCoupleCode: () => Promise<string>;
-  addNote: (memoryId: string, content: string, visibility: 'shared' | 'private', passcode?: string) => void;
-  unlockNote: (memoryId: string, noteId: string, passcode: string) => boolean;
+  addNote: (memoryId: string, content: string, visibility: 'shared' | 'private') => void;
+  toggleNoteLock: (memoryId: string, noteId: string) => void;
   updateNote: (memoryId: string, noteId: string, content: string, visibility: 'shared' | 'private') => void;
   deleteNote: (memoryId: string, noteId: string) => void;
   addEvent: (event: Omit<CalendarEvent, 'id'>) => CalendarEvent;
@@ -349,6 +349,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     if (supabase && isLiveUser && !id.startsWith('mem_')) {
       updateMemoryRemote(supabase, id, updates).catch((err) => {
         console.error('[OurDiary] Failed to update memory in database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
       });
     }
   };
@@ -364,6 +365,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     if (supabase && isLiveUser && !id.startsWith('mem_')) {
       deleteMemoryRemote(supabase, id).catch((err) => {
         console.error('[OurDiary] Failed to delete memory from database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
       });
     }
   };
@@ -397,16 +399,20 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
             ),
           }));
         })
-        .catch((err) => console.error('[OurDiary] Failed to save photo to database:', err));
+        .catch((err) => {
+        console.error('[OurDiary] Failed to save photo to database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
   const deletePhotoFromMemory = (memoryId: string, photoId: string) => {
     const supabase = remoteClient();
     if (supabase && !photoId.startsWith('p_')) {
-      deleteMemoryPhotoRemote(supabase, photoId).catch((err) =>
-        console.error('[OurDiary] Failed to delete photo from database:', err)
-      );
+      deleteMemoryPhotoRemote(supabase, photoId).catch((err) => {
+        console.error('[OurDiary] Failed to delete photo from database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
     setData((prev) => ({
       ...prev,
@@ -650,12 +656,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     return newCode;
   };
 
-  const addNote = (
-    memoryId: string,
-    content: string,
-    visibility: 'shared' | 'private',
-    passcode?: string
-  ) => {
+  const addNote = (memoryId: string, content: string, visibility: 'shared' | 'private') => {
     const author = data.activeProfileId === 'user_1' ? data.couple.user1 : data.couple.user2;
     const tempId = 'n_' + Date.now();
     const newNote: MemoryNote = {
@@ -665,8 +666,6 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       authorName: author.name,
       content,
       visibility,
-      passcode: passcode || undefined,
-      isLocked: visibility === 'private' && !!passcode,
       createdAt: new Date().toISOString(),
     };
     setData((prev) => ({
@@ -677,7 +676,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     }));
     showToast(
       visibility === 'private'
-        ? `Private note protected with passcode ${passcode ? `(${passcode})` : ''} 🔒`
+        ? 'Locked note added — only you can see it until you unlock it 🔒'
         : 'Shared note added! 💌',
       'heart'
     );
@@ -702,8 +701,12 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const unlockNote = (memoryId: string, noteId: string, enteredPasscode: string): boolean => {
-    let success = false;
+  // Only the note's author can flip this — enforced both by the UI (which
+  // only shows the toggle on your own notes) and by the database (the RLS
+  // update policy requires author_id = auth.uid()). Locking a note again
+  // after unlocking it is fully supported; it just goes back to 'private'.
+  const toggleNoteLock = (memoryId: string, noteId: string) => {
+    let nextVisibility: 'shared' | 'private' | null = null;
     setData((prev) => ({
       ...prev,
       memories: prev.memories.map((m) => {
@@ -711,27 +714,25 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         return {
           ...m,
           notes: m.notes.map((n) => {
-            if (n.id === noteId) {
-              if (
-                n.passcode &&
-                n.passcode.trim().toUpperCase() === enteredPasscode.trim().toUpperCase()
-              ) {
-                success = true;
-                return { ...n, isLocked: false };
-              }
-            }
-            return n;
+            if (n.id !== noteId) return n;
+            nextVisibility = n.visibility === 'private' ? 'shared' : 'private';
+            return { ...n, visibility: nextVisibility };
           }),
         };
       }),
     }));
+    showToast(
+      nextVisibility === 'private' ? 'Note locked — only you can see it 🔒' : 'Note unlocked — your partner can see it now 💌',
+      'heart'
+    );
+
     const supabase = remoteClient();
-    if (success && supabase && !noteId.startsWith('n_')) {
-      updateMemoryNoteRemote(supabase, noteId, { isLocked: false }).catch((err) =>
-        console.error('[OurDiary] Failed to sync unlocked note:', err)
-      );
+    if (supabase && nextVisibility && !noteId.startsWith('n_')) {
+      updateMemoryNoteRemote(supabase, noteId, { visibility: nextVisibility }).catch((err) => {
+        console.error('[OurDiary] Failed to sync note lock state:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
-    return success;
   };
 
   const updateNote = (
@@ -755,9 +756,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
 
     const supabase = remoteClient();
     if (supabase && !noteId.startsWith('n_')) {
-      updateMemoryNoteRemote(supabase, noteId, { content, visibility }).catch((err) =>
-        console.error('[OurDiary] Failed to update note in database:', err)
-      );
+      updateMemoryNoteRemote(supabase, noteId, { content, visibility }).catch((err) => {
+        console.error('[OurDiary] Failed to update note in database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
@@ -772,9 +774,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
 
     const supabase = remoteClient();
     if (supabase && !noteId.startsWith('n_')) {
-      deleteMemoryNoteRemote(supabase, noteId).catch((err) =>
-        console.error('[OurDiary] Failed to delete note from database:', err)
-      );
+      deleteMemoryNoteRemote(supabase, noteId).catch((err) => {
+        console.error('[OurDiary] Failed to delete note from database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
@@ -798,7 +801,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
             events: prev.events.map((e) => (e.id === tempId ? { ...e, id: saved.id } : e)),
           }));
         })
-        .catch((err) => console.error('[OurDiary] Failed to save event to database:', err));
+        .catch((err) => {
+        console.error('[OurDiary] Failed to save event to database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
 
     return createdEvent;
@@ -813,9 +819,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
 
     const supabase = remoteClient();
     if (supabase && !id.startsWith('ev_')) {
-      updateEventRemote(supabase, id, updates).catch((err) =>
-        console.error('[OurDiary] Failed to update event in database:', err)
-      );
+      updateEventRemote(supabase, id, updates).catch((err) => {
+        console.error('[OurDiary] Failed to update event in database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
@@ -828,9 +835,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
 
     const supabase = remoteClient();
     if (supabase && !id.startsWith('ev_')) {
-      deleteEventRemote(supabase, id).catch((err) =>
-        console.error('[OurDiary] Failed to delete event from database:', err)
-      );
+      deleteEventRemote(supabase, id).catch((err) => {
+        console.error('[OurDiary] Failed to delete event from database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
@@ -856,7 +864,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
             letters: prev.letters.map((l) => (l.id === tempId ? { ...l, id: saved.id, createdAt: saved.createdAt } : l)),
           }));
         })
-        .catch((err) => console.error('[OurDiary] Failed to save letter to database:', err));
+        .catch((err) => {
+        console.error('[OurDiary] Failed to save letter to database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
 
     return createdLetter;
@@ -871,9 +882,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
 
     const supabase = remoteClient();
     if (supabase && !id.startsWith('let_')) {
-      updateLetterRemote(supabase, id, updates).catch((err) =>
-        console.error('[OurDiary] Failed to update letter in database:', err)
-      );
+      updateLetterRemote(supabase, id, updates).catch((err) => {
+        console.error('[OurDiary] Failed to update letter in database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
@@ -886,9 +898,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
 
     const supabase = remoteClient();
     if (supabase && !id.startsWith('let_')) {
-      deleteLetterRemote(supabase, id).catch((err) =>
-        console.error('[OurDiary] Failed to delete letter from database:', err)
-      );
+      deleteLetterRemote(supabase, id).catch((err) => {
+        console.error('[OurDiary] Failed to delete letter from database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
@@ -910,7 +923,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
             bucketList: prev.bucketList.map((b) => (b.id === tempId ? { ...b, id: saved.id } : b)),
           }));
         })
-        .catch((err) => console.error('[OurDiary] Failed to save bucket item to database:', err));
+        .catch((err) => {
+        console.error('[OurDiary] Failed to save bucket item to database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
 
     return createdItem;
@@ -925,9 +941,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
 
     const supabase = remoteClient();
     if (supabase && !id.startsWith('b_')) {
-      updateBucketItemRemote(supabase, id, updates).catch((err) =>
-        console.error('[OurDiary] Failed to update bucket item in database:', err)
-      );
+      updateBucketItemRemote(supabase, id, updates).catch((err) => {
+        console.error('[OurDiary] Failed to update bucket item in database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
@@ -949,9 +966,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
 
     const supabase = remoteClient();
     if (supabase && nextUpdates && !id.startsWith('b_')) {
-      updateBucketItemRemote(supabase, id, nextUpdates).catch((err) =>
-        console.error('[OurDiary] Failed to update bucket item in database:', err)
-      );
+      updateBucketItemRemote(supabase, id, nextUpdates).catch((err) => {
+        console.error('[OurDiary] Failed to update bucket item in database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
@@ -964,9 +982,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
 
     const supabase = remoteClient();
     if (supabase && !id.startsWith('b_')) {
-      deleteBucketItemRemote(supabase, id).catch((err) =>
-        console.error('[OurDiary] Failed to delete bucket item from database:', err)
-      );
+      deleteBucketItemRemote(supabase, id).catch((err) => {
+        console.error('[OurDiary] Failed to delete bucket item from database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
@@ -1146,7 +1165,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         question,
         today,
         content.trim()
-      ).catch((err) => console.error('[OurDiary] Failed to save daily spark answer to database:', err));
+      ).catch((err) => {
+        console.error('[OurDiary] Failed to save daily spark answer to database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
@@ -1174,7 +1196,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
             ),
           }));
         })
-        .catch((err) => console.error('[OurDiary] Failed to save wheel option to database:', err));
+        .catch((err) => {
+        console.error('[OurDiary] Failed to save wheel option to database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
@@ -1187,9 +1212,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
 
     const supabase = remoteClient();
     if (supabase && !id.startsWith('w_')) {
-      deleteWheelOptionRemote(supabase, id).catch((err) =>
-        console.error('[OurDiary] Failed to delete wheel option from database:', err)
-      );
+      deleteWheelOptionRemote(supabase, id).catch((err) => {
+        console.error('[OurDiary] Failed to delete wheel option from database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
@@ -1219,7 +1245,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
             loveCoupons: (prev.loveCoupons || []).map((c) => (c.id === tempId ? { ...c, id: saved.id } : c)),
           }));
         })
-        .catch((err) => console.error('[OurDiary] Failed to save love coupon to database:', err));
+        .catch((err) => {
+        console.error('[OurDiary] Failed to save love coupon to database:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
@@ -1243,9 +1272,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
 
     const supabase = remoteClient();
     if (supabase && !id.startsWith('c_')) {
-      redeemLoveCouponRemote(supabase, id, redeemedDate).catch((err) =>
-        console.error('[OurDiary] Failed to sync redeemed coupon:', err)
-      );
+      redeemLoveCouponRemote(supabase, id, redeemedDate).catch((err) => {
+        console.error('[OurDiary] Failed to sync redeemed coupon:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
     }
   };
 
@@ -1297,7 +1327,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         setIsLiveUser,
         initCleanCoupleSpace,
         regenerateCoupleCode,
-        unlockNote,
+        toggleNoteLock,
         sendHeartbeatPing,
         markHeartbeatSeen,
         updateMoodBeacon,
