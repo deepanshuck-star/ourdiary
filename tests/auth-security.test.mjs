@@ -411,3 +411,13 @@ test('DiaryContext: ephemeral state (heartbeat/mood/soundtrack) is NOT sent to t
     assert.ok(!moodFnMatch[0].includes(fn));
   }
 });
+
+test('Migration 10: passcode-locked private notes are fetchable by the couple, not just the author', () => {
+  const sql = fs.readFileSync(
+    path.join(process.cwd(), 'supabase', 'migrations', '20261014000010_private_note_passcode_visibility.sql'),
+    'utf8'
+  );
+  assert.ok(sql.includes("passcode IS NOT NULL AND public.can_access_memory(memory_id)"));
+  // A true private note (no passcode) must still be author-only.
+  assert.ok(sql.includes("visibility = 'private' AND author_id = auth.uid()"));
+});
