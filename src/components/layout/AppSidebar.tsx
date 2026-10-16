@@ -125,9 +125,9 @@ export function AppSidebar() {
   const { data, isLiveUser, logout } = useDiary();
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 border-r border-[#EFE4D6] bg-white/70 backdrop-blur-md p-4 min-h-[calc(100vh-4rem)]">
+    <aside className="hidden lg:flex flex-col w-64 border-r border-[#EFE4D6] bg-white/70 backdrop-blur-md p-4 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
       {/* Couple Mini Banner */}
-      <div className="p-3.5 mb-4 rounded-2xl bg-gradient-to-r from-[#F8C8D8]/40 via-[#CBBEF4]/30 to-[#B6DDF4]/40 border border-[#EFE4D6] flex items-center gap-3">
+      <div className="p-3.5 mb-4 rounded-2xl bg-gradient-to-r from-[#F8C8D8]/40 via-[#CBBEF4]/30 to-[#B6DDF4]/40 border border-[#EFE4D6] flex items-center gap-3 shrink-0">
         <div className="flex -space-x-3 items-center">
           <img
             src={data.couple.user1.avatar}
@@ -150,7 +150,7 @@ export function AppSidebar() {
       </div>
 
       {/* Navigation List */}
-      <nav className="flex-1 space-y-1.5">
+      <nav className="flex-1 space-y-1.5 shrink-0">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -188,23 +188,23 @@ export function AppSidebar() {
       </nav>
 
       {/* Fun footer tip & Logout button */}
-      <div className="mt-auto pt-4 border-t border-slate-100 space-y-3">
-        {isLiveUser ? (
-          <button
-            type="button"
-            onClick={() => logout()}
-            className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-all cursor-pointer shadow-xs"
-          >
-            <LogOut className="w-4 h-4 text-rose-500" />
-            <span>Sign Out / Log Out</span>
-          </button>
-        ) : (
+      <div className="mt-auto pt-4 border-t border-slate-100 space-y-2.5 shrink-0">
+        <button
+          type="button"
+          onClick={() => logout(true)}
+          className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl border border-rose-200 bg-rose-50/80 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-all cursor-pointer shadow-xs active:scale-95"
+        >
+          <LogOut className="w-4 h-4 text-rose-600" />
+          <span>Sign Out / Log Out</span>
+        </button>
+
+        {!isLiveUser && (
           <Link
             href="/login"
-            className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl border border-purple-200 bg-purple-50/70 hover:bg-purple-100 text-purple-700 font-bold text-xs transition-all shadow-xs"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-purple-200 bg-purple-50/70 hover:bg-purple-100 text-purple-700 font-bold text-xs transition-all shadow-xs"
           >
-            <Sparkles className="w-4 h-4 text-purple-500" />
-            <span>Login or Create Space →</span>
+            <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+            <span>Login to Real Space →</span>
           </Link>
         )}
 

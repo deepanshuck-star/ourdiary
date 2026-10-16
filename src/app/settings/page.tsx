@@ -175,6 +175,62 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* Couple Space Account & Session Card (Visible at Top!) */}
+        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 sm:p-8 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                <LogOut className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="font-extrabold text-lg text-slate-900">Couple Space Account & Session</h2>
+                <p className="text-xs text-slate-500">
+                  Manage your current session, switch accounts, or log out of this space
+                </p>
+              </div>
+            </div>
+            <span
+              className={`text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider self-start sm:self-auto ${
+                isLiveUser ? 'bg-purple-100 text-purple-800' : 'bg-amber-100 text-amber-800'
+              }`}
+            >
+              {isLiveUser ? 'Live Cloud Space 🔒' : 'Local Demo Mode 🧪'}
+            </span>
+          </div>
+
+          <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold text-slate-800">
+                Active Space: <span className="text-purple-600 font-extrabold">{data.couple.name}</span>
+              </p>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                {isLiveUser
+                  ? 'Your couple space is securely connected and synced with the Supabase database.'
+                  : 'You are currently in interactive demo mode. You can log in with an email to connect with your partner in real time.'}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => logout(true)}
+                className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm flex items-center gap-2 transition-all cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Log Out of OurDiary</span>
+              </button>
+
+              <Link
+                href="/login"
+                className="px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-xs flex items-center gap-1.5 transition-all"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+                <span>Switch / Sign In</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+
         {/* Couple & Relationship Settings Card */}
         <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 sm:p-8 shadow-sm space-y-6">
           <div className="flex items-center gap-2 pb-4 border-b border-slate-100">
@@ -493,48 +549,6 @@ export default function SettingsPage() {
                 🤖 <strong>Android (Chrome):</strong> Tap <em>Menu (⋮)</em> &rarr; <em>Install App / Add to Home Screen</em>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Couple Space Account & Session */}
-        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 sm:p-8 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
-            <div className="flex items-center gap-2">
-              <LogOut className="w-5 h-5 text-rose-500" />
-              <h2 className="font-extrabold text-lg text-slate-900">Couple Space Account & Session</h2>
-            </div>
-            <span
-              className={`text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider self-start sm:self-auto ${
-                isLiveUser ? 'bg-purple-100 text-purple-800' : 'bg-amber-100 text-amber-800'
-              }`}
-            >
-              {isLiveUser ? 'Live Cloud Space 🔒' : 'Local Demo Mode 🧪'}
-            </span>
-          </div>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            {isLiveUser
-              ? 'You are signed into your private couple cloud space. Logging out will clear your live session on this device and safely preserve your data in the cloud.'
-              : 'You are currently browsing the interactive local demo space. You can sign in with your email or register a real couple space to sync across your devices.'}
-          </p>
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            {isLiveUser ? (
-              <button
-                type="button"
-                onClick={() => logout()}
-                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm flex items-center gap-2 transition-all cursor-pointer"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Log Out of OurDiary</span>
-              </button>
-            ) : (
-              <Link
-                href="/login"
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-bold text-xs shadow-sm flex items-center gap-2 transition-all"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span>Go to Live Couple Login →</span>
-              </Link>
-            )}
           </div>
         </div>
 

@@ -85,7 +85,7 @@ interface DiaryContextValue {
   redeemLoveCoupon: (id: string) => void;
   toggleSoundtrack: () => void;
   loadExistingCoupleSpace: (userId: string, remoteCouple: any) => void;
-  logout: () => Promise<void>;
+  logout: (redirectToLogin?: boolean) => Promise<void>;
   toasts: ToastInfo[];
   showToast: (message: string, type?: ToastInfo['type']) => void;
   dismissToast: (id: string) => void;
@@ -435,7 +435,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     }));
   };
 
-  const logout = async () => {
+  const logout = async (redirectToLogin: boolean = true) => {
     const supabase = getSupabaseBrowserClient();
     if (supabase) {
       try {
@@ -449,9 +449,19 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('ourdiary_is_live_user');
       localStorage.removeItem('ourdiary_current_user_id');
+      localStorage.removeItem('ourdiary_real_couple_v1');
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('ourdiary_space_')) {
+          localStorage.removeItem(key);
+        }
+      });
     }
     setData(JSON.parse(JSON.stringify(initialDiaryData)));
     showToast('Logged out successfully. See you soon! 💕', 'heart');
+
+    if (redirectToLogin && typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
   };
 
   const regenerateCoupleCode = async (): Promise<string> => {

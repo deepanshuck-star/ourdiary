@@ -42,7 +42,11 @@ export function AppNavbar() {
                 OurDiary
                 <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-300" />
               </span>
-              <p className="text-[11px] font-medium text-slate-500 -mt-1">{data.couple.name}’s Space</p>
+              <p className="text-[11px] font-medium text-slate-500 -mt-1">
+                {data.couple.name.endsWith('Space')
+                  ? data.couple.name
+                  : `${data.couple.name}’s Space`}
+              </p>
             </div>
           </Link>
 
@@ -176,7 +180,16 @@ export function AppNavbar() {
                       <Settings className="w-3.5 h-3.5" />
                       Settings
                     </Link>
-                    {isLiveUser ? (
+                    <div className="flex items-center gap-2">
+                      {!isLiveUser && (
+                        <Link
+                          href="/login"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="text-xs text-purple-600 hover:text-purple-800 font-semibold"
+                        >
+                          Sign In →
+                        </Link>
+                      )}
                       <button
                         type="button"
                         onClick={handleLogout}
@@ -185,20 +198,23 @@ export function AppNavbar() {
                         <LogOut className="w-3.5 h-3.5" />
                         <span>Log Out</span>
                       </button>
-                    ) : (
-                      <Link
-                        href="/login"
-                        onClick={() => setShowProfileMenu(false)}
-                        className="text-xs text-rose-500 hover:text-rose-700 font-semibold"
-                      >
-                        Auth & Setup →
-                      </Link>
-                    )}
+                    </div>
                   </div>
                 </div>
               </>
             )}
           </div>
+
+          {/* Direct Visible Log Out Button */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            title="Log out of this space"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95"
+          >
+            <LogOut className="w-3.5 h-3.5 text-rose-600" />
+            <span className="hidden md:inline">Log Out</span>
+          </button>
         </div>
       </div>
     </header>
