@@ -255,3 +255,9 @@ test('Client: DiaryContext keeps DB invite code/id and ignores caches of other c
   assert.ok(ctx.includes('inviteCode: remoteCouple.invite_code'));
   assert.ok(ctx.includes('parsed.couple?.id === remoteCouple.id'));
 });
+
+test('Couple RLS: no direct INSERT policy on couple_members after migration 06', () => {
+  const sql = migration6();
+  assert.ok(sql.includes('DROP POLICY IF EXISTS "Couple members join policy"'));
+  assert.ok(!/CREATE POLICY "Couple members join policy"/.test(sql));
+});

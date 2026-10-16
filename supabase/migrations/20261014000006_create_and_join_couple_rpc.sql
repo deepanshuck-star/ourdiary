@@ -28,17 +28,9 @@ CREATE POLICY "Couple members view policy"
   TO authenticated
   USING (user_id = auth.uid() OR public.is_couple_member(couple_id));
 
+-- Direct inserts are removed: membership is only created by the SECURITY DEFINER
+-- RPCs below, so nobody can attach themselves to a couple by guessing its UUID.
 DROP POLICY IF EXISTS "Couple members join policy" ON public.couple_members;
-CREATE POLICY "Couple members join policy"
-  ON public.couple_members
-  FOR INSERT
-  TO authenticated
-  WITH CHECK (
-    user_id = auth.uid()
-    AND NOT EXISTS (
-      SELECT 1 FROM public.couple_members existing WHERE existing.user_id = auth.uid()
-    )
-  );
 
 -- 3. Return the caller's existing couple (oldest membership), if any.
 CREATE OR REPLACE FUNCTION public.get_my_couple()
