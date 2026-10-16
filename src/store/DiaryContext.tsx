@@ -84,7 +84,7 @@ interface DiaryContextValue {
   addLoveCoupon: (title: string, description: string, category: string) => void;
   redeemLoveCoupon: (id: string) => void;
   toggleSoundtrack: () => void;
-  loadExistingCoupleSpace: (userId: string, remoteCouple: any) => void;
+  loadExistingCoupleSpace: (userId: string, remoteCouple: any, role?: 'creator' | 'partner') => void;
   logout: (redirectToLogin?: boolean) => Promise<void>;
   toasts: ToastInfo[];
   showToast: (message: string, type?: ToastInfo['type']) => void;
@@ -92,6 +92,96 @@ interface DiaryContextValue {
 }
 
 const DiaryContext = createContext<DiaryContextValue | null>(null);
+
+function buildCleanCoupleData(couple: Couple): OurDiaryData {
+  // Provide cute romantic avatars by default if none or placeholder is provided
+  const defaultAvatar1 = couple.user1.avatar && !couple.user1.avatar.includes('/avatars/')
+    ? couple.user1.avatar
+    : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80';
+  const defaultAvatar2 = couple.user2.avatar && !couple.user2.avatar.includes('/avatars/')
+    ? couple.user2.avatar
+    : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80';
+
+  const freshCleanData: OurDiaryData = {
+    couple: {
+      ...couple,
+      theme: couple.theme || 'candy',
+      animationsEnabled: true,
+      inviteCode: couple.inviteCode || Math.random().toString(36).substring(2, 8).toUpperCase(),
+      isLocked: false,
+      user1: {
+        ...couple.user1,
+        avatar: defaultAvatar1,
+      },
+      user2: {
+        ...couple.user2,
+        avatar: defaultAvatar2,
+      },
+    },
+    activeProfileId: 'user_1',
+    memories: [],
+    events: [],
+    letters: [],
+    bucketList: [],
+    moodBeacons: {},
+    heartbeatStreak: 1,
+    lastHeartbeatDate: new Date().toISOString().split('T')[0],
+    dailySparkAnswers: [],
+    customWheelOptions: [
+      { id: 'w_1', text: 'Wood-fired Neapolitan Pizza 🍕', category: 'food' },
+      { id: 'w_2', text: 'Spicy Ramen & Gyoza 🍜', category: 'food' },
+      { id: 'w_3', text: 'Sushi & Edamame 🍣', category: 'food' },
+      { id: 'w_4', text: 'Tacos & Fresh Guacamole 🌮', category: 'food' },
+      { id: 'w_5', text: 'Cook Homemade Pasta Together 🍝', category: 'food' },
+      { id: 'w_6', text: 'Breakfast for Dinner Pancakes 🥞', category: 'food' },
+      { id: 'w_7', text: 'Late Night Gelato & Waffles 🍨', category: 'food' },
+      { id: 'w_8', text: 'Burgers & Sweet Potato Fries 🍔', category: 'food' },
+      { id: 'w_9', text: 'Blanket Fort Movie Marathon 🍿', category: 'activity' },
+      { id: 'w_10', text: 'Sunset Drive With Playlist On 🌅', category: 'activity' },
+      { id: 'w_11', text: 'Board Game Battle & Snacks 🎲', category: 'activity' },
+      { id: 'w_12', text: 'Bookstore Date & Hot Drinks 📚', category: 'activity' },
+      { id: 'w_13', text: 'At-Home DIY Spa & Face Masks 🧖‍♀️', category: 'activity' },
+      { id: 'w_14', text: 'Night Stargazing With Hot Cocoa ✨', category: 'activity' },
+      { id: 'w_15', text: 'Arcade Games & Mini Golf 🕹️', category: 'activity' },
+      { id: 'w_16', text: 'Picnic in the Botanical Garden 🧺', category: 'activity' },
+    ],
+    loveCoupons: [
+      {
+        id: 'c_1',
+        title: '1 Free 30-Min Back Massage',
+        description: 'Redeem anytime for a soothing massage.',
+        category: 'Pampering',
+        fromId: 'user_1',
+        toId: 'user_2',
+        redeemed: false,
+      },
+      {
+        id: 'c_2',
+        title: 'You Pick the Movie (Zero Complaints)',
+        description: 'Full control of the remote with zero complaints.',
+        category: 'Entertainment',
+        fromId: 'user_2',
+        toId: 'user_1',
+        redeemed: false,
+      },
+      {
+        id: 'c_3',
+        title: 'Sunday Breakfast in Bed',
+        description: 'Fresh pancakes and hot coffee delivered to bed.',
+        category: 'Food',
+        fromId: 'user_2',
+        toId: 'user_1',
+        redeemed: false,
+      },
+    ],
+    soundtrack: {
+      currentSong: 'Our Song',
+      currentArtist: 'Couple Favorite',
+      isPlaying: false,
+    },
+  };
+  return freshCleanData;
+}
 
 export function DiaryProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<OurDiaryData>(initialDiaryData);
@@ -291,97 +381,15 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
   };
 
   const initCleanCoupleSpace = (couple: Couple) => {
-    // Provide cute romantic avatars by default if none or placeholder is provided
-    const defaultAvatar1 = couple.user1.avatar && !couple.user1.avatar.includes('/avatars/')
-      ? couple.user1.avatar
-      : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80';
-    const defaultAvatar2 = couple.user2.avatar && !couple.user2.avatar.includes('/avatars/')
-      ? couple.user2.avatar
-      : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80';
-
-    const freshCleanData: OurDiaryData = {
-      couple: {
-        ...couple,
-        theme: couple.theme || 'candy',
-        animationsEnabled: true,
-        inviteCode: couple.inviteCode || Math.random().toString(36).substring(2, 8).toUpperCase(),
-        isLocked: false,
-        user1: {
-          ...couple.user1,
-          avatar: defaultAvatar1,
-        },
-        user2: {
-          ...couple.user2,
-          avatar: defaultAvatar2,
-        },
-      },
-      activeProfileId: 'user_1',
-      memories: [],
-      events: [],
-      letters: [],
-      bucketList: [],
-      moodBeacons: {},
-      heartbeatStreak: 1,
-      lastHeartbeatDate: new Date().toISOString().split('T')[0],
-      dailySparkAnswers: [],
-      customWheelOptions: [
-        { id: 'w_1', text: 'Wood-fired Neapolitan Pizza 🍕', category: 'food' },
-        { id: 'w_2', text: 'Spicy Ramen & Gyoza 🍜', category: 'food' },
-        { id: 'w_3', text: 'Sushi & Edamame 🍣', category: 'food' },
-        { id: 'w_4', text: 'Tacos & Fresh Guacamole 🌮', category: 'food' },
-        { id: 'w_5', text: 'Cook Homemade Pasta Together 🍝', category: 'food' },
-        { id: 'w_6', text: 'Breakfast for Dinner Pancakes 🥞', category: 'food' },
-        { id: 'w_7', text: 'Late Night Gelato & Waffles 🍨', category: 'food' },
-        { id: 'w_8', text: 'Burgers & Sweet Potato Fries 🍔', category: 'food' },
-        { id: 'w_9', text: 'Blanket Fort Movie Marathon 🍿', category: 'activity' },
-        { id: 'w_10', text: 'Sunset Drive With Playlist On 🌅', category: 'activity' },
-        { id: 'w_11', text: 'Board Game Battle & Snacks 🎲', category: 'activity' },
-        { id: 'w_12', text: 'Bookstore Date & Hot Drinks 📚', category: 'activity' },
-        { id: 'w_13', text: 'At-Home DIY Spa & Face Masks 🧖‍♀️', category: 'activity' },
-        { id: 'w_14', text: 'Night Stargazing With Hot Cocoa ✨', category: 'activity' },
-        { id: 'w_15', text: 'Arcade Games & Mini Golf 🕹️', category: 'activity' },
-        { id: 'w_16', text: 'Picnic in the Botanical Garden 🧺', category: 'activity' },
-      ],
-      loveCoupons: [
-        {
-          id: 'c_1',
-          title: '1 Free 30-Min Back Massage',
-          description: 'Redeem anytime for a soothing massage.',
-          category: 'Pampering',
-          fromId: 'user_1',
-          toId: 'user_2',
-          redeemed: false,
-        },
-        {
-          id: 'c_2',
-          title: 'You Pick the Movie (Zero Complaints)',
-          description: 'Full control of the remote with zero complaints.',
-          category: 'Entertainment',
-          fromId: 'user_2',
-          toId: 'user_1',
-          redeemed: false,
-        },
-        {
-          id: 'c_3',
-          title: 'Sunday Breakfast in Bed',
-          description: 'Fresh pancakes and hot coffee delivered to bed.',
-          category: 'Food',
-          fromId: 'user_2',
-          toId: 'user_1',
-          redeemed: false,
-        },
-      ],
-      soundtrack: {
-        currentSong: 'Our Song',
-        currentArtist: 'Couple Favorite',
-        isPlaying: false,
-      },
-    };
+    const freshCleanData = buildCleanCoupleData(couple);
+    const userId =
+      currentUserId ||
+      (typeof window !== 'undefined' ? localStorage.getItem('ourdiary_current_user_id') : null);
     setIsLiveUser(true);
     if (typeof window !== 'undefined') {
       localStorage.setItem('ourdiary_is_live_user', 'true');
-      if (currentUserId) {
-        localStorage.setItem(`ourdiary_space_${currentUserId}`, JSON.stringify(freshCleanData));
+      if (userId) {
+        localStorage.setItem(`ourdiary_space_${userId}`, JSON.stringify(freshCleanData));
       }
       localStorage.setItem('ourdiary_real_couple_v1', JSON.stringify(freshCleanData));
     }
@@ -389,50 +397,60 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     showToast(`Created private couple space for ${couple.name}! 💕 (Clean slate ready)`, 'heart');
   };
 
-  const loadExistingCoupleSpace = (userId: string, remoteCouple: any) => {
+  const loadExistingCoupleSpace = (
+    userId: string,
+    remoteCouple: any,
+    role: 'creator' | 'partner' = 'creator'
+  ) => {
     setIsLiveUser(true);
     setCurrentUserId(userId);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('ourdiary_is_live_user', 'true');
-      localStorage.setItem('ourdiary_current_user_id', userId);
-      const userKey = `ourdiary_space_${userId}`;
-      const saved = localStorage.getItem(userKey);
-      if (saved) {
-        try {
-          setData(JSON.parse(saved));
-          return;
-        } catch (e) {
-          console.warn('Failed to parse cached user space:', e);
-        }
-      }
-    }
+    const activeProfileId: ProfileId = role === 'partner' ? 'user_2' : 'user_1';
 
     const defaultAvatar1 = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80';
     const defaultAvatar2 = 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80';
 
-    setData((prev) => ({
-      ...prev,
-      couple: {
-        id: remoteCouple.id,
-        name: remoteCouple.name || 'Our Couple Space',
-        startDate: remoteCouple.relationship_start_date || '2024-01-01',
-        anniversaryDate: remoteCouple.anniversary_date || remoteCouple.relationship_start_date || '2024-01-01',
-        theme: remoteCouple.theme || 'candy',
-        animationsEnabled: true,
-        inviteCode: remoteCouple.invite_code,
-        isLocked: false,
-        user1: {
-          id: 'user_1',
-          name: remoteCouple.creator_name || 'You',
-          avatar: defaultAvatar1,
-        },
-        user2: {
-          id: 'user_2',
-          name: remoteCouple.partner_name || 'Partner',
-          avatar: defaultAvatar2,
-        },
-      },
-    }));
+    // The database is the source of truth for identity: id, name and invite code.
+    const remoteFields = {
+      id: remoteCouple.id,
+      name: remoteCouple.name || 'Our Couple Space',
+      startDate: remoteCouple.relationship_start_date || '2024-01-01',
+      anniversaryDate: remoteCouple.anniversary_date || remoteCouple.relationship_start_date || '2024-01-01',
+      theme: remoteCouple.theme || 'candy',
+      inviteCode: remoteCouple.invite_code,
+    };
+
+    let cached: OurDiaryData | null = null;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ourdiary_is_live_user', 'true');
+      localStorage.setItem('ourdiary_current_user_id', userId);
+      try {
+        const saved = localStorage.getItem(`ourdiary_space_${userId}`);
+        const parsed = saved ? (JSON.parse(saved) as OurDiaryData) : null;
+        // Only reuse the cache if it belongs to this very couple space.
+        if (parsed && parsed.couple?.id === remoteCouple.id) cached = parsed;
+      } catch (e) {
+        console.warn('Failed to parse cached user space:', e);
+      }
+    }
+
+    const nextData: OurDiaryData = cached
+      ? { ...cached, activeProfileId, couple: { ...cached.couple, ...remoteFields } }
+      : {
+          ...buildCleanCoupleData({
+            ...remoteFields,
+            animationsEnabled: true,
+            isLocked: false,
+            user1: { id: 'user_1', name: remoteCouple.creator_name || 'Partner 1', avatar: defaultAvatar1 },
+            user2: { id: 'user_2', name: remoteCouple.partner_name || 'Partner 2', avatar: defaultAvatar2 },
+          }),
+          activeProfileId,
+        };
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`ourdiary_space_${userId}`, JSON.stringify(nextData));
+      localStorage.setItem('ourdiary_real_couple_v1', JSON.stringify(nextData));
+    }
+    setData(nextData);
   };
 
   const logout = async (redirectToLogin: boolean = true) => {

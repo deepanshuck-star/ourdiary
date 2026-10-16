@@ -19,6 +19,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { fetchMyCouple, createCoupleSpaceRemote, joinCoupleByCodeRemote } from '@/lib/supabase/couple';
 import { useDiary } from '@/store/DiaryContext';
 
 export default function OnboardingPage() {
@@ -78,16 +79,10 @@ export default function OnboardingPage() {
           setAuthenticatedUser(session.user);
 
           // Check if this user ALREADY has a couple space!
-          const { data: memberData } = await supabase
-            .from('couple_members')
-            .select('couple_id, role, couples(*)')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-
-          if (memberData && memberData.couples) {
-            const coupleObj = memberData.couples as any;
-            loadExistingCoupleSpace(session.user.id, coupleObj);
-            showToast(`Welcome back to ${coupleObj.name}! 💕`, 'heart');
+          const existing = await fetchMyCouple(supabase);
+          if (existing) {
+            loadExistingCoupleSpace(session.user.id, existing.couple, existing.role);
+            showToast(`Welcome back to ${existing.couple.name}! 💕`, 'heart');
             router.push('/dashboard');
             return;
           }
@@ -135,48 +130,33 @@ export default function OnboardingPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const coupleId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'c_' + Date.now();
+    let code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    let coupleId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'c_' + Date.now();
+    let finalName = coupleName.trim();
+    let finalStart = startDate;
 
-    // If Supabase is live and user is authenticated, insert into remote database
+    // If Supabase is live and user is authenticated, the database is the source of truth.
+    // The RPC is idempotent: it returns the user's existing space instead of creating a duplicate.
     if (supabase && authenticatedUser) {
       try {
-        const { error: coupleErr } = await supabase
-          .from('couples')
-          .insert({
-            id: coupleId,
-            name: coupleName.trim(),
-            relationship_start_date: startDate,
-            anniversary_date: startDate,
-            invite_code: code,
-            theme: 'candy',
-          });
-
-        if (coupleErr) {
-          console.warn('Supabase couple insert note:', coupleErr.message);
-        } else {
-          // Map creator to couple_members
-          const { error: memberErr } = await supabase.from('couple_members').insert({
-            couple_id: coupleId,
-            user_id: authenticatedUser.id,
-            role: 'creator',
-          });
-
-          if (memberErr) {
-            console.warn('Could not map member in Supabase:', memberErr.message);
-          }
-        }
+        const remote = await createCoupleSpaceRemote(supabase, finalName, startDate);
+        coupleId = remote.id;
+        code = remote.invite_code;
+        finalName = remote.name;
+        finalStart = remote.relationship_start_date || startDate;
       } catch (err: any) {
-        console.error('Remote couple space creation note:', err);
+        showToast(`Could not create your couple space: ${err?.message || 'unknown error'}`, 'warn');
+        setIsSubmitting(false);
+        return;
       }
     }
 
     // Initialize clean couple space with cute Bitmoji avatars
     initCleanCoupleSpace({
       id: coupleId,
-      name: coupleName.trim(),
-      startDate,
-      anniversaryDate: startDate,
+      name: finalName,
+      startDate: finalStart,
+      anniversaryDate: finalStart,
       theme: 'candy',
       animationsEnabled: true,
       inviteCode: code,
@@ -208,69 +188,21 @@ export default function OnboardingPage() {
 
     if (supabase && authenticatedUser) {
       try {
-        // Query couple by invite code
-        const { data: foundCouple, error: findErr } = await supabase
-          .from('couples')
-          .select('*')
-          .eq('invite_code', cleanedCode)
-          .maybeSingle();
-
-        if (findErr || !foundCouple) {
-          setJoinError('Invalid invite code! Please check with your partner and try again.');
-          setIsSubmitting(false);
-          return;
-        }
-
-        // Verify member count (max 2)
-        const { count, error: countErr } = await supabase
-          .from('couple_members')
-          .select('*', { count: 'exact', head: true })
-          .eq('couple_id', foundCouple.id);
-
-        if (count && count >= 2) {
-          setJoinError('This couple space is already full (strictly limited to 2 partners).');
-          setIsSubmitting(false);
-          return;
-        }
-
-        // Insert joining partner
-        await supabase.from('couple_members').insert({
-          couple_id: foundCouple.id,
-          user_id: authenticatedUser.id,
-          role: 'partner',
-        });
-
-        const myName =
-          authenticatedUser.user_metadata?.display_name ||
-          (authenticatedUser.email ? authenticatedUser.email.split('@')[0] : 'Partner');
-
-        initCleanCoupleSpace({
-          id: foundCouple.id,
-          name: foundCouple.name,
-          startDate: foundCouple.relationship_start_date || '2023-01-01',
-          anniversaryDate: foundCouple.anniversary_date,
-          theme: foundCouple.theme || 'candy',
-          animationsEnabled: true,
-          inviteCode: foundCouple.invite_code,
-          isLocked: false,
-          user1: {
-            id: 'user_1',
-            name: 'Partner',
-            avatar: '/avatars/user-1.png',
-          },
-          user2: {
-            id: 'user_2',
-            name: myName,
-            avatar: '/avatars/user-2.png',
-          },
-        });
-
-        switchProfile('user_2');
+        // Server-side RPC validates the code, enforces the 2-member limit and links the partner.
+        const foundCouple = await joinCoupleByCodeRemote(supabase, cleanedCode);
+        loadExistingCoupleSpace(authenticatedUser.id, foundCouple, 'partner');
         showToast(`Joined ${foundCouple.name}! Welcome to your shared space 💕`, 'success');
         router.push('/dashboard');
         return;
       } catch (err: any) {
-        setJoinError(err?.message || 'Error connecting to couple space.');
+        const msg: string = err?.message || '';
+        if (/invalid invite code/i.test(msg)) {
+          setJoinError('Invalid invite code! Please check with your partner and try again.');
+        } else if (/limited to exactly two/i.test(msg)) {
+          setJoinError('This couple space is already full (strictly limited to 2 partners).');
+        } else {
+          setJoinError(msg || 'Error connecting to couple space.');
+        }
         setIsSubmitting(false);
         return;
       }

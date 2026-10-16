@@ -196,3 +196,62 @@ test('RLS Policies SQL Verification: Confirms RLS on all 10 tables', () => {
     'Private notes policy must strictly require author_id = auth.uid()'
   );
 });
+
+// ==============================================================================
+// TEST SUITE: Couple onboarding (create / re-login / join by invite code)
+// ==============================================================================
+
+const migration6 = () =>
+  fs.readFileSync(
+    path.join(process.cwd(), 'supabase', 'migrations', '20261014000006_create_and_join_couple_rpc.sql'),
+    'utf8'
+  );
+const read = (...p) => fs.readFileSync(path.join(process.cwd(), ...p), 'utf8');
+
+test('Couple RPC migration: join/create functions exist, are SECURITY DEFINER and granted to authenticated', () => {
+  const sql = migration6();
+  for (const fn of ['join_couple_by_code', 'create_couple_space', 'get_my_couple']) {
+    assert.ok(sql.includes(`FUNCTION public.${fn}`), `${fn} must be defined`);
+    assert.ok(sql.includes(`GRANT EXECUTE ON FUNCTION public.${fn}`), `${fn} must be granted`);
+  }
+  assert.ok(sql.includes('SECURITY DEFINER SET search_path = public'));
+});
+
+test('Couple RPC migration: join enforces 2-member limit and creates a partner membership', () => {
+  const sql = migration6();
+  assert.ok(sql.includes('member_count >= 2'));
+  assert.ok(sql.includes("'partner'"));
+  assert.ok(sql.includes('Invalid invite code'));
+});
+
+test('Couple RPC migration: create is idempotent so re-login never makes a second space', () => {
+  const sql = migration6();
+  const createFn = sql.slice(sql.indexOf('FUNCTION public.create_couple_space'));
+  assert.ok(
+    createFn.indexOf('RETURN result;') < createFn.indexOf('INSERT INTO public.couples'),
+    'existing couple must be returned before any INSERT INTO couples'
+  );
+});
+
+test('Couple RLS: couples are no longer readable by every authenticated user', () => {
+  const sql = migration6();
+  assert.ok(!/USING\s*\(\s*public\.is_couple_member\(id\)\s*OR\s+invite_code IS NOT NULL/.test(sql));
+  assert.ok(sql.includes('USING (public.is_couple_member(id))'));
+});
+
+test('Client: onboarding/login use the shared helpers and never silently swallow errors', () => {
+  const login = read('src', 'app', 'login', 'page.tsx');
+  const onboarding = read('src', 'app', 'onboarding', 'page.tsx');
+  assert.ok(login.includes('fetchMyCouple'));
+  assert.ok(!login.includes('.maybeSingle()'), 'login must not use maybeSingle (fails on >1 rows)');
+  assert.ok(onboarding.includes('joinCoupleByCodeRemote'));
+  assert.ok(onboarding.includes('createCoupleSpaceRemote'));
+  assert.ok(!onboarding.includes(".from('couples')"), 'onboarding must not query couples directly');
+  assert.ok(onboarding.includes("loadExistingCoupleSpace(authenticatedUser.id, foundCouple, 'partner')"));
+});
+
+test('Client: DiaryContext keeps DB invite code/id and ignores caches of other couples', () => {
+  const ctx = read('src', 'store', 'DiaryContext.tsx');
+  assert.ok(ctx.includes('inviteCode: remoteCouple.invite_code'));
+  assert.ok(ctx.includes('parsed.couple?.id === remoteCouple.id'));
+});

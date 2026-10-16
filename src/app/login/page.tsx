@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Heart, Sparkles, Lock, Mail, ArrowRight, ShieldCheck, UserCheck, AlertCircle, CheckCircle2, User } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { fetchMyCouple } from '@/lib/supabase/couple';
 import { useDiary } from '@/store/DiaryContext';
 
 export default function LoginPage() {
@@ -86,17 +87,21 @@ export default function LoginPage() {
             localStorage.setItem('ourdiary_current_user_id', data.session.user.id);
           }
 
-          // Check if this user already has an established couple space
-          const { data: memberData } = await supabase
-            .from('couple_members')
-            .select('couple_id, role, couples(*)')
-            .eq('user_id', data.session.user.id)
-            .maybeSingle();
+          // Restore the existing couple space (never route established users to onboarding)
+          let existing = null;
+          try {
+            existing = await fetchMyCouple(supabase);
+          } catch (lookupErr: any) {
+            setErrorMsg(
+              `Signed in, but we couldn't load your couple space: ${lookupErr?.message || 'unknown error'}. Please try again.`
+            );
+            setLoading(false);
+            return;
+          }
 
-          if (memberData && memberData.couples) {
-            const coupleObj = memberData.couples as any;
-            loadExistingCoupleSpace(data.session.user.id, coupleObj);
-            showToast(`Welcome back to ${coupleObj.name}! 💕`, 'heart');
+          if (existing) {
+            loadExistingCoupleSpace(data.session.user.id, existing.couple, existing.role);
+            showToast(`Welcome back to ${existing.couple.name}! 💕`, 'heart');
             router.push('/dashboard');
           } else {
             showToast('Signed in! Set up your couple space to get started 💕', 'success');
