@@ -27,6 +27,7 @@ import {
   Calendar,
   Smile,
   ChevronRight,
+  Lock,
   Key,
   Copy,
   RefreshCw,
@@ -95,6 +96,15 @@ export default function DashboardPage() {
   // Recent 3 memories
   const recentMemories = data.memories.slice(0, 3);
 
+  // Locked notes the partner opted to surface here. Content is masked
+  // server-side, so this list only ever contains the existence + memory,
+  // never the text — nothing to leak even if this array is wrong.
+  const lockedNoteTeasers = data.memories.flatMap((m) =>
+    (m.notes || [])
+      .filter((n) => n.visibility === 'private' && n.authorId !== activeProfile.id && n.visibleWhenLocked)
+      .map((n) => ({ note: n, memory: m }))
+  );
+
   // Upcoming 3 events
   const upcomingEvents = data.events
     .filter((e) => new Date(e.date).getTime() >= getNow().setHours(0, 0, 0, 0))
@@ -160,6 +170,32 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Locked notes your partner chose to let you know about */}
+        {lockedNoteTeasers.length > 0 && (
+          <div className="p-4 sm:p-5 rounded-3xl bg-purple-50 border border-purple-200 shadow-sm">
+            <h3 className="text-xs font-bold text-purple-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5" />
+              Locked notes waiting for you ({lockedNoteTeasers.length})
+            </h3>
+            <div className="space-y-2">
+              {lockedNoteTeasers.map(({ note, memory }) => (
+                <Link
+                  key={note.id}
+                  href={`/memories/${memory.id}`}
+                  className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-purple-100 hover:border-purple-300 transition-colors"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center flex-shrink-0">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <p className="text-xs text-slate-700">
+                    {partnerProfile.name} left a locked note on "{memory.title}". Only they can unlock it.
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Mood & Warm Hug Beacon Banner */}
         <MoodBeaconBanner />

@@ -350,15 +350,16 @@ export async function fetchMemoryNotesRemote(
   myUserId: string,
   myProfileId: ProfileId
 ): Promise<MemoryNote[]> {
-  const { data, error } = await supabase.from('memory_notes').select('*').eq('memory_id', memoryId);
+  const { data, error } = await supabase.from('memory_notes_feed').select('*').eq('memory_id', memoryId);
   if (error) throw new Error(error.message);
   return (data || []).map((r: any) => ({
     id: r.id,
     memoryId: r.memory_id,
     authorId: labelOwner(r.author_id, myUserId, myProfileId),
     authorName: '',
-    content: r.content,
+    content: r.content ?? '',
     visibility: r.visibility,
+    visibleWhenLocked: r.visible_when_locked,
     createdAt: r.created_at,
   }));
 }
@@ -389,11 +390,12 @@ export async function createMemoryNoteRemote(
 export async function updateMemoryNoteRemote(
   supabase: SupabaseClient,
   id: string,
-  updates: { content?: string; visibility?: 'shared' | 'private' }
+  updates: { content?: string; visibility?: 'shared' | 'private'; visibleWhenLocked?: boolean }
 ) {
   const patch: Record<string, unknown> = {};
   if (updates.content !== undefined) patch.content = updates.content;
   if (updates.visibility !== undefined) patch.visibility = updates.visibility;
+  if (updates.visibleWhenLocked !== undefined) patch.visible_when_locked = updates.visibleWhenLocked;
   if (Object.keys(patch).length === 0) return;
   const { error } = await supabase.from('memory_notes').update(patch).eq('id', id);
   if (error) throw new Error(error.message);
@@ -412,7 +414,7 @@ export async function fetchMemoryNotesForMemoriesRemote(
 ): Promise<Map<string, MemoryNote[]>> {
   const byMemory = new Map<string, MemoryNote[]>();
   if (memoryIds.length === 0) return byMemory;
-  const { data, error } = await supabase.from('memory_notes').select('*').in('memory_id', memoryIds);
+  const { data, error } = await supabase.from('memory_notes_feed').select('*').in('memory_id', memoryIds);
   if (error) throw new Error(error.message);
   for (const r of data || []) {
     const note: MemoryNote = {
@@ -420,8 +422,9 @@ export async function fetchMemoryNotesForMemoriesRemote(
       memoryId: r.memory_id,
       authorId: labelOwner(r.author_id, myUserId, myProfileId),
       authorName: '',
-      content: r.content,
+      content: r.content ?? '',
       visibility: r.visibility,
+      visibleWhenLocked: r.visible_when_locked,
       createdAt: r.created_at,
     };
     const list = byMemory.get(r.memory_id) || [];

@@ -69,6 +69,7 @@ interface DiaryContextValue {
   regenerateCoupleCode: () => Promise<string>;
   addNote: (memoryId: string, content: string, visibility: 'shared' | 'private') => void;
   toggleNoteLock: (memoryId: string, noteId: string) => void;
+  toggleNoteVisibleWhenLocked: (memoryId: string, noteId: string) => void;
   updateNote: (memoryId: string, noteId: string, content: string, visibility: 'shared' | 'private') => void;
   deleteNote: (memoryId: string, noteId: string) => void;
   addEvent: (event: Omit<CalendarEvent, 'id'>) => CalendarEvent;
@@ -735,6 +736,43 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Only meaningful while a note is locked. On: the partner can see that a
+  // locked note exists (and where), with its content masked server-side —
+  // they never receive the text. Off: fully invisible to them, as usual.
+  // Unlocking the note (toggleNoteLock) always shows it to both regardless
+  // of this flag.
+  const toggleNoteVisibleWhenLocked = (memoryId: string, noteId: string) => {
+    let nextValue: boolean | null = null;
+    setData((prev) => ({
+      ...prev,
+      memories: prev.memories.map((m) => {
+        if (m.id !== memoryId) return m;
+        return {
+          ...m,
+          notes: m.notes.map((n) => {
+            if (n.id !== noteId) return n;
+            nextValue = !n.visibleWhenLocked;
+            return { ...n, visibleWhenLocked: nextValue };
+          }),
+        };
+      }),
+    }));
+    showToast(
+      nextValue
+        ? "Your partner will now see this locked note on their dashboard (not its content) 💌"
+        : 'Hidden from your partner\'s dashboard again',
+      'heart'
+    );
+
+    const supabase = remoteClient();
+    if (supabase && nextValue !== null && !noteId.startsWith('n_')) {
+      updateMemoryNoteRemote(supabase, noteId, { visibleWhenLocked: nextValue }).catch((err) => {
+        console.error('[OurDiary] Failed to sync note visibility flag:', err);
+        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+      });
+    }
+  };
+
   const updateNote = (
     memoryId: string,
     noteId: string,
@@ -1328,6 +1366,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         initCleanCoupleSpace,
         regenerateCoupleCode,
         toggleNoteLock,
+        toggleNoteVisibleWhenLocked,
         sendHeartbeatPing,
         markHeartbeatSeen,
         updateMoodBeacon,

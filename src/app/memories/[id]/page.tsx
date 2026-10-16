@@ -56,6 +56,7 @@ function MemoryDetailContent() {
     deleteNote,
     updateNote,
     toggleNoteLock,
+    toggleNoteVisibleWhenLocked,
   } = useDiary();
 
   const memory = data.memories.find((m) => m.id === id);
@@ -142,13 +143,17 @@ function MemoryDetailContent() {
     router.push('/memories');
   };
 
-  // Group notes: shared (both can see) vs. my own locked notes. A locked
-  // note belonging to the partner is never in this list at all — the
-  // database simply never sends it to anyone but its author.
+  // Group notes: shared (both can see), my own locked notes, and — only
+  // when the author opted in — a teaser for the partner's locked note
+  // (content always masked server-side; a locked note the partner did NOT
+  // opt to show is never in this list at all).
   const allNotes = memory.notes || [];
   const sharedNotes = allNotes.filter((n) => n.visibility === 'shared');
   const myPrivateNotes = allNotes.filter(
     (n) => n.visibility === 'private' && n.authorId === activeProfile.id
+  );
+  const partnerLockedTeasers = allNotes.filter(
+    (n) => n.visibility === 'private' && n.authorId !== activeProfile.id
   );
 
   // Related memories (same category or nearby)
@@ -747,6 +752,20 @@ function MemoryDetailContent() {
                           <span>Unlock for {partnerProfile.name}</span>
                         </button>
                       </div>
+
+                      {/* Show-on-partner's-dashboard toggle: a teaser only,
+                          content stays masked server-side either way. */}
+                      <label className="flex items-center gap-2 text-[11px] text-rose-700 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={!!note.visibleWhenLocked}
+                          onChange={() => toggleNoteVisibleWhenLocked(memory.id, note.id)}
+                          className="w-3.5 h-3.5 rounded accent-rose-600"
+                        />
+                        <span>
+                          Show this note (locked) on {partnerProfile.name}'s dashboard — content stays hidden
+                        </span>
+                      </label>
                     </div>
                   ))}
                 </div>
@@ -754,6 +773,31 @@ function MemoryDetailContent() {
                 <p className="text-xs text-slate-400 italic">No private notes recorded under your profile.</p>
               )}
             </div>
+
+            {/* Partner's locked notes they chose to let you see exist */}
+            {partnerLockedTeasers.length > 0 && (
+              <div className="pt-2">
+                <h4 className="text-xs font-bold text-purple-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-purple-500" />
+                  Locked notes from {partnerProfile.name} ({partnerLockedTeasers.length})
+                </h4>
+                <div className="space-y-2">
+                  {partnerLockedTeasers.map((note) => (
+                    <div
+                      key={note.id}
+                      className="p-3.5 rounded-2xl bg-purple-50/60 border border-purple-200 flex items-center gap-3"
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center flex-shrink-0">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                      <p className="text-xs text-purple-800">
+                        {partnerProfile.name} has a locked note here. Only they can unlock it for you.
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

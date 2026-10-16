@@ -60,6 +60,10 @@ export interface MemoryNote {
   // by the database, not just hidden in the UI). 'shared' = unlocked: both
   // partners can see it. The author can flip it back and forth any time.
   visibility: 'shared' | 'private';
+  // Author-controlled, only meaningful while locked: when true, the partner
+  // can see that this locked note exists (and where), but its content is
+  // masked server-side — they never receive the text itself, only a teaser.
+  visibleWhenLocked?: boolean;
   createdAt: string;
 }
 

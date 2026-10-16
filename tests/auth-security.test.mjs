@@ -467,3 +467,43 @@ test('Migration 11: drops passcode columns and restores the plain author-only pr
   assert.ok(sql.includes("visibility = 'private' AND author_id = auth.uid()"));
   assert.ok(!sql.includes('passcode IS NOT NULL'));
 });
+
+// ==============================================================================
+// TEST SUITE: "Show locked note on partner's dashboard" — real content masking
+// ==============================================================================
+
+test('Migration 12: visible_when_locked column, RLS widened, and a content-masking view exist', () => {
+  const sql = fs.readFileSync(
+    path.join(process.cwd(), 'supabase', 'migrations', '20261014000012_note_visible_when_locked.sql'),
+    'utf8'
+  );
+  assert.ok(sql.includes('ADD COLUMN IF NOT EXISTS visible_when_locked'));
+  assert.ok(sql.includes('visible_when_locked = true'));
+  assert.ok(sql.includes('CREATE OR REPLACE VIEW public.memory_notes_feed'));
+  assert.ok(sql.includes('security_invoker = true'));
+  // The view must null out content for anyone but the author while locked —
+  // this is what makes the feature real protection, not a UI illusion.
+  assert.ok(sql.includes("WHEN visibility = 'private' AND author_id <> auth.uid() THEN NULL"));
+  assert.ok(sql.includes('GRANT SELECT ON public.memory_notes_feed TO authenticated'));
+});
+
+test('Sync: notes are read through the masking view, never the raw table, for both fetch paths', () => {
+  const sync = read('src', 'lib', 'supabase', 'sync.ts');
+  assert.ok(sync.includes("from('memory_notes_feed')"));
+  // Writes still go to the real table (the view has no writable content column).
+  assert.ok(sync.includes("from('memory_notes')\n    .insert"));
+  assert.ok(sync.includes("from('memory_notes').update"));
+  assert.ok(sync.includes("from('memory_notes').delete"));
+});
+
+test('DiaryContext: toggling note visibility-when-locked syncs to the database', () => {
+  const ctx = read('src', 'store', 'DiaryContext.tsx');
+  assert.ok(ctx.includes('const toggleNoteVisibleWhenLocked ='));
+  assert.ok(ctx.includes('visibleWhenLocked: nextValue'));
+});
+
+test('Dashboard: locked-note teaser list never references note content, only its existence', () => {
+  const dash = read('src', 'app', 'dashboard', 'page.tsx');
+  assert.ok(dash.includes('lockedNoteTeasers'));
+  assert.ok(!/\{note\.content\}/.test(dash), 'dashboard must never render a locked note\'s content');
+});
