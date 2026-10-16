@@ -1,12 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getAppEnvironment } from '@/lib/env';
 
 type SectionResult = { section: string; ok: boolean; ms: number; detail?: string };
 
 const now = () => performance.now();
 
+// Hard cap on request body size. A diary export is JSON text (no embedded
+// media — photos/media go through Cloudinary); 5 MB is generous headroom.
+// Without this, an unauthenticated or authenticated caller could post an
+// arbitrarily large body and burn CPU/memory parsing and validating it.
+const MAX_BODY_BYTES = 5 * 1024 * 1024;
+
 // Validates an exported diary JSON payload on the server and logs per-section timings.
+// Requires a signed-in session when Supabase is configured, so the endpoint
+// cannot be hammered anonymously.
 export async function POST(req: NextRequest) {
+  const env = getAppEnvironment();
+  if (env.isSupabaseConfigured) {
+    const supabase = await getSupabaseServerClient();
+    const {
+      data: { user },
+    } = (await supabase?.auth.getUser()) ?? { data: { user: null } };
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+  }
+
+  const contentLength = Number(req.headers.get('content-length') || 0);
+  if (contentLength > MAX_BODY_BYTES) {
+    return NextResponse.json({ error: 'Import file is too large (max 5MB).' }, { status: 413 });
+  }
+
   const text = await req.text();
+  if (text.length > MAX_BODY_BYTES) {
+    return NextResponse.json({ error: 'Import file is too large (max 5MB).' }, { status: 413 });
+  }
+
   const sections: SectionResult[] = [];
 
   const finish = (success: boolean, error?: string, status = 200) => {

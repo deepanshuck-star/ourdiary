@@ -308,3 +308,11 @@ test('Security: secrets stay server-side (no Cloudinary/Supabase secret in clien
   const cloudinary = read('src', 'lib', 'cloudinary', 'server.ts');
   assert.ok(cloudinary.includes("'use client'") === false);
 });
+
+test('Security: import validate API route requires auth and caps body size', () => {
+  const route = read('src', 'app', 'api', 'import', 'validate', 'route.ts');
+  assert.ok(route.includes('MAX_BODY_BYTES'));
+  assert.ok(route.includes('getSupabaseServerClient'));
+  assert.ok(route.includes('Unauthorized'));
+  assert.ok(/status: 413/.test(route), 'must reject oversized bodies with 413');
+});
