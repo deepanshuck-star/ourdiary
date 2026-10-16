@@ -70,6 +70,11 @@ export async function createMemoryRemote(
   authorId: string,
   memory: Omit<Memory, 'id' | 'reactions' | 'notes'>
 ): Promise<Memory> {
+  // Ensure author exists in profiles to satisfy FK created_by -> profiles(id)
+  await supabase
+    .from('profiles')
+    .upsert({ id: authorId, display_name: 'Partner' }, { onConflict: 'id', ignoreDuplicates: true });
+
   const { data, error } = await supabase
     .from('memories')
     .insert({
@@ -89,7 +94,21 @@ export async function createMemoryRemote(
     .single();
 
   if (error) throw new Error(error.message);
-  return rowToMemory(data as MemoryRow, memory.createdBy);
+
+  // If memory includes photos, persist them to memory_photos table
+  if (memory.photos && memory.photos.length > 0) {
+    const photoInserts = memory.photos.map((p) => ({
+      memory_id: data.id,
+      url: p.url,
+      caption: p.caption || null,
+    }));
+    await supabase.from('memory_photos').insert(photoInserts);
+  }
+
+  return {
+    ...rowToMemory(data as MemoryRow, memory.createdBy),
+    photos: memory.photos || [],
+  };
 }
 
 export async function updateMemoryRemote(

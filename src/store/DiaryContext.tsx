@@ -566,23 +566,40 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     const supabase = getSupabaseBrowserClient();
     if (supabase) {
       try {
-        const [memories, events, letters, bucketList, loveCoupons, customWheelOptions, dailySparkAnswers, profiles] =
-          await Promise.all([
-            fetchMemoriesRemote(supabase, remoteCouple.id, userId, activeProfileId),
-            fetchEventsRemote(supabase, remoteCouple.id),
-            fetchLettersRemote(supabase, remoteCouple.id, userId, activeProfileId),
-            fetchBucketListRemote(supabase, remoteCouple.id, userId, activeProfileId),
-            fetchLoveCouponsRemote(supabase, remoteCouple.id, userId, activeProfileId),
-            fetchWheelOptionsRemote(supabase, remoteCouple.id),
-            fetchDailySparkAnswersRemote(supabase, remoteCouple.id, userId, activeProfileId),
-            fetchCoupleProfilesRemote(supabase, remoteCouple.id, userId, activeProfileId),
-          ]);
+        const results = await Promise.allSettled([
+          fetchMemoriesRemote(supabase, remoteCouple.id, userId, activeProfileId),
+          fetchEventsRemote(supabase, remoteCouple.id),
+          fetchLettersRemote(supabase, remoteCouple.id, userId, activeProfileId),
+          fetchBucketListRemote(supabase, remoteCouple.id, userId, activeProfileId),
+          fetchLoveCouponsRemote(supabase, remoteCouple.id, userId, activeProfileId),
+          fetchWheelOptionsRemote(supabase, remoteCouple.id),
+          fetchDailySparkAnswersRemote(supabase, remoteCouple.id, userId, activeProfileId),
+          fetchCoupleProfilesRemote(supabase, remoteCouple.id, userId, activeProfileId),
+        ]);
+
+        const memories = results[0].status === 'fulfilled' ? results[0].value : [];
+        const events = results[1].status === 'fulfilled' ? results[1].value : [];
+        const letters = results[2].status === 'fulfilled' ? results[2].value : [];
+        const bucketList = results[3].status === 'fulfilled' ? results[3].value : [];
+        const loveCoupons = results[4].status === 'fulfilled' ? results[4].value : [];
+        const customWheelOptions = results[5].status === 'fulfilled' ? results[5].value : [];
+        const dailySparkAnswers = results[6].status === 'fulfilled' ? results[6].value : [];
+        const profiles = results[7].status === 'fulfilled' ? results[7].value : {};
+
+        results.forEach((r, idx) => {
+          if (r.status === 'rejected') {
+            console.warn(`[OurDiary] Sub-resource ${idx} failed to load from remote:`, r.reason);
+          }
+        });
 
         const memoryIds = memories.map((m) => m.id);
-        const [notesByMemory, photosByMemory] = await Promise.all([
+        const [notesRes, photosRes] = await Promise.allSettled([
           fetchMemoryNotesForMemoriesRemote(supabase, memoryIds, userId, activeProfileId),
           fetchMemoryPhotosForMemoriesRemote(supabase, memoryIds),
         ]);
+        const notesByMemory = notesRes.status === 'fulfilled' ? notesRes.value : new Map<string, MemoryNote[]>();
+        const photosByMemory = photosRes.status === 'fulfilled' ? photosRes.value : new Map<string, MemoryPhoto[]>();
+
         const memoriesWithDetails = memories.map((m) => ({
           ...m,
           notes: notesByMemory.get(m.id) || [],
@@ -590,15 +607,22 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         }));
 
         setData((prev) => {
+          // Merge remote memories with any locally created memories that haven't synced yet
+          const remoteIds = new Set(memoriesWithDetails.map((m) => m.id));
+          const localOnly = prev.memories.filter((m) => !remoteIds.has(m.id) && m.id.startsWith('mem_'));
+          const mergedMemories = [...memoriesWithDetails, ...localOnly].sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+
           const updated: OurDiaryData = {
             ...prev,
-            memories: memoriesWithDetails,
-            events,
-            letters,
-            bucketList,
-            loveCoupons,
+            memories: mergedMemories.length > 0 ? mergedMemories : prev.memories,
+            events: events.length > 0 ? events : prev.events,
+            letters: letters.length > 0 ? letters : prev.letters,
+            bucketList: bucketList.length > 0 ? bucketList : prev.bucketList,
+            loveCoupons: loveCoupons.length > 0 ? loveCoupons : prev.loveCoupons,
             customWheelOptions: customWheelOptions.length > 0 ? customWheelOptions : prev.customWheelOptions,
-            dailySparkAnswers,
+            dailySparkAnswers: dailySparkAnswers.length > 0 ? dailySparkAnswers : prev.dailySparkAnswers,
             couple: {
               ...prev.couple,
               user1: profiles.user_1?.avatarUrl
@@ -636,11 +660,6 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('ourdiary_is_live_user');
       localStorage.removeItem('ourdiary_current_user_id');
       localStorage.removeItem('ourdiary_real_couple_v1');
-      Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith('ourdiary_space_')) {
-          localStorage.removeItem(key);
-        }
-      });
     }
     setData(JSON.parse(JSON.stringify(initialDiaryData)));
     showToast('Logged out successfully. See you soon! 💕', 'heart');
