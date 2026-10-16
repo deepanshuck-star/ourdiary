@@ -205,8 +205,8 @@ const migration6 = () =>
   fs.readFileSync(
     path.join(process.cwd(), 'supabase', 'migrations', '20261014000006_create_and_join_couple_rpc.sql'),
     'utf8'
-  );
-const read = (...p) => fs.readFileSync(path.join(process.cwd(), ...p), 'utf8');
+  ).replace(/\r\n/g, '\n');
+const read = (...p) => fs.readFileSync(path.join(process.cwd(), ...p), 'utf8').replace(/\r\n/g, '\n');
 
 test('Couple RPC migration: join/create functions exist, are SECURITY DEFINER and granted to authenticated', () => {
   const sql = migration6();
