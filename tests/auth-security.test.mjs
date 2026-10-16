@@ -349,3 +349,65 @@ test('DiaryContext: loading a couple space fetches real memories from the databa
   // loadExistingCoupleSpace must be async so it can await the fetch
   assert.ok(/const loadExistingCoupleSpace = async \(/.test(ctx));
 });
+
+// ==============================================================================
+// TEST SUITE: Persisting the remaining features (events, letters, bucket list,
+// love coupons, spin wheel, daily spark, memory notes/photos)
+// ==============================================================================
+
+test('Migration 09: new tables exist with RLS enabled and policies scoped by couple membership', () => {
+  const sql = fs.readFileSync(
+    path.join(process.cwd(), 'supabase', 'migrations', '20261014000009_persist_remaining_features.sql'),
+    'utf8'
+  );
+  for (const table of ['memory_photos', 'love_coupons', 'spin_wheel_options', 'daily_spark_answers']) {
+    assert.ok(sql.includes(`CREATE TABLE IF NOT EXISTS public.${table}`), `${table} must be created`);
+    assert.ok(
+      sql.includes(`ALTER TABLE public.${table} ENABLE ROW LEVEL SECURITY;`),
+      `${table} must enable RLS`
+    );
+  }
+  assert.ok(sql.includes('ADD COLUMN IF NOT EXISTS passcode'));
+  assert.ok(sql.includes('ADD COLUMN IF NOT EXISTS is_locked'));
+  assert.ok(sql.includes("UNIQUE (couple_id, question_id, answer_date, user_id)"));
+});
+
+test('Sync helpers: every remaining feature has fetch/create helpers wired to its table', () => {
+  const src = read('src', 'lib', 'supabase', 'sync.ts');
+  const tables = [
+    'events', 'letters', 'bucket_items', 'love_coupons',
+    'spin_wheel_options', 'daily_spark_answers', 'memory_notes', 'memory_photos',
+  ];
+  for (const table of tables) {
+    assert.ok(src.includes(`from('${table}')`), `sync.ts must query ${table}`);
+  }
+});
+
+test('DiaryContext: loading a couple space fetches all persisted features in parallel', () => {
+  const ctx = read('src', 'store', 'DiaryContext.tsx');
+  for (const fn of [
+    'fetchEventsRemote', 'fetchLettersRemote', 'fetchBucketListRemote',
+    'fetchLoveCouponsRemote', 'fetchWheelOptionsRemote', 'fetchDailySparkAnswersRemote',
+    'fetchMemoryNotesForMemoriesRemote', 'fetchMemoryPhotosForMemoriesRemote',
+  ]) {
+    assert.ok(ctx.includes(fn), `loadExistingCoupleSpace must call ${fn}`);
+  }
+});
+
+test('DiaryContext: ephemeral state (heartbeat/mood/soundtrack) is NOT sent to the database', () => {
+  const ctx = read('src', 'store', 'DiaryContext.tsx');
+  // sendHeartbeatPing / sendWarmHug / updateMoodBeacon / toggleSoundtrack bodies
+  // must not reference any remote write helper.
+  const forbidden = [
+    'createEventRemote', 'createLetterRemote', 'createMemoryRemote', 'createBucketItemRemote',
+  ];
+  const heartbeatFnMatch = ctx.match(/const sendHeartbeatPing = [\s\S]*?\n  };/);
+  const warmHugFnMatch = ctx.match(/const sendWarmHug = [\s\S]*?\n  };/);
+  const moodFnMatch = ctx.match(/const updateMoodBeacon = [\s\S]*?\n  };/);
+  assert.ok(heartbeatFnMatch && warmHugFnMatch && moodFnMatch, 'expected functions must exist');
+  for (const fn of forbidden) {
+    assert.ok(!heartbeatFnMatch[0].includes(fn));
+    assert.ok(!warmHugFnMatch[0].includes(fn));
+    assert.ok(!moodFnMatch[0].includes(fn));
+  }
+});
