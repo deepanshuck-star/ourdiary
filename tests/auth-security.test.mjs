@@ -316,3 +316,36 @@ test('Security: import validate API route requires auth and caps body size', () 
   assert.ok(route.includes('Unauthorized'));
   assert.ok(/status: 413/.test(route), 'must reject oversized bodies with 413');
 });
+
+// ==============================================================================
+// TEST SUITE: Memory persistence (survives logout/login)
+// ==============================================================================
+
+test('Migration 08: memories table gains perspective/tags columns', () => {
+  const sql = fs.readFileSync(
+    path.join(process.cwd(), 'supabase', 'migrations', '20261014000008_memories_persistence_columns.sql'),
+    'utf8'
+  );
+  assert.ok(sql.includes('ADD COLUMN IF NOT EXISTS perspective_user1'));
+  assert.ok(sql.includes('ADD COLUMN IF NOT EXISTS perspective_user2'));
+  assert.ok(sql.includes('ADD COLUMN IF NOT EXISTS tags'));
+});
+
+test('Memories helper: fetch/create/update/delete all target the memories table', () => {
+  const src = read('src', 'lib', 'supabase', 'memories.ts');
+  assert.ok(src.includes("from('memories')"));
+  assert.ok(src.includes('export async function fetchMemoriesRemote'));
+  assert.ok(src.includes('export async function createMemoryRemote'));
+  assert.ok(src.includes('export async function updateMemoryRemote'));
+  assert.ok(src.includes('export async function deleteMemoryRemote'));
+});
+
+test('DiaryContext: loading a couple space fetches real memories from the database', () => {
+  const ctx = read('src', 'store', 'DiaryContext.tsx');
+  assert.ok(ctx.includes('fetchMemoriesRemote'));
+  assert.ok(ctx.includes('createMemoryRemote'));
+  assert.ok(ctx.includes('updateMemoryRemote'));
+  assert.ok(ctx.includes('deleteMemoryRemote'));
+  // loadExistingCoupleSpace must be async so it can await the fetch
+  assert.ok(/const loadExistingCoupleSpace = async \(/.test(ctx));
+});

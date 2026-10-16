@@ -29,6 +29,7 @@ import {
   validateAndImportDiaryData,
 } from '@/lib/storage';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { fetchMemoriesRemote, createMemoryRemote, updateMemoryRemote, deleteMemoryRemote } from '@/lib/supabase/memories';
 import { sendPushNotification } from '@/lib/notifications';
 
 export interface ToastInfo {
@@ -281,10 +282,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addMemory = (newMem: Omit<Memory, 'id' | 'reactions' | 'notes'>): Memory => {
-    const id = 'mem_' + Date.now();
+    const tempId = 'mem_' + Date.now();
     const createdMemory: Memory = {
       ...newMem,
-      id,
+      id: tempId,
       reactions: [],
       notes: [],
     };
@@ -295,6 +296,28 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       ),
     }));
     showToast('New memory created & added to journey! 🎉', 'heart');
+
+    // Persist to the database so it survives logout/login. The temp id is
+    // swapped for the real one once saved; anything that referenced the temp
+    // id (e.g. a bucket-list item just converted to a memory) is patched too.
+    const supabase = getSupabaseBrowserClient();
+    if (supabase && isLiveUser && currentUserId && data.couple.id) {
+      createMemoryRemote(supabase, data.couple.id, currentUserId, newMem)
+        .then((saved) => {
+          setData((prev) => ({
+            ...prev,
+            memories: prev.memories.map((m) => (m.id === tempId ? { ...m, id: saved.id } : m)),
+            bucketList: prev.bucketList.map((b) =>
+              b.memoryId === tempId ? { ...b, memoryId: saved.id } : b
+            ),
+          }));
+        })
+        .catch((err) => {
+          console.error('[OurDiary] Failed to save memory to database:', err);
+          showToast("This memory is saved on this device only — couldn't reach the server.", 'warn');
+        });
+    }
+
     return createdMemory;
   };
 
@@ -304,6 +327,13 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       memories: prev.memories.map((m) => (m.id === id ? { ...m, ...updates } : m)),
     }));
     showToast('Memory updated!', 'success');
+
+    const supabase = getSupabaseBrowserClient();
+    if (supabase && isLiveUser && !id.startsWith('mem_')) {
+      updateMemoryRemote(supabase, id, updates).catch((err) => {
+        console.error('[OurDiary] Failed to update memory in database:', err);
+      });
+    }
   };
 
   const deleteMemory = (id: string) => {
@@ -312,6 +342,13 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       memories: prev.memories.filter((m) => m.id !== id),
     }));
     showToast('Memory deleted from journey and diary', 'info');
+
+    const supabase = getSupabaseBrowserClient();
+    if (supabase && isLiveUser && !id.startsWith('mem_')) {
+      deleteMemoryRemote(supabase, id).catch((err) => {
+        console.error('[OurDiary] Failed to delete memory from database:', err);
+      });
+    }
   };
 
   const addPhotoToMemory = (memoryId: string, photo: { url: string; caption?: string }) => {
@@ -397,7 +434,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     showToast(`Created private couple space for ${couple.name}! 💕 (Clean slate ready)`, 'heart');
   };
 
-  const loadExistingCoupleSpace = (
+  const loadExistingCoupleSpace = async (
     userId: string,
     remoteCouple: any,
     role: 'creator' | 'partner' = 'creator'
@@ -451,6 +488,25 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('ourdiary_real_couple_v1', JSON.stringify(nextData));
     }
     setData(nextData);
+
+    // The database is the durable source of truth for memories: pull the
+    // real list so nothing created before is lost after logout/login.
+    const supabase = getSupabaseBrowserClient();
+    if (supabase) {
+      try {
+        const remoteMemories = await fetchMemoriesRemote(supabase, remoteCouple.id, userId, activeProfileId);
+        setData((prev) => {
+          const updated = { ...prev, memories: remoteMemories };
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(`ourdiary_space_${userId}`, JSON.stringify(updated));
+          }
+          return updated;
+        });
+      } catch (err) {
+        console.error('[OurDiary] Failed to load memories from database:', err);
+        showToast("Couldn't load your memories right now. Please refresh to try again.", 'warn');
+      }
+    }
   };
 
   const logout = async (redirectToLogin: boolean = true) => {
