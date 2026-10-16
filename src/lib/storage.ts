@@ -59,28 +59,45 @@ export function exportDiaryDataJSON(data: OurDiaryData): string {
 }
 
 export function validateAndImportDiaryData(jsonStr: string): { success: boolean; data?: OurDiaryData; error?: string } {
+  const t0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  const lineCount = jsonStr.split('\n').length;
+  const logTiming = (success: boolean) => {
+    const elapsedMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - t0;
+    console.log(
+      `[OurDiary Import] parsed ${lineCount} line(s), ${jsonStr.length} byte(s) in ${elapsedMs.toFixed(2)}ms — success=${success}`
+    );
+  };
+
   try {
     const parsed = JSON.parse(jsonStr);
     if (!parsed || typeof parsed !== 'object') {
+      logTiming(false);
       return { success: false, error: 'Invalid JSON: root must be an object' };
     }
     if (!parsed.couple || !parsed.couple.name || !parsed.couple.startDate) {
+      logTiming(false);
       return { success: false, error: 'Missing couple information in imported data' };
     }
     if (!Array.isArray(parsed.memories)) {
+      logTiming(false);
       return { success: false, error: 'Memories array missing' };
     }
     if (!Array.isArray(parsed.events)) {
+      logTiming(false);
       return { success: false, error: 'Events array missing' };
     }
     if (!Array.isArray(parsed.letters)) {
+      logTiming(false);
       return { success: false, error: 'Letters array missing' };
     }
     if (!Array.isArray(parsed.bucketList)) {
+      logTiming(false);
       return { success: false, error: 'Bucket list array missing' };
     }
+    logTiming(true);
     return { success: true, data: parsed as OurDiaryData };
   } catch (err: any) {
+    logTiming(false);
     return { success: false, error: err?.message || 'Failed to parse JSON file' };
   }
 }
