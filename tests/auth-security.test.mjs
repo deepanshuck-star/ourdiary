@@ -261,3 +261,14 @@ test('Couple RLS: no direct INSERT policy on couple_members after migration 06',
   assert.ok(sql.includes('DROP POLICY IF EXISTS "Couple members join policy"'));
   assert.ok(!/CREATE POLICY "Couple members join policy"/.test(sql));
 });
+
+test('Migration 07: create/join ensure the caller has a profile row (avoids FK 409)', () => {
+  const sql = fs.readFileSync(
+    path.join(process.cwd(), 'supabase', 'migrations', '20261014000007_backfill_profiles.sql'),
+    'utf8'
+  );
+  assert.ok(sql.includes('INSERT INTO public.profiles'));
+  assert.equal((sql.match(/ON CONFLICT \(id\) DO NOTHING/g) || []).length, 3);
+  assert.ok(sql.includes('FUNCTION public.create_couple_space'));
+  assert.ok(sql.includes('FUNCTION public.join_couple_by_code'));
+});
