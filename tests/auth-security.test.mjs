@@ -272,3 +272,39 @@ test('Migration 07: create/join ensure the caller has a profile row (avoids FK 4
   assert.ok(sql.includes('FUNCTION public.create_couple_space'));
   assert.ok(sql.includes('FUNCTION public.join_couple_by_code'));
 });
+
+// ==============================================================================
+// TEST SUITE: Security hardening (no raw errors leaked, security headers set)
+// ==============================================================================
+
+test('Security: next.config.ts sends baseline security headers on every route', () => {
+  const cfg = read('next.config.ts');
+  assert.ok(cfg.includes("'X-Frame-Options'"));
+  assert.ok(cfg.includes("'X-Content-Type-Options'"));
+  assert.ok(cfg.includes('nosniff'));
+  assert.ok(cfg.includes('Strict-Transport-Security'));
+  assert.ok(cfg.includes('async headers()'));
+});
+
+test('Security: login/onboarding route raw Supabase errors through friendlyAuthError', () => {
+  const login = read('src', 'app', 'login', 'page.tsx');
+  const onboarding = read('src', 'app', 'onboarding', 'page.tsx');
+  assert.ok(login.includes('friendlyAuthError'));
+  assert.ok(onboarding.includes('friendlyAuthError'));
+  assert.ok(!/setErrorMsg\(error\.message\)/.test(login), 'raw error.message must not reach the UI');
+  assert.ok(!/setJoinError\(err\?\.message/.test(onboarding), 'raw err.message must not reach the UI');
+});
+
+test('Security: a failed couple lookup on login never dead-ends the user', () => {
+  const login = read('src', 'app', 'login', 'page.tsx');
+  assert.ok(login.includes('lookupFailed'));
+  assert.ok(login.includes("router.push('/onboarding')"));
+});
+
+test('Security: secrets stay server-side (no Cloudinary/Supabase secret in client bundle code)', () => {
+  const client = read('src', 'lib', 'supabase', 'client.ts');
+  assert.ok(!client.includes('SERVICE_ROLE'));
+  assert.ok(!client.includes('API_SECRET'));
+  const cloudinary = read('src', 'lib', 'cloudinary', 'server.ts');
+  assert.ok(cloudinary.includes("'use client'") === false);
+});

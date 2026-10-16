@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { fetchMyCouple, createCoupleSpaceRemote, joinCoupleByCodeRemote } from '@/lib/supabase/couple';
+import { friendlyAuthError } from '@/lib/friendlyError';
 import { useDiary } from '@/store/DiaryContext';
 
 export default function OnboardingPage() {
@@ -145,7 +146,7 @@ export default function OnboardingPage() {
         finalName = remote.name;
         finalStart = remote.relationship_start_date || startDate;
       } catch (err: any) {
-        showToast(`Could not create your couple space: ${err?.message || 'unknown error'}`, 'warn');
+        showToast(`Could not create your couple space: ${friendlyAuthError(err, 'couple')}`, 'warn');
         setIsSubmitting(false);
         return;
       }
@@ -195,14 +196,7 @@ export default function OnboardingPage() {
         router.push('/dashboard');
         return;
       } catch (err: any) {
-        const msg: string = err?.message || '';
-        if (/invalid invite code/i.test(msg)) {
-          setJoinError('Invalid invite code! Please check with your partner and try again.');
-        } else if (/limited to exactly two/i.test(msg)) {
-          setJoinError('This couple space is already full (strictly limited to 2 partners).');
-        } else {
-          setJoinError(msg || 'Error connecting to couple space.');
-        }
+        setJoinError(friendlyAuthError(err, 'couple'));
         setIsSubmitting(false);
         return;
       }

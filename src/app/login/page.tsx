@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Heart, Sparkles, Lock, Mail, ArrowRight, ShieldCheck, UserCheck, AlertCircle, CheckCircle2, User } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { fetchMyCouple } from '@/lib/supabase/couple';
+import { friendlyAuthError } from '@/lib/friendlyError';
 import { useDiary } from '@/store/DiaryContext';
 
 export default function LoginPage() {
@@ -52,7 +53,7 @@ export default function LoginPage() {
         });
 
         if (error) {
-          setErrorMsg(error.message);
+          setErrorMsg(friendlyAuthError(error, 'signup'));
           setLoading(false);
         } else if (data.session) {
           setIsLiveUser(true);
@@ -78,7 +79,7 @@ export default function LoginPage() {
         });
 
         if (error) {
-          setErrorMsg(error.message);
+          setErrorMsg(friendlyAuthError(error, 'login'));
           setLoading(false);
         } else if (data.session) {
           setIsLiveUser(true);
@@ -89,14 +90,12 @@ export default function LoginPage() {
 
           // Restore the existing couple space (never route established users to onboarding)
           let existing = null;
+          let lookupFailed = false;
           try {
             existing = await fetchMyCouple(supabase);
           } catch (lookupErr: any) {
-            setErrorMsg(
-              `Signed in, but we couldn't load your couple space: ${lookupErr?.message || 'unknown error'}. Please try again.`
-            );
-            setLoading(false);
-            return;
+            lookupFailed = true;
+            console.error('[OurDiary] couple lookup failed on login:', lookupErr?.message);
           }
 
           if (existing) {
@@ -104,13 +103,17 @@ export default function LoginPage() {
             showToast(`Welcome back to ${existing.couple.name}! 💕`, 'heart');
             router.push('/dashboard');
           } else {
-            showToast('Signed in! Set up your couple space to get started 💕', 'success');
+            if (lookupFailed) {
+              showToast("Signed in! We couldn't check for an existing space — create or join one below.", 'warn');
+            } else {
+              showToast('Signed in! Set up your couple space to get started 💕', 'success');
+            }
             router.push('/onboarding');
           }
         }
       }
     } catch (err: any) {
-      setErrorMsg(err?.message || 'Authentication failed');
+      setErrorMsg(friendlyAuthError(err, 'login'));
       setLoading(false);
     }
   };
