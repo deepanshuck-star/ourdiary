@@ -507,3 +507,46 @@ test('Dashboard: locked-note teaser list never references note content, only its
   assert.ok(dash.includes('lockedNoteTeasers'));
   assert.ok(!/\{note\.content\}/.test(dash), 'dashboard must never render a locked note\'s content');
 });
+
+// ==============================================================================
+// TEST SUITE: Couple photo + individual photo uploads
+// ==============================================================================
+
+test('Migration 13: couples.photo_url and profiles.avatar_url columns exist', () => {
+  const sql = fs.readFileSync(
+    path.join(process.cwd(), 'supabase', 'migrations', '20261014000013_couple_and_profile_photos.sql'),
+    'utf8'
+  );
+  assert.ok(sql.includes('ALTER TABLE public.couples'));
+  assert.ok(sql.includes('ADD COLUMN IF NOT EXISTS photo_url'));
+  assert.ok(sql.includes('ALTER TABLE public.profiles'));
+  assert.ok(sql.includes('ADD COLUMN IF NOT EXISTS avatar_url'));
+});
+
+test('Cloudinary upload helper validates file type/size before uploading', () => {
+  const src = read('src', 'lib', 'cloudinary', 'upload.ts');
+  assert.ok(src.includes("file.type.startsWith('image/')"));
+  assert.ok(src.includes('file.size > maxBytes'));
+  assert.ok(src.includes('/api/media/sign-upload'));
+});
+
+test('Profile photo sync: avatar writes go through RLS-scoped self-update, never the partner\'s row', () => {
+  const sync = read('src', 'lib', 'supabase', 'profiles.ts');
+  assert.ok(sync.includes("from('profiles').update"));
+  assert.ok(sync.includes(".eq('id', userId)"));
+
+  const ctx = read('src', 'store', 'DiaryContext.tsx');
+  assert.ok(ctx.includes('profileId === data.activeProfileId'));
+});
+
+test('Settings UI: upload is only offered for your own profile in live mode', () => {
+  const settings = read('src', 'app', 'settings', 'page.tsx');
+  assert.ok(settings.includes("activeProfile.id !== 'user_1'"));
+  assert.ok(settings.includes("activeProfile.id !== 'user_2'"));
+  assert.ok(settings.includes('uploadImageToCloudinary'));
+});
+
+test('Navbar shows the couple photo top-left when set', () => {
+  const navbar = read('src', 'components', 'layout', 'AppNavbar.tsx');
+  assert.ok(navbar.includes('data.couple.photoUrl'));
+});

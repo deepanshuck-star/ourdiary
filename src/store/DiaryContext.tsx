@@ -30,6 +30,7 @@ import {
 } from '@/lib/storage';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { fetchMemoriesRemote, createMemoryRemote, updateMemoryRemote, deleteMemoryRemote } from '@/lib/supabase/memories';
+import { fetchCoupleProfilesRemote, updateMyAvatarRemote, updateCouplePhotoRemote } from '@/lib/supabase/profiles';
 import {
   fetchEventsRemote, createEventRemote, updateEventRemote, deleteEventRemote,
   fetchLettersRemote, createLetterRemote, updateLetterRemote, deleteLetterRemote,
@@ -275,6 +276,16 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       couple: { ...prev.couple, ...updates },
     }));
     showToast('Relationship settings saved!', 'success');
+
+    if (updates.photoUrl !== undefined) {
+      const supabase = isLiveUser && currentUserId ? getSupabaseBrowserClient() : null;
+      if (supabase && data.couple.id) {
+        updateCouplePhotoRemote(supabase, data.couple.id, updates.photoUrl).catch((err) => {
+          console.error('[OurDiary] Failed to save couple photo to database:', err);
+          showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+        });
+      }
+    }
   };
 
   const updateProfile = (profileId: ProfileId, updates: Partial<DemoProfile>) => {
@@ -290,6 +301,18 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       };
     });
     showToast('Profile updated!', 'success');
+
+    // Only sync the photo to the database for your OWN profile — RLS would
+    // reject writing your partner's row anyway, and the UI shouldn't try.
+    if (updates.avatar !== undefined && profileId === data.activeProfileId) {
+      const supabase = isLiveUser && currentUserId ? getSupabaseBrowserClient() : null;
+      if (supabase && currentUserId) {
+        updateMyAvatarRemote(supabase, currentUserId, updates.avatar).catch((err) => {
+          console.error('[OurDiary] Failed to save avatar to database:', err);
+          showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+        });
+      }
+    }
   };
 
   // Returns a live Supabase client only when this is a signed-in cloud couple
@@ -501,6 +524,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       anniversaryDate: remoteCouple.anniversary_date || remoteCouple.relationship_start_date || '2024-01-01',
       theme: remoteCouple.theme || 'candy',
       inviteCode: remoteCouple.invite_code,
+      photoUrl: remoteCouple.photo_url || undefined,
     };
 
     let cached: OurDiaryData | null = null;
@@ -542,7 +566,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     const supabase = getSupabaseBrowserClient();
     if (supabase) {
       try {
-        const [memories, events, letters, bucketList, loveCoupons, customWheelOptions, dailySparkAnswers] =
+        const [memories, events, letters, bucketList, loveCoupons, customWheelOptions, dailySparkAnswers, profiles] =
           await Promise.all([
             fetchMemoriesRemote(supabase, remoteCouple.id, userId, activeProfileId),
             fetchEventsRemote(supabase, remoteCouple.id),
@@ -551,6 +575,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
             fetchLoveCouponsRemote(supabase, remoteCouple.id, userId, activeProfileId),
             fetchWheelOptionsRemote(supabase, remoteCouple.id),
             fetchDailySparkAnswersRemote(supabase, remoteCouple.id, userId, activeProfileId),
+            fetchCoupleProfilesRemote(supabase, remoteCouple.id, userId, activeProfileId),
           ]);
 
         const memoryIds = memories.map((m) => m.id);
@@ -574,6 +599,15 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
             loveCoupons,
             customWheelOptions: customWheelOptions.length > 0 ? customWheelOptions : prev.customWheelOptions,
             dailySparkAnswers,
+            couple: {
+              ...prev.couple,
+              user1: profiles.user_1?.avatarUrl
+                ? { ...prev.couple.user1, avatar: profiles.user_1.avatarUrl }
+                : prev.couple.user1,
+              user2: profiles.user_2?.avatarUrl
+                ? { ...prev.couple.user2, avatar: profiles.user_2.avatarUrl }
+                : prev.couple.user2,
+            },
           };
           if (typeof window !== 'undefined') {
             localStorage.setItem(`ourdiary_space_${userId}`, JSON.stringify(updated));

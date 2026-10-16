@@ -27,10 +27,12 @@ import {
   requestPushPermission,
   sendPushNotification,
 } from '@/lib/notifications';
+import { uploadImageToCloudinary } from '@/lib/cloudinary/upload';
 
 export default function SettingsPage() {
   const {
     data,
+    activeProfile,
     updateCouple,
     updateProfile,
     resetAllData,
@@ -87,6 +89,51 @@ export default function SettingsPage() {
   const [user2Nickname, setUser2Nickname] = useState(data.couple.user2.nickname || '');
   const [user2Avatar, setUser2Avatar] = useState(data.couple.user2.avatar);
   const [user2Bio, setUser2Bio] = useState(data.couple.user2.bio || '');
+
+  // Couple photo
+  const [couplePhoto, setCouplePhoto] = useState(data.couple.photoUrl || '');
+  const [uploadingCouplePhoto, setUploadingCouplePhoto] = useState(false);
+  const [uploadingUser1Photo, setUploadingUser1Photo] = useState(false);
+  const [uploadingUser2Photo, setUploadingUser2Photo] = useState(false);
+
+  const handleUploadCouplePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setUploadingCouplePhoto(true);
+    try {
+      const { secureUrl } = await uploadImageToCloudinary(file);
+      setCouplePhoto(secureUrl);
+      updateCouple({ photoUrl: secureUrl });
+      showToast('Couple photo updated! 💕', 'heart');
+    } catch (err: any) {
+      showToast(err?.message || 'Could not upload that photo. Please try again.', 'warn');
+    } finally {
+      setUploadingCouplePhoto(false);
+    }
+  };
+
+  const handleUploadProfilePhoto = async (
+    profileId: 'user_1' | 'user_2',
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    const setUploading = profileId === 'user_1' ? setUploadingUser1Photo : setUploadingUser2Photo;
+    const setAvatarState = profileId === 'user_1' ? setUser1Avatar : setUser2Avatar;
+    setUploading(true);
+    try {
+      const { secureUrl } = await uploadImageToCloudinary(file);
+      setAvatarState(secureUrl);
+      updateProfile(profileId, { avatar: secureUrl });
+      showToast('Photo updated! 💕', 'heart');
+    } catch (err: any) {
+      showToast(err?.message || 'Could not upload that photo. Please try again.', 'warn');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // Reset modal state
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -331,6 +378,38 @@ export default function SettingsPage() {
           </form>
         </div>
 
+        {/* Couple Photo */}
+        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-sm">
+          <h3 className="font-extrabold text-base text-slate-900 mb-1">Couple Photo</h3>
+          <p className="text-xs text-slate-500 mb-4">
+            A photo of both of you together — shown in the top-left of the navbar.
+          </p>
+          <div className="flex items-center gap-4">
+            {couplePhoto ? (
+              <img
+                src={couplePhoto}
+                alt="Couple"
+                className="w-16 h-16 rounded-2xl object-cover ring-2 ring-[#CBBEF4] shadow-xs"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
+                <Heart className="w-6 h-6" />
+              </div>
+            )}
+            <label className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 shadow-sm cursor-pointer">
+              <Upload className="w-3.5 h-3.5" />
+              <span>{uploadingCouplePhoto ? 'Uploading…' : couplePhoto ? 'Change Photo' : 'Upload Photo'}</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={uploadingCouplePhoto}
+                onChange={handleUploadCouplePhoto}
+              />
+            </label>
+          </div>
+        </div>
+
         {/* Profiles Customization (2 cols) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* User 1 Profile Form */}
@@ -370,12 +449,30 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Avatar Image URL</label>
+                <label className="block text-xs font-bold text-slate-600 mb-1">Photo</label>
+                {isLiveUser && activeProfile.id !== 'user_1' ? (
+                  <p className="text-[11px] text-slate-400 mb-1.5">
+                    Only {data.couple.user1.name} can upload their own photo.
+                  </p>
+                ) : (
+                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 cursor-pointer">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{uploadingUser1Photo ? 'Uploading…' : 'Upload Photo'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingUser1Photo}
+                      onChange={(e) => handleUploadProfilePhoto('user_1', e)}
+                    />
+                  </label>
+                )}
                 <input
                   type="url"
                   required
                   value={user1Avatar}
                   onChange={(e) => setUser1Avatar(e.target.value)}
+                  placeholder="Or paste an image URL"
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
                 />
               </div>
@@ -438,12 +535,30 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Avatar Image URL</label>
+                <label className="block text-xs font-bold text-slate-600 mb-1">Photo</label>
+                {isLiveUser && activeProfile.id !== 'user_2' ? (
+                  <p className="text-[11px] text-slate-400 mb-1.5">
+                    Only {data.couple.user2.name} can upload their own photo.
+                  </p>
+                ) : (
+                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 cursor-pointer">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{uploadingUser2Photo ? 'Uploading…' : 'Upload Photo'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingUser2Photo}
+                      onChange={(e) => handleUploadProfilePhoto('user_2', e)}
+                    />
+                  </label>
+                )}
                 <input
                   type="url"
                   required
                   value={user2Avatar}
                   onChange={(e) => setUser2Avatar(e.target.value)}
+                  placeholder="Or paste an image URL"
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
                 />
               </div>

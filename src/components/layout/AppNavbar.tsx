@@ -34,9 +34,18 @@ export function AppNavbar() {
         {/* Brand */}
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#F8C8D8] via-[#CBBEF4] to-[#B6DDF4] flex items-center justify-center shadow-md shadow-[#CBBEF4]/30 group-hover:scale-105 transition-transform">
-              <Heart className="w-5 h-5 text-rose-500 fill-rose-500 animate-pulse" />
-            </div>
+            {data.couple.photoUrl ? (
+              <img
+                src={data.couple.photoUrl}
+                alt={`${data.couple.name} together`}
+                title="Your couple photo"
+                className="w-10 h-10 rounded-2xl object-cover shadow-md shadow-[#CBBEF4]/30 ring-2 ring-white group-hover:scale-105 transition-transform"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#F8C8D8] via-[#CBBEF4] to-[#B6DDF4] flex items-center justify-center shadow-md shadow-[#CBBEF4]/30 group-hover:scale-105 transition-transform">
+                <Heart className="w-5 h-5 text-rose-500 fill-rose-500 animate-pulse" />
+              </div>
+            )}
             <div className="hidden sm:block">
               <span className="font-bold text-xl tracking-tight text-[#292538] flex items-center gap-1">
                 OurDiary

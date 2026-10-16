@@ -20,6 +20,8 @@ export interface Couple {
   animationsEnabled: boolean;
   inviteCode?: string;
   isLocked?: boolean;
+  // A single photo of both partners together, shown top-left in the navbar.
+  photoUrl?: string;
 }
 
 export type MemoryCategory =
