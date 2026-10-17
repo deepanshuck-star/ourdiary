@@ -5,6 +5,16 @@ import { useRouter } from 'next/navigation';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
 import { MemoryCategory, Mood, MemoryPhoto } from '@/types';
+
+// Defined at module scope (not inside the component) so these impure calls
+// are never associated with render — they only ever run inside event
+// handlers (photo upload / preset selection), never during render itself.
+function makePhotoId(prefix: string): string {
+  return `${prefix}_${Date.now()}${Math.random().toString(36).substring(2, 5)}`;
+}
+function nowIso(): string {
+  return new Date().toISOString();
+}
 import {
   BookHeart,
   Calendar,
@@ -79,10 +89,10 @@ export default function NewMemoryPage() {
       reader.onload = (event) => {
         if (event.target?.result) {
           const newPhoto: MemoryPhoto = {
-            id: 'p_loc_' + Date.now() + Math.random().toString(36).substring(2, 5),
+            id: makePhotoId('p_loc'),
             url: event.target.result as string,
             caption: file.name,
-            dateAdded: new Date().toISOString(),
+            dateAdded: nowIso(),
           };
           setPhotos((prev) => [...prev, newPhoto]);
         }
@@ -93,10 +103,10 @@ export default function NewMemoryPage() {
 
   const addPresetPhoto = (url: string) => {
     const newPhoto: MemoryPhoto = {
-      id: 'p_pre_' + Date.now() + Math.random().toString(36).substring(2, 5),
+      id: makePhotoId('p_pre'),
       url,
       caption: 'Couple moment',
-      dateAdded: new Date().toISOString(),
+      dateAdded: nowIso(),
     };
     setPhotos((prev) => [...prev, newPhoto]);
   };
