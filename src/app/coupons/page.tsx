@@ -4,20 +4,15 @@ import React, { useState } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
 import {
-  Ticket,
   Sparkles,
-  Plus,
   CheckCircle2,
   Gift,
-  Heart,
   X,
-  Clock,
-  Send,
 } from 'lucide-react';
 import { formatDate } from '@/lib/date-utils';
 
 export default function CouponsPage() {
-  const { data, activeProfile, partnerProfile, addLoveCoupon, redeemLoveCoupon } = useDiary();
+  const { data, partnerProfile, addLoveCoupon, redeemLoveCoupon } = useDiary();
 
   const [filter, setFilter] = useState<'all' | 'active' | 'redeemed'>('all');
   const [showGiftModal, setShowGiftModal] = useState(false);

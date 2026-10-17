@@ -14,16 +14,12 @@ import {
   Letter,
   BucketItem,
   MoodType,
-  UserMood,
-  HeartbeatPing,
   DailySparkAnswer,
   WheelOption,
   LoveCoupon,
 } from '@/types';
 import { initialDiaryData } from '@/data/seed';
 import {
-  loadDiaryData,
-  saveDiaryData,
   resetDiaryData,
   exportDiaryDataJSON,
   validateAndImportDiaryData,
@@ -720,6 +716,10 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     showToast('Logged out successfully. See you soon! 💕', 'heart');
 
     if (redirectToLogin && typeof window !== 'undefined') {
+      // A full page load (not router.push) is intentional here: it
+      // guarantees every in-memory cache/closure from the old session is
+      // gone, not just the state this context knows to reset.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/login';
     }
   };

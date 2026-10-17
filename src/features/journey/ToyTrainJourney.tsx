@@ -1,23 +1,17 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import Link from 'next/link';
 import { useDiary } from '@/store/DiaryContext';
-import { Memory } from '@/types';
+import {} from '@/types';
 import { formatDate } from '@/lib/date-utils';
 import {
-  Sparkles,
   ArrowRight,
   Compass,
   Calendar,
   MapPin,
   ChevronLeft,
   ChevronRight,
-  Heart,
-  Volume2,
-  VolumeX,
-  Play,
-  RotateCcw,
 } from 'lucide-react';
 
 // Mood and category emojis
@@ -33,15 +27,6 @@ const categoryEmojis: Record<string, string> = {
   'Important conversation': '💬',
   Other: '🌟',
 };
-
-// Colorful station gradients
-const stationColors = [
-  'from-[#F8C8D8] to-[#F5A3A3]',
-  'from-[#CBBEF4] to-[#B6DDF4]',
-  'from-[#F8DEA0] to-[#F5A3A3]',
-  'from-[#B8DCD1] to-[#B6DDF4]',
-  'from-[#F8C8D8] to-[#CBBEF4]',
-];
 
 export function ToyTrainJourney() {
   const { data, activeProfile } = useDiary();
@@ -325,7 +310,6 @@ export function ToyTrainJourney() {
               {stations.map((st, i) => {
                 const isActive = i === activeStationIndex;
                 const isPast = i < activeStationIndex;
-                const gradientClass = stationColors[i % stationColors.length];
 
                 return (
                   <g

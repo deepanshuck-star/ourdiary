@@ -1,17 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
 import {
   RotateCcw,
-  Sparkles,
   Plus,
   Trash2,
   Calendar,
-  Compass,
-  Check,
   Utensils,
   Smile,
   X,

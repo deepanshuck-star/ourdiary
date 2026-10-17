@@ -19,14 +19,11 @@ import {
   BookHeart,
   Calendar,
   MapPin,
-  Smile,
   Tag,
-  Image as GalleryIcon,
   UploadCloud,
   X,
   Sparkles,
   ArrowLeft,
-  Check,
 } from 'lucide-react';
 
 const CATEGORIES: MemoryCategory[] = [
@@ -61,7 +58,7 @@ const DEMO_PRESET_PHOTOS = [
 
 export default function NewMemoryPage() {
   const router = useRouter();
-  const { data, activeProfile, partnerProfile, addMemory } = useDiary();
+  const { activeProfile, addMemory } = useDiary();
 
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('2025-04-12');
@@ -76,7 +73,6 @@ export default function NewMemoryPage() {
   const [myPerspective, setMyPerspective] = useState('');
   const [tagsInput, setTagsInput] = useState('');
   const [photos, setPhotos] = useState<MemoryPhoto[]>([]);
-  const [customPhotoUrl, setCustomPhotoUrl] = useState('');
 
   // Handle local file selection preview
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

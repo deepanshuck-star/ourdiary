@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { Heart, Sparkles, X, Check } from 'lucide-react';
+import {Heart, X, Check} from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
-import { formatDate } from '@/lib/date-utils';
+import {} from '@/lib/date-utils';
 
 export function IncomingHeartbeatAlert() {
-  const { data, activeProfile, partnerProfile, markHeartbeatSeen, isHydrated } = useDiary();
+  const { data, activeProfile, markHeartbeatSeen, isHydrated } = useDiary();
 
   if (!isHydrated) return null;
 

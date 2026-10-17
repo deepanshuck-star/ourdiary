@@ -11,14 +11,11 @@ import {
   Plus,
   Lock,
   MailOpen,
-  Calendar,
   Heart,
   Clock,
-  Sparkles,
   Trash2,
   X,
   Send,
-  Eye,
   FileEdit,
 } from 'lucide-react';
 
@@ -40,7 +37,7 @@ export default function LettersPage() {
     setUnlockDate(d.toISOString().split('T')[0]);
   }, []);
   const [envelopeColor, setEnvelopeColor] = useState('#F8C8D8');
-  const [isDraft, setIsDraft] = useState(false);
+  const [, setIsDraft] = useState(false);
 
   // Filter letters based on active profile:
   // Received letters: toId === activeProfile.id && !isDraft

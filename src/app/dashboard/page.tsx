@@ -65,7 +65,7 @@ export default function DashboardPage() {
     try {
       await regenerateCoupleCode();
       setShowRegenModal(false);
-    } catch (err) {
+    } catch {
       showToast('Failed to regenerate code', 'warn');
     } finally {
       setIsRegenerating(false);

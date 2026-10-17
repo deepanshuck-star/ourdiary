@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Heart, Sparkles, Send, Flame, X } from 'lucide-react';
+import {Heart, Send, Flame, X} from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
 
 interface HeartbeatLovePingModalProps {

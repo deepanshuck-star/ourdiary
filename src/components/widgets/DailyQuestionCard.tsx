@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Sparkles, Lock, Unlock, Send, ArrowRight, Heart, CheckCircle2 } from 'lucide-react';
+import {Sparkles, Lock, Unlock, ArrowRight} from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
 
 const QUESTIONS_POOL = [

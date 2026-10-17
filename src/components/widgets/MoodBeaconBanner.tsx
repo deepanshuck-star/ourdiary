@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Sparkles, Heart, Smile, Send } from 'lucide-react';
+import {} from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
 import { MoodType } from '@/types';
 import { WarmHugModal } from './WarmHugModal';
@@ -55,7 +55,7 @@ const MOOD_CONFIG: Record<
 };
 
 export function MoodBeaconBanner() {
-  const { data, activeProfile, partnerProfile, updateMoodBeacon } = useDiary();
+  const { data, partnerProfile, updateMoodBeacon } = useDiary();
   const [showHugModal, setShowHugModal] = useState(false);
   const [showMoodPicker, setShowMoodPicker] = useState(false);
   const [customNote, setCustomNote] = useState('');

@@ -11,7 +11,6 @@ import {
   Users,
   ChevronDown,
   UserCheck,
-  Calendar,
   Settings,
   Flame,
   LogOut,

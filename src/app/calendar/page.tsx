@@ -11,13 +11,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  Heart,
   Clock,
-  MapPin,
   Trash2,
   Edit3,
   X,
-  Sparkles,
   Calendar as CalIcon,
   BookOpen,
 } from 'lucide-react';
@@ -113,7 +110,7 @@ export default function CalendarPage() {
     }
 
     return days;
-  }, [year, month]);
+  }, [year, month, todayStr]);
 
   const handlePrevMonth = () => {
     setCurrentDate(new Date(year, month - 1, 1));

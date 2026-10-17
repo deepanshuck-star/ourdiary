@@ -5,7 +5,6 @@ import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
 import {
   calculateDaysTogether,
-  calculateNextAnniversary,
   getMilestones,
   formatDate,
 } from '@/lib/date-utils';
@@ -14,13 +13,9 @@ import {
   Heart,
   Flame,
   Camera,
-  Compass,
-  Calendar,
   Smile,
   CheckCircle2,
   Award,
-  Sparkles,
-  MapPin,
   TrendingUp,
 } from 'lucide-react';
 
@@ -28,12 +23,10 @@ export default function OurStatsPage() {
   const { data } = useDiary();
 
   const daysTogether = calculateDaysTogether(data.couple.startDate);
-  const anniversaryInfo = calculateNextAnniversary(data.couple.anniversaryDate || data.couple.startDate);
   const totalMemories = data.memories.length;
   const totalPhotos = data.memories.reduce((acc, m) => acc + (m.photos?.length || 0), 0);
   const totalOutings = data.memories.filter((m) => m.category === 'Outing').length;
   const totalTrips = data.memories.filter((m) => m.category === 'Trip').length;
-  const totalDates = data.memories.filter((m) => m.category === 'First date').length;
 
   const milestones = getMilestones(data.couple.startDate);
 
@@ -54,15 +47,6 @@ export default function OurStatsPage() {
       }
     });
     return counts;
-  }, [data.memories]);
-
-  // Categories Distribution
-  const categoryCounts = useMemo(() => {
-    const map = new Map<string, number>();
-    data.memories.forEach((m) => {
-      map.set(m.category, (map.get(m.category) || 0) + 1);
-    });
-    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [data.memories]);
 
   // Memories by Year

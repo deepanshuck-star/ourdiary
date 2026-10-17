@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Heart, Sparkles, Send, X } from 'lucide-react';
+import {X} from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
 
 interface WarmHugModalProps {

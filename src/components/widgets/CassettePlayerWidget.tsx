@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Music, Play, Pause, Disc3, ExternalLink } from 'lucide-react';
+import {Play, Pause, Disc3, ExternalLink} from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
 
 export function CassettePlayerWidget() {

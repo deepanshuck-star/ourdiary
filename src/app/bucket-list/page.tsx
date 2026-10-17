@@ -16,10 +16,8 @@ import {
   Calendar,
   Trash2,
   Edit3,
-  ArrowRight,
   BookHeart,
   X,
-  Compass,
 } from 'lucide-react';
 
 const CATEGORIES: BucketCategory[] = ['Travel', 'Food', 'Movies', 'Activities', 'Milestones'];

@@ -5,15 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   Heart,
-  Sparkles,
   UserPlus,
-  Users,
   Key,
   Calendar,
   ArrowRight,
   CheckCircle2,
   Copy,
-  Lock,
   ShieldCheck,
   AlertCircle,
   Loader2,
@@ -25,7 +22,7 @@ import { useDiary } from '@/store/DiaryContext';
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { initCleanCoupleSpace, switchProfile, showToast, setIsLiveUser, loadExistingCoupleSpace } = useDiary();
+  const { initCleanCoupleSpace, switchProfile, showToast, loadExistingCoupleSpace } = useDiary();
   const [activeTab, setActiveTab] = useState<'create' | 'join'>('create');
 
   const supabase = getSupabaseBrowserClient();
@@ -108,6 +105,11 @@ export default function OnboardingPage() {
     }
 
     checkAuth();
+    // Intentionally run once on mount: loadExistingCoupleSpace/showToast
+    // come from DiaryContext as plain (non-memoized) functions, recreated
+    // on every provider render, so including them would re-run this check
+    // (and its redirect/toast) far more often than intended.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, router]);
 
   // Auto-redirect countdown when couple space is created

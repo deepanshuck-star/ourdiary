@@ -7,14 +7,11 @@ import { useDiary } from '@/store/DiaryContext';
 import {
   SlidersHorizontal,
   Heart,
-  User,
-  Palette,
   Sparkles,
   Download,
   Upload,
   RotateCcw,
   ShieldAlert,
-  Check,
   Save,
   Bell,
   Smartphone,
@@ -22,7 +19,6 @@ import {
   LogOut,
 } from 'lucide-react';
 import {
-  isNotificationSupported,
   getNotificationPermission,
   requestPushPermission,
   sendPushNotification,

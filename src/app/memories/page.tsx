@@ -10,16 +10,12 @@ import {
   BookHeart,
   PlusCircle,
   Search,
-  Filter,
   Calendar,
   MapPin,
   Smile,
-  Heart,
   MessageCircle,
   Image as GalleryIcon,
-  Tag,
   Trash2,
-  Lock,
   Compass,
 } from 'lucide-react';
 

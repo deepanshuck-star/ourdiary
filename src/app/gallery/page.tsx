@@ -9,12 +9,9 @@ import {
   Image as GalleryIcon,
   UploadCloud,
   X,
-  Filter,
   ArrowRight,
   ZoomIn,
-  Sparkles,
   Camera,
-  Calendar,
 } from 'lucide-react';
 
 export default function GalleryPage() {

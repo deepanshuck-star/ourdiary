@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Calendar, Sparkles, ArrowRight, MapPin } from 'lucide-react';
+import {ArrowRight} from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
 import { formatDate } from '@/lib/date-utils';
 import { Memory } from '@/types';
@@ -37,7 +37,6 @@ export function OnThisDayCard() {
 
   if (!throwbackMemory) return null;
 
-  const memoryYear = new Date(throwbackMemory.date).getFullYear();
 
   return (
     <div className="rounded-3xl bg-gradient-to-r from-amber-50/70 via-pink-50/70 to-purple-50/70 border border-amber-200/80 p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

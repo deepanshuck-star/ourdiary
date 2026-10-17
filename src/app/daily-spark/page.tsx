@@ -1,16 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
 import {
-  Sparkles,
   Lock,
   Unlock,
   Calendar,
-  Heart,
-  MessageCircle,
   Clock,
   ArrowLeft,
 } from 'lucide-react';
@@ -18,7 +15,7 @@ import { formatDate } from '@/lib/date-utils';
 import { DailyQuestionCard } from '@/components/widgets/DailyQuestionCard';
 
 export default function DailySparkPage() {
-  const { data, activeProfile, partnerProfile } = useDiary();
+  const { data } = useDiary();
 
   const history = data.dailySparkAnswers || [];
 
