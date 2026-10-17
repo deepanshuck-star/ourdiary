@@ -187,7 +187,7 @@ export default function CalendarPage() {
     <AppShell>
       <div className="space-y-6 animate-in fade-in duration-300">
         {/* Header & Month Navigation */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-[#EFE4D6] shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-line shadow-xs">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-2xl bg-blue-100 text-blue-600">
               <CalendarDays className="w-5 h-5" />
@@ -225,7 +225,7 @@ export default function CalendarPage() {
             </div>
             <button
               onClick={() => handleOpenAddEvent()}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#F5A3A3] to-[#CBBEF4] text-white font-bold text-xs shadow-sm hover:shadow-md flex items-center gap-1.5"
+              className="px-4 py-2 font-bold text-xs flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
             >
               <Plus className="w-4 h-4" />
               <span>Add Event</span>
@@ -236,7 +236,7 @@ export default function CalendarPage() {
         {/* Calendar Grid + Selected Date Inspector */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 7-Day Monthly Grid (2 cols) */}
-          <div className="lg:col-span-2 rounded-3xl bg-white border border-[#EFE4D6] p-4 sm:p-6 shadow-sm space-y-4">
+          <div className="lg:col-span-2 rounded-3xl bg-white border border-line p-4 sm:p-6 shadow-sm space-y-4">
             {/* Days of week header */}
             <div className="grid grid-cols-7 text-center font-bold text-xs text-slate-400 py-1 border-b border-slate-100">
               <span>Sun</span>
@@ -273,7 +273,7 @@ export default function CalendarPage() {
                           day.isToday
                             ? 'bg-rose-500 text-white'
                             : isSelected
-                            ? 'bg-purple-600 text-white'
+                            ? 'bg-primary text-on-primary'
                             : 'text-slate-700'
                         }`}
                       >
@@ -316,7 +316,7 @@ export default function CalendarPage() {
           </div>
 
           {/* Selected Date Inspector Panel (1 col) */}
-          <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-sm space-y-6 flex flex-col justify-between">
+          <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-6 flex flex-col justify-between">
             <div className="space-y-6">
               {/* Selected Date Header */}
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -462,7 +462,7 @@ export default function CalendarPage() {
                     placeholder="e.g. Sunset Picnic, Anniversary Dinner..."
                     value={eventTitle}
                     onChange={(e) => setEventTitle(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-purple-300"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-focus"
                   />
                 </div>
 
@@ -476,7 +476,7 @@ export default function CalendarPage() {
                       required
                       value={eventDate}
                       onChange={(e) => setEventDate(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                     />
                   </div>
                   <div>
@@ -487,7 +487,7 @@ export default function CalendarPage() {
                       type="time"
                       value={eventTime}
                       onChange={(e) => setEventTime(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                     />
                   </div>
                 </div>
@@ -499,7 +499,7 @@ export default function CalendarPage() {
                   <select
                     value={eventCategory}
                     onChange={(e) => setEventCategory(e.target.value as EventCategory)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-purple-300 bg-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-focus bg-white"
                   >
                     <option value="Anniversary">Anniversary</option>
                     <option value="Birthday">Birthday</option>
@@ -519,7 +519,7 @@ export default function CalendarPage() {
                     placeholder="Restaurant reservation, packing list, or surprise notes..."
                     value={eventDesc}
                     onChange={(e) => setEventDesc(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                   />
                 </div>
 
@@ -533,7 +533,7 @@ export default function CalendarPage() {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold hover:bg-purple-700 shadow-sm"
+                    className="px-5 py-2 text-xs font-bold bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                   >
                     {editingEventId ? 'Update Event' : 'Save Event'}
                   </button>

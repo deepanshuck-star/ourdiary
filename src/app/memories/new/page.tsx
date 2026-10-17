@@ -160,9 +160,9 @@ export default function NewMemoryPage() {
         </div>
 
         {/* Main Form Card */}
-        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 sm:p-8 shadow-sm">
+        <div className="rounded-3xl bg-white border border-line p-6 sm:p-8 shadow-sm">
           <div className="flex items-center gap-3 pb-6 border-b border-slate-100 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#F8C8D8] to-[#CBBEF4] flex items-center justify-center text-white shadow-sm">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-sm bg-hero">
               <BookHeart className="w-6 h-6" />
             </div>
             <div>
@@ -185,7 +185,7 @@ export default function NewMemoryPage() {
                 placeholder="e.g. Midnight stargazing on the hill..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus"
               />
             </div>
 
@@ -202,7 +202,7 @@ export default function NewMemoryPage() {
                     required
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus"
                   />
                 </div>
               </div>
@@ -218,7 +218,7 @@ export default function NewMemoryPage() {
                     placeholder="e.g. Blue Heron Cafe, Downtown"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus"
                   />
                 </div>
               </div>
@@ -233,7 +233,7 @@ export default function NewMemoryPage() {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as MemoryCategory)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus bg-white"
                 >
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
@@ -250,7 +250,7 @@ export default function NewMemoryPage() {
                 <select
                   value={mood}
                   onChange={(e) => setMood(e.target.value as Mood)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus bg-white"
                 >
                   {MOODS.map((m) => (
                     <option key={m.mood} value={m.mood}>
@@ -272,7 +272,7 @@ export default function NewMemoryPage() {
                 placeholder="What happened on this day? Write down the details so neither of you ever forgets..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus"
               />
             </div>
 
@@ -286,7 +286,7 @@ export default function NewMemoryPage() {
                 placeholder={`What were you privately thinking or feeling during this moment, ${activeProfile.name}?`}
                 value={myPerspective}
                 onChange={(e) => setMyPerspective(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-purple-200 bg-purple-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                className="w-full px-4 py-2.5 rounded-xl border border-purple-200 bg-purple-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-focus"
               />
               <p className="text-[11px] text-slate-400 mt-1">
                 Both of you can read and write your perspectives in the memory detail page!
@@ -305,7 +305,7 @@ export default function NewMemoryPage() {
                   placeholder="e.g. Roadtrip, Sunset, Laughs, FirstDate"
                   value={tagsInput}
                   onChange={(e) => setTagsInput(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus"
                 />
               </div>
             </div>
@@ -356,7 +356,7 @@ export default function NewMemoryPage() {
                       <button
                         type="button"
                         onClick={() => removePhoto(p.id)}
-                        className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/60 text-white hover:bg-rose-600 transition-colors"
+                        className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/60 text-snow hover:bg-danger-solid transition-colors"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -377,7 +377,7 @@ export default function NewMemoryPage() {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#F5A3A3] via-[#CBBEF4] to-[#B6DDF4] text-slate-900 font-bold text-sm shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                className="px-6 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-bold text-sm shadow-cta hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
               >
                 <Sparkles className="w-4 h-4 text-purple-700" />
                 <span>Save to Our Diary</span>

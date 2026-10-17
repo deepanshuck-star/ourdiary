@@ -74,7 +74,8 @@ export default function LettersPage() {
         particleCount: 50,
         spread: 60,
         origin: { y: 0.6 },
-        colors: ['#F5A3A3', '#CBBEF4', '#F8DEA0', '#B8DCD1'],
+        colors: ['#BE185D', '#F9A8D4', '#E11D48', '#FBCFE8'],
+        disableForReducedMotion: true,
       });
     }
   };
@@ -101,7 +102,7 @@ export default function LettersPage() {
     <AppShell>
       <div className="space-y-6 animate-in fade-in duration-300">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-[#EFE4D6] shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-line shadow-xs">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-2xl bg-pink-100 text-pink-600">
               <MailCheck className="w-5 h-5" />
@@ -119,7 +120,7 @@ export default function LettersPage() {
               setIsDraft(false);
               setShowWriteModal(true);
             }}
-            className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#F5A3A3] via-[#CBBEF4] to-[#B6DDF4] text-slate-900 font-bold text-xs sm:text-sm shadow-sm hover:shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+            className="px-5 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-bold text-xs sm:text-sm shadow-cta hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             <span>Write Letter to {partnerProfile.name}</span>
@@ -127,7 +128,7 @@ export default function LettersPage() {
         </div>
 
         {/* Tab Filters */}
-        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white border border-[#EFE4D6] shadow-xs max-w-md">
+        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white border border-line shadow-xs max-w-md">
           <button
             onClick={() => setActiveTab('received')}
             className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
@@ -142,7 +143,7 @@ export default function LettersPage() {
             onClick={() => setActiveTab('sent')}
             className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'sent'
-                ? 'bg-purple-600 text-white shadow-xs'
+                ? 'shadow-xs bg-primary text-on-primary'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -152,7 +153,7 @@ export default function LettersPage() {
             onClick={() => setActiveTab('drafts')}
             className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'drafts'
-                ? 'bg-amber-500 text-white shadow-xs'
+                ? 'bg-amber-600 text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -175,7 +176,7 @@ export default function LettersPage() {
                   className={`group relative rounded-3xl p-6 border transition-all duration-300 flex flex-col justify-between cursor-pointer ${
                     isLockedForMe
                       ? 'bg-slate-50 border-slate-200 opacity-90'
-                      : 'bg-white border-[#EFE4D6] shadow-sm hover:shadow-xl hover:-translate-y-1'
+                      : 'bg-white border-line shadow-sm hover:shadow-xl hover:-translate-y-1'
                   }`}
                   style={{
                     borderTop: `6px solid ${letter.envelopeColor || '#CBBEF4'}`,
@@ -203,7 +204,7 @@ export default function LettersPage() {
 
                     {/* Envelope Stamp Graphic */}
                     <div className="flex items-center justify-between">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#F8C8D8] to-[#CBBEF4] flex items-center justify-center text-rose-500 shadow-xs">
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-rose-500 shadow-xs bg-hero">
                         <Heart className="w-6 h-6 fill-rose-500" />
                       </div>
                       <div className="text-right">
@@ -261,7 +262,7 @@ export default function LettersPage() {
             })}
           </div>
         ) : (
-          <div className="p-16 text-center rounded-3xl bg-white border border-[#EFE4D6] space-y-3">
+          <div className="p-16 text-center rounded-3xl bg-white border border-line space-y-3">
             <div className="text-5xl">💌</div>
             <h3 className="font-bold text-slate-800 text-lg">No letters in this folder</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -277,7 +278,7 @@ export default function LettersPage() {
             onClick={() => setReadingLetter(null)}
           >
             <div
-              className="bg-[#FFFDF9] rounded-3xl p-6 sm:p-10 max-w-2xl w-full shadow-2xl border-2 border-[#EFE4D6] space-y-6 max-h-[85vh] overflow-y-auto animate-in fade-in zoom-in-95 relative"
+              className="bg-surface rounded-3xl p-6 sm:p-10 max-w-2xl w-full shadow-2xl border-2 border-line space-y-6 max-h-[85vh] overflow-y-auto animate-in fade-in zoom-in-95 relative"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Envelope Flap Header Decoration */}
@@ -352,7 +353,7 @@ export default function LettersPage() {
                     placeholder="e.g. Open on Our 3-Year Anniversary, When You Need a Hug..."
                     value={letterTitle}
                     onChange={(e) => setLetterTitle(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-purple-300"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-focus"
                   />
                 </div>
 
@@ -366,7 +367,7 @@ export default function LettersPage() {
                       required
                       value={unlockDate}
                       onChange={(e) => setUnlockDate(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                     />
                   </div>
 
@@ -400,7 +401,7 @@ export default function LettersPage() {
                     placeholder="Dear love, by the time you open this letter..."
                     value={letterContent}
                     onChange={(e) => setLetterContent(e.target.value)}
-                    className="w-full p-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-purple-300 font-serif leading-relaxed"
+                    className="w-full p-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-focus font-serif leading-relaxed"
                   />
                 </div>
 
@@ -425,7 +426,7 @@ export default function LettersPage() {
                     <button
                       type="button"
                       onClick={() => handleSendLetter(false)}
-                      className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#F5A3A3] via-[#CBBEF4] to-[#B6DDF4] text-slate-900 font-extrabold text-xs shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                      className="px-6 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-extrabold text-xs shadow-cta hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
                     >
                       <Send className="w-3.5 h-3.5" />
                       <span>Seal & Schedule Letter</span>

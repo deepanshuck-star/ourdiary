@@ -49,7 +49,7 @@ export function HeartbeatLovePingModal({ isOpen, onClose }: HeartbeatLovePingMod
 
         {/* Header */}
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center shadow-md shadow-rose-200">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md shadow-rose-200 bg-primary text-on-primary">
             <Heart className="w-6 h-6 fill-white animate-pulse" />
           </div>
           <div>
@@ -82,7 +82,7 @@ export function HeartbeatLovePingModal({ isOpen, onClose }: HeartbeatLovePingMod
                 value={customMsg}
                 onChange={(e) => setCustomMsg(e.target.value)}
                 placeholder="e.g. Can't wait for our cozy movie night tonight! 🍿"
-                className="w-full p-3 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-rose-300 focus:outline-hidden bg-slate-50"
+                className="w-full p-3 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-focus focus:outline-hidden bg-slate-50"
               />
             </div>
 
@@ -107,7 +107,7 @@ export function HeartbeatLovePingModal({ isOpen, onClose }: HeartbeatLovePingMod
 
             <button
               type="submit"
-              className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white text-xs font-extrabold shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 active:scale-95"
+              className="w-full py-3 px-4 text-xs font-extrabold transition-all flex items-center justify-center gap-2 active:scale-95 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
             >
               <Send className="w-3.5 h-3.5" />
               <span>Send Heartbeat Love Ping 💓</span>

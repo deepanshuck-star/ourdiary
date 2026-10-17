@@ -86,7 +86,7 @@ function MemoryDetailContent() {
           <p className="text-sm text-slate-500">This moment may have been removed or changed.</p>
           <Link
             href="/memories"
-            className="inline-block px-5 py-2.5 rounded-2xl bg-purple-600 text-white font-semibold text-xs"
+            className="inline-block px-5 py-2.5 font-semibold text-xs bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
           >
             Return to Memories
           </Link>
@@ -188,7 +188,7 @@ function MemoryDetailContent() {
         </div>
 
         {/* Hero Card */}
-        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="rounded-3xl bg-white border border-line p-6 sm:p-8 shadow-sm space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <span className="px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-bold border border-rose-100">
@@ -244,7 +244,7 @@ function MemoryDetailContent() {
                   rows={4}
                   value={editedDescription}
                   onChange={(e) => setEditedDescription(e.target.value)}
-                  className="w-full p-4 rounded-2xl border border-purple-200 text-sm focus:ring-2 focus:ring-purple-300"
+                  className="w-full p-4 rounded-2xl border border-purple-200 text-sm focus:ring-2 focus:ring-focus"
                 />
                 <div className="flex items-center justify-end gap-2">
                   <button
@@ -255,7 +255,7 @@ function MemoryDetailContent() {
                   </button>
                   <button
                     onClick={handleSaveDescription}
-                    className="px-4 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-bold"
+                    className="px-4 py-1.5 text-xs font-bold bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                   >
                     Save Changes
                   </button>
@@ -298,7 +298,7 @@ function MemoryDetailContent() {
         </div>
 
         {/* Photo Gallery Grid */}
-        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-sm space-y-4">
+        <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <Camera className="w-5 h-5 text-emerald-500" />
@@ -326,7 +326,7 @@ function MemoryDetailContent() {
                   required
                   value={newPhotoUrl}
                   onChange={(e) => setNewPhotoUrl(e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-300"
+                  className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                 />
                 <button
                   type="submit"
@@ -355,7 +355,7 @@ function MemoryDetailContent() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   {p.caption && (
-                    <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/70 to-transparent text-white text-[11px] truncate">
+                    <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/70 to-transparent text-snow text-[11px] truncate">
                       {p.caption}
                     </div>
                   )}
@@ -364,7 +364,7 @@ function MemoryDetailContent() {
                       e.stopPropagation();
                       deletePhotoFromMemory(memory.id, p.id);
                     }}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-600"
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-snow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-danger-solid"
                     title="Remove photo"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -380,13 +380,13 @@ function MemoryDetailContent() {
         {/* Dual Perspectives (You & Partner) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* User 1 Perspective */}
-          <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-sm space-y-3">
+          <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-3">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
                 <img
                   src={data.couple.user1.avatar}
                   alt={data.couple.user1.name}
-                  className="w-8 h-8 rounded-full object-cover ring-2 ring-[#F8C8D8]"
+                  className="w-8 h-8 rounded-full object-cover ring-2 ring-secondary"
                 />
                 <div>
                   <h4 className="font-bold text-sm text-slate-900">{data.couple.user1.name}’s Perspective</h4>
@@ -413,7 +413,7 @@ function MemoryDetailContent() {
                   rows={3}
                   value={perspectiveDraft}
                   onChange={(e) => setPerspectiveDraft(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-purple-200 text-xs focus:ring-2 focus:ring-purple-300"
+                  className="w-full p-3 rounded-xl border border-purple-200 text-xs focus:ring-2 focus:ring-focus"
                   placeholder="Write your side of the memory..."
                 />
                 <div className="flex justify-end gap-2">
@@ -425,7 +425,7 @@ function MemoryDetailContent() {
                   </button>
                   <button
                     onClick={() => handleSavePerspective('user_1')}
-                    className="px-3 py-1 rounded-lg bg-purple-600 text-white text-xs font-bold"
+                    className="px-3 py-1 text-xs font-bold bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                   >
                     Save
                   </button>
@@ -441,13 +441,13 @@ function MemoryDetailContent() {
           </div>
 
           {/* User 2 Perspective */}
-          <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-sm space-y-3">
+          <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-3">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
                 <img
                   src={data.couple.user2.avatar}
                   alt={data.couple.user2.name}
-                  className="w-8 h-8 rounded-full object-cover ring-2 ring-[#CBBEF4]"
+                  className="w-8 h-8 rounded-full object-cover ring-2 ring-secondary"
                 />
                 <div>
                   <h4 className="font-bold text-sm text-slate-900">{data.couple.user2.name}’s Perspective</h4>
@@ -474,7 +474,7 @@ function MemoryDetailContent() {
                   rows={3}
                   value={perspectiveDraft}
                   onChange={(e) => setPerspectiveDraft(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-purple-200 text-xs focus:ring-2 focus:ring-purple-300"
+                  className="w-full p-3 rounded-xl border border-purple-200 text-xs focus:ring-2 focus:ring-focus"
                   placeholder="Write your side of the memory..."
                 />
                 <div className="flex justify-end gap-2">
@@ -486,7 +486,7 @@ function MemoryDetailContent() {
                   </button>
                   <button
                     onClick={() => handleSavePerspective('user_2')}
-                    className="px-3 py-1 rounded-lg bg-purple-600 text-white text-xs font-bold"
+                    className="px-3 py-1 text-xs font-bold bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                   >
                     Save
                   </button>
@@ -503,7 +503,7 @@ function MemoryDetailContent() {
         </div>
 
         {/* Notes Section: Shared vs Simulated Private */}
-        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="rounded-3xl bg-white border border-line p-6 sm:p-8 shadow-sm space-y-6">
           <div className="flex items-center justify-between pb-4 border-b border-slate-100">
             <div>
               <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
@@ -530,7 +530,7 @@ function MemoryDetailContent() {
               placeholder={`Write a note, reminder, or private thought as ${activeProfile.name}...`}
               value={newNoteContent}
               onChange={(e) => setNewNoteContent(e.target.value)}
-              className="w-full p-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white"
+              className="w-full p-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-focus bg-white"
             />
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -541,7 +541,7 @@ function MemoryDetailContent() {
                   onClick={() => setNewNoteVisibility('shared')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                     newNoteVisibility === 'shared'
-                      ? 'bg-purple-600 text-white shadow-xs'
+                      ? 'shadow-xs bg-primary text-on-primary'
                       : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
                   }`}
                 >
@@ -615,7 +615,7 @@ function MemoryDetailContent() {
                             <div className="flex gap-2">
                               <button
                                 onClick={() => handleSaveEditedNote(note.id, 'shared')}
-                                className="px-2 py-1 bg-purple-600 text-white text-xs rounded"
+                                className="px-2 py-1 text-xs bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                               >
                                 Save
                               </button>
@@ -783,7 +783,7 @@ function MemoryDetailContent() {
                       key={note.id}
                       className="p-3.5 rounded-2xl bg-purple-50/60 border border-purple-200 flex items-center gap-3"
                     >
-                      <div className="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center flex-shrink-0">
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary text-on-primary">
                         <Lock className="w-4 h-4" />
                       </div>
                       <p className="text-xs text-purple-800">
@@ -806,7 +806,7 @@ function MemoryDetailContent() {
                 <Link
                   key={rel.id}
                   href={`/memories/${rel.id}`}
-                  className="p-4 rounded-2xl bg-white border border-[#EFE4D6] shadow-xs hover:shadow-md transition-all group"
+                  className="p-4 rounded-2xl bg-white border border-line shadow-xs hover:shadow-md transition-all group"
                 >
                   <p className="text-[11px] font-semibold text-rose-500">{rel.category}</p>
                   <h4 className="font-bold text-sm text-slate-800 group-hover:text-purple-600 truncate mt-1">
@@ -833,7 +833,7 @@ function MemoryDetailContent() {
               />
               <button
                 onClick={() => setLightboxPhoto(null)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-black/60 text-white hover:bg-black/90"
+                className="absolute top-4 right-4 p-2 rounded-full bg-black/60 text-snow hover:bg-black/90"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -876,7 +876,7 @@ export default function MemoryDetailPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#FFF8EE] flex items-center justify-center text-slate-500 font-medium">
+        <div className="min-h-screen bg-canvas flex items-center justify-center text-slate-500 font-medium">
           Loading memory details...
         </div>
       }

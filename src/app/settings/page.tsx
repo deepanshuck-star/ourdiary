@@ -24,6 +24,7 @@ import {
   sendPushNotification,
 } from '@/lib/notifications';
 import { uploadImageToCloudinary } from '@/lib/cloudinary/upload';
+import { getAppearance, setAppearance, type Appearance } from '@/lib/appearance';
 
 export default function SettingsPage() {
   const {
@@ -40,9 +41,11 @@ export default function SettingsPage() {
   } = useDiary();
 
   const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
+  const [appearance, setAppearanceState] = useState<Appearance>('light');
 
   useEffect(() => {
     setPushPermission(getNotificationPermission());
+    setAppearanceState(getAppearance());
   }, []);
 
   const handleEnablePush = async () => {
@@ -206,7 +209,7 @@ export default function SettingsPage() {
     <AppShell>
       <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-300">
         {/* Header */}
-        <div className="flex items-center gap-3 p-6 rounded-3xl bg-white border border-[#EFE4D6] shadow-xs">
+        <div className="flex items-center gap-3 p-6 rounded-3xl bg-white border border-line shadow-xs">
           <div className="p-2 rounded-2xl bg-slate-100 text-slate-700">
             <SlidersHorizontal className="w-5 h-5" />
           </div>
@@ -219,7 +222,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Couple Space Account & Session Card (Visible at Top!) */}
-        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 sm:p-8 shadow-sm space-y-4">
+        <div className="rounded-3xl bg-white border border-line p-6 sm:p-8 shadow-sm space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
@@ -275,7 +278,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Couple & Relationship Settings Card */}
-        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="rounded-3xl bg-white border border-line p-6 sm:p-8 shadow-sm space-y-6">
           <div className="flex items-center gap-2 pb-4 border-b border-slate-100">
             <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
             <h2 className="font-extrabold text-lg text-slate-900">Relationship Basics</h2>
@@ -292,7 +295,7 @@ export default function SettingsPage() {
                   required
                   value={coupleName}
                   onChange={(e) => setCoupleName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-purple-300"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-focus"
                 />
               </div>
 
@@ -305,7 +308,7 @@ export default function SettingsPage() {
                   required
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-purple-300"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-focus"
                 />
               </div>
 
@@ -318,35 +321,36 @@ export default function SettingsPage() {
                   required
                   value={anniversaryDate}
                   onChange={(e) => setAnniversaryDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-purple-300"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-focus"
                 />
               </div>
             </div>
 
-            {/* Visual Theme Selection */}
+            {/* Couple theme — tints the header gradient within the Rose Quartz palette */}
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                Color Gradient Theme
+                Header tint
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  { id: 'candy', name: 'Cotton Candy', grad: 'from-[#F8C8D8] via-[#CBBEF4] to-[#B6DDF4]' },
-                  { id: 'sunset', name: 'Golden Sunset', grad: 'from-[#F8DEA0] via-[#F5A3A3] to-[#CBBEF4]' },
-                  { id: 'lavender', name: 'Soft Lavender', grad: 'from-[#CBBEF4] to-[#B6DDF4]' },
-                  { id: 'mint', name: 'Fresh Mint', grad: 'from-[#B8DCD1] to-[#B6DDF4]' },
+                  { id: 'candy', name: 'Rose Quartz' },
+                  { id: 'sunset', name: 'Rosé Dusk' },
+                  { id: 'lavender', name: 'Petal' },
+                  { id: 'mint', name: 'Velvet' },
                 ].map((th) => (
                   <button
                     key={th.id}
                     type="button"
+                    aria-pressed={theme === th.id}
                     onClick={() => setTheme(th.id as any)}
-                    className={`p-3 rounded-2xl border text-left transition-all ${
+                    className={`p-3 rounded-2xl border text-left transition-colors ${
                       theme === th.id
-                        ? 'border-purple-600 ring-2 ring-purple-300 bg-purple-50/50'
-                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                        ? 'border-primary ring-2 ring-primary/30 bg-purple-50'
+                        : 'border-line hover:border-purple-300 bg-surface'
                     }`}
                   >
-                    <div className={`h-8 rounded-xl bg-gradient-to-r ${th.grad} mb-2 shadow-xs`} />
-                    <span className="text-xs font-bold text-slate-800">{th.name}</span>
+                    <div data-theme={th.id} className="h-8 rounded-full bg-hero mb-2" />
+                    <span className="text-xs font-semibold text-ink">{th.name}</span>
                   </button>
                 ))}
               </div>
@@ -358,24 +362,51 @@ export default function SettingsPage() {
                   type="checkbox"
                   checked={animationsEnabled}
                   onChange={(e) => setAnimationsEnabled(e.target.checked)}
-                  className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                  className="w-4 h-4 rounded text-purple-600 focus:ring-focus"
                 />
                 <span className="text-xs font-semibold text-slate-700">Enable UI train & card animations</span>
               </label>
 
               <button
                 type="submit"
-                className="px-5 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 shadow-sm flex items-center gap-1.5"
+                className="px-5 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-semibold text-xs shadow-cta transition-colors flex items-center gap-1.5"
               >
                 <Save className="w-3.5 h-3.5" />
-                <span>Save Relationship Details</span>
+                <span>Save relationship details</span>
               </button>
             </div>
           </form>
         </div>
 
+        {/* Appearance — per-device preference, applied instantly */}
+        <div className="rounded-3xl bg-white border border-line p-6 shadow-sm">
+          <h3 className="font-extrabold text-base text-slate-900 mb-1">Appearance</h3>
+          <p className="text-xs text-slate-500 mb-4">
+            Choose light or dark, or follow this device’s setting. Saved on this device only.
+          </p>
+          <div role="radiogroup" aria-label="Appearance" className="inline-flex p-1 rounded-full bg-slate-100 border border-line">
+            {(['light', 'dark', 'system'] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                role="radio"
+                aria-checked={appearance === option}
+                onClick={() => {
+                  setAppearance(option);
+                  setAppearanceState(option);
+                }}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold capitalize transition-colors ${
+                  appearance === option ? 'bg-primary text-on-primary shadow-cta' : 'text-slate-600 hover:text-ink'
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Couple Photo */}
-        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-sm">
+        <div className="rounded-3xl bg-white border border-line p-6 shadow-sm">
           <h3 className="font-extrabold text-base text-slate-900 mb-1">Couple Photo</h3>
           <p className="text-xs text-slate-500 mb-4">
             A photo of both of you together — shown in the top-left of the navbar.
@@ -385,7 +416,7 @@ export default function SettingsPage() {
               <img
                 src={couplePhoto}
                 alt="Couple"
-                className="w-16 h-16 rounded-2xl object-cover ring-2 ring-[#CBBEF4] shadow-xs"
+                className="w-16 h-16 rounded-2xl object-cover ring-2 ring-secondary shadow-xs"
               />
             ) : (
               <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
@@ -409,12 +440,12 @@ export default function SettingsPage() {
         {/* Profiles Customization (2 cols) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* User 1 Profile Form */}
-          <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-sm space-y-4">
+          <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-4">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
               <img
                 src={user1Avatar}
                 alt={user1Name}
-                className="w-10 h-10 rounded-full object-cover ring-2 ring-[#F8C8D8]"
+                className="w-10 h-10 rounded-full object-cover ring-2 ring-secondary"
               />
               <div>
                 <h3 className="font-extrabold text-base text-slate-900">User 1 (You)</h3>
@@ -430,7 +461,7 @@ export default function SettingsPage() {
                   required
                   value={user1Name}
                   onChange={(e) => setUser1Name(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                 />
               </div>
 
@@ -440,7 +471,7 @@ export default function SettingsPage() {
                   type="text"
                   value={user1Nickname}
                   onChange={(e) => setUser1Nickname(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                 />
               </div>
 
@@ -469,7 +500,7 @@ export default function SettingsPage() {
                   value={user1Avatar}
                   onChange={(e) => setUser1Avatar(e.target.value)}
                   placeholder="Or paste an image URL"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                 />
               </div>
 
@@ -479,14 +510,14 @@ export default function SettingsPage() {
                   type="text"
                   value={user1Bio}
                   onChange={(e) => setUser1Bio(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                 />
               </div>
 
               <div className="pt-2 flex justify-end">
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-700 shadow-xs"
+                  className="px-4 py-2 font-bold text-xs bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                 >
                   Update User 1
                 </button>
@@ -495,12 +526,12 @@ export default function SettingsPage() {
           </div>
 
           {/* User 2 Profile Form */}
-          <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-sm space-y-4">
+          <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-4">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
               <img
                 src={user2Avatar}
                 alt={user2Name}
-                className="w-10 h-10 rounded-full object-cover ring-2 ring-[#CBBEF4]"
+                className="w-10 h-10 rounded-full object-cover ring-2 ring-secondary"
               />
               <div>
                 <h3 className="font-extrabold text-base text-slate-900">User 2 (Partner)</h3>
@@ -516,7 +547,7 @@ export default function SettingsPage() {
                   required
                   value={user2Name}
                   onChange={(e) => setUser2Name(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                 />
               </div>
 
@@ -526,7 +557,7 @@ export default function SettingsPage() {
                   type="text"
                   value={user2Nickname}
                   onChange={(e) => setUser2Nickname(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                 />
               </div>
 
@@ -555,7 +586,7 @@ export default function SettingsPage() {
                   value={user2Avatar}
                   onChange={(e) => setUser2Avatar(e.target.value)}
                   placeholder="Or paste an image URL"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                 />
               </div>
 
@@ -565,14 +596,14 @@ export default function SettingsPage() {
                   type="text"
                   value={user2Bio}
                   onChange={(e) => setUser2Bio(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                 />
               </div>
 
               <div className="pt-2 flex justify-end">
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-700 shadow-xs"
+                  className="px-4 py-2 font-bold text-xs bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                 >
                   Update User 2
                 </button>
@@ -582,7 +613,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Free Web Push Notifications & Progressive Web App (PWA) Card */}
-        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="rounded-3xl bg-white border border-line p-6 sm:p-8 shadow-sm space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center">
@@ -629,7 +660,7 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={handleEnablePush}
-                    className="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-700 shadow-xs flex items-center gap-1.5"
+                    className="px-4 py-2 font-bold text-xs flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                   >
                     <Bell className="w-3.5 h-3.5" />
                     <span>Enable Free Push Notifications</span>
@@ -664,7 +695,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Data Persistence, Export, Import & Reset */}
-        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="rounded-3xl bg-white border border-line p-6 sm:p-8 shadow-sm space-y-6">
           <div className="flex items-center gap-2 pb-4 border-b border-slate-100">
             <Download className="w-5 h-5 text-indigo-500" />
             <h2 className="font-extrabold text-lg text-slate-900">Data Management & Backup</h2>

@@ -129,10 +129,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFF8EE] via-[#F8C8D8]/20 to-[#CBBEF4]/20 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-canvas bg-glow flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link href="/" className="inline-flex items-center gap-2 mb-4 group">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#F8C8D8] via-[#CBBEF4] to-[#B6DDF4] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform bg-hero">
             <Heart className="w-6 h-6 text-rose-500 fill-rose-500 animate-pulse" />
           </div>
           <span className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-rose-500 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
@@ -148,7 +148,7 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
-        <div className="bg-white py-8 px-6 shadow-xl rounded-3xl border border-[#EFE4D6] sm:px-10 space-y-6">
+        <div className="bg-white py-8 px-6 shadow-xl rounded-3xl border border-line sm:px-10 space-y-6">
           {/* Status Banner */}
           {!isSupabaseLive ? (
             <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200/60 text-amber-800 text-xs flex items-start gap-2.5">
@@ -266,7 +266,7 @@ export default function LoginPage() {
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="e.g. Deepanshu"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-300 focus:outline-hidden"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
                   />
                 </div>
               </div>
@@ -284,7 +284,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="deepanshuis18@gmail.com"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-300 focus:outline-hidden"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
                 />
               </div>
             </div>
@@ -302,7 +302,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="•••••••••••• (min 6 characters)"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-300 focus:outline-hidden"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
                 />
               </div>
             </div>
@@ -310,7 +310,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl shadow-md bg-gradient-to-r from-rose-500 to-purple-600 text-white text-xs font-extrabold hover:opacity-95 transition-opacity disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 text-xs font-extrabold transition-opacity disabled:opacity-50 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
             >
               {loading
                 ? isSignUp

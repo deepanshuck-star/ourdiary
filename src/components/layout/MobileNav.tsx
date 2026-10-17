@@ -54,12 +54,13 @@ export function MobileNav() {
             className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
             onClick={() => setDrawerOpen(false)}
           />
-          <div className="fixed bottom-0 inset-x-0 bg-white rounded-t-3xl p-6 shadow-2xl z-50 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
-              <h3 className="font-bold text-base text-slate-800">More OurDiary Features</h3>
+          <div className="fixed bottom-0 inset-x-0 bg-surface rounded-t-[2rem] p-6 shadow-card z-50 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
+              <h3 className="font-display font-semibold text-lg text-ink">More for the two of you</h3>
               <button
                 onClick={() => setDrawerOpen(false)}
-                className="p-1 rounded-full hover:bg-slate-100 text-slate-400"
+                aria-label="Close menu"
+                className="p-1.5 rounded-full hover:bg-slate-100 text-ink-muted"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -73,40 +74,40 @@ export function MobileNav() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setDrawerOpen(false)}
-                    className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${
+                    className={`flex items-center gap-3 p-3 rounded-2xl border transition-colors ${
                       isActive
-                        ? 'border-purple-200 bg-purple-50/80 text-purple-900 font-semibold'
-                        : 'border-slate-100 hover:bg-slate-50 text-slate-700'
+                        ? 'border-purple-200 bg-purple-50 text-purple-900 font-semibold'
+                        : 'border-line hover:bg-slate-50 text-slate-700'
                     }`}
                   >
-                    <Icon className="w-5 h-5 text-purple-500" />
+                    <Icon className="w-5 h-5 text-primary" />
                     <span className="text-sm">{item.name}</span>
                   </Link>
                 );
               })}
             </div>
 
-            <div className="mt-5 pt-4 border-t border-slate-100 space-y-2">
+            <div className="mt-5 pt-4 border-t border-line space-y-2">
               <button
                 type="button"
                 onClick={() => {
                   setDrawerOpen(false);
                   logout(true);
                 }}
-                className="w-full flex items-center justify-center gap-2 p-3 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-sm transition-all cursor-pointer shadow-xs active:scale-95"
+                className="w-full flex items-center justify-center gap-2 p-3 rounded-full bg-surface hover:bg-slate-50 border border-line text-ink-muted hover:text-ink font-semibold text-sm transition-colors cursor-pointer active:scale-95"
               >
-                <LogOut className="w-4 h-4 text-rose-600" />
-                <span>Log Out of Space</span>
+                <LogOut className="w-4 h-4" />
+                <span>Log out</span>
               </button>
 
               {!isLiveUser && (
                 <Link
                   href="/login"
                   onClick={() => setDrawerOpen(false)}
-                  className="w-full flex items-center justify-center gap-2 p-3 rounded-2xl bg-gradient-to-r from-rose-500 to-purple-600 text-white font-bold text-sm shadow-md transition-all"
+                  className="w-full flex items-center justify-center gap-2 p-3 font-bold text-sm transition-all bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>Login or Create Couple Space →</span>
+                  <span>Sign in or create your space</span>
                 </Link>
               )}
             </div>
@@ -115,7 +116,7 @@ export function MobileNav() {
       )}
 
       {/* Fixed Bottom Bar */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-lg border-t border-[#EFE4D6] lg:hidden px-2 py-2 flex items-center justify-around">
+      <nav aria-label="Main" className="fixed bottom-0 inset-x-0 z-40 bg-surface/95 backdrop-blur-lg border-t border-line lg:hidden px-2 py-2 flex items-center justify-around">
         {mainMobileItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -123,10 +124,11 @@ export function MobileNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all ${
+              aria-current={isActive ? 'page' : undefined}
+              className={`flex flex-col items-center justify-center py-1 px-3.5 rounded-full transition-colors ${
                 isActive
-                  ? 'text-rose-600 font-bold scale-105'
-                  : 'text-slate-400 hover:text-slate-700'
+                  ? 'text-primary bg-purple-50 font-semibold'
+                  : 'text-ink-muted hover:text-ink'
               }`}
             >
               <Icon className="w-5 h-5" />
@@ -136,7 +138,7 @@ export function MobileNav() {
         })}
         <button
           onClick={() => setDrawerOpen(true)}
-          className="flex flex-col items-center justify-center py-1 px-3 rounded-xl text-slate-400 hover:text-slate-700"
+          className="flex flex-col items-center justify-center py-1 px-3.5 rounded-full text-ink-muted hover:text-ink"
         >
           <Menu className="w-5 h-5" />
           <span className="text-[10px] mt-0.5">More</span>

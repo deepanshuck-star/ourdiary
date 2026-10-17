@@ -45,7 +45,7 @@ export function WarmHugModal({ isOpen, onClose }: WarmHugModalProps) {
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-500 text-white flex items-center justify-center text-2xl shadow-md shadow-purple-200">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-md shadow-purple-200 bg-primary text-on-primary">
             🤗
           </div>
           <div>
@@ -77,7 +77,7 @@ export function WarmHugModal({ isOpen, onClose }: WarmHugModalProps) {
                 value={hugMessage}
                 onChange={(e) => setHugMessage(e.target.value)}
                 placeholder="e.g. You got this baby, see you in a few hours! ❤️"
-                className="w-full p-3 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-purple-300 focus:outline-hidden bg-slate-50"
+                className="w-full p-3 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-focus focus:outline-hidden bg-slate-50"
               />
             </div>
 
@@ -101,7 +101,7 @@ export function WarmHugModal({ isOpen, onClose }: WarmHugModalProps) {
 
             <button
               type="submit"
-              className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-extrabold shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 active:scale-95"
+              className="w-full py-3 px-4 text-xs font-extrabold transition-all flex items-center justify-center gap-2 active:scale-95 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
             >
               <span>Send Warm Hug & Message 🤗💕</span>
             </button>

@@ -231,7 +231,7 @@ export default function OnboardingPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#FFF8EE] via-[#F8C8D8]/20 to-[#CBBEF4]/20 flex items-center justify-center">
+      <div className="min-h-screen bg-canvas bg-glow flex items-center justify-center">
         <div className="text-center space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-purple-600 mx-auto" />
           <p className="text-xs font-semibold text-slate-600">Verifying your account session...</p>
@@ -241,10 +241,10 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFF8EE] via-[#F8C8D8]/20 to-[#CBBEF4]/20 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-canvas bg-glow flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-lg text-center">
         <Link href="/" className="inline-flex items-center gap-2 mb-4 group">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#F8C8D8] via-[#CBBEF4] to-[#B6DDF4] flex items-center justify-center shadow-md">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md bg-hero">
             <Heart className="w-6 h-6 text-rose-500 fill-rose-500" />
           </div>
           <span className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-rose-500 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
@@ -261,7 +261,7 @@ export default function OnboardingPage() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
-        <div className="bg-white py-8 px-6 shadow-xl rounded-3xl border border-[#EFE4D6] sm:px-10 space-y-6">
+        <div className="bg-white py-8 px-6 shadow-xl rounded-3xl border border-line sm:px-10 space-y-6">
           {/* Tabs */}
           <div className="flex rounded-2xl bg-slate-100 p-1">
             <button
@@ -314,7 +314,7 @@ export default function OnboardingPage() {
                     value={coupleName}
                     onChange={(e) => setCoupleName(e.target.value)}
                     placeholder="e.g. Maya & Alex's Love Story"
-                    className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-300 focus:outline-hidden"
+                    className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
                   />
                 </div>
 
@@ -380,7 +380,7 @@ export default function OnboardingPage() {
                       required
                       value={partner1Name}
                       onChange={(e) => setPartner1Name(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-300 focus:outline-hidden"
+                      className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
                     />
                   </div>
                   <div>
@@ -393,7 +393,7 @@ export default function OnboardingPage() {
                       value={partner2Name}
                       onChange={(e) => setPartner2Name(e.target.value)}
                       placeholder="e.g. Partner"
-                      className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-300 focus:outline-hidden"
+                      className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
                     />
                   </div>
                 </div>
@@ -409,7 +409,7 @@ export default function OnboardingPage() {
                       required
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-300 focus:outline-hidden"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
                     />
                   </div>
                 </div>
@@ -417,7 +417,7 @@ export default function OnboardingPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 px-4 rounded-2xl shadow-md bg-gradient-to-r from-rose-500 to-purple-600 text-white text-xs font-extrabold hover:opacity-95 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-3 px-4 text-xs font-extrabold transition-opacity flex items-center justify-center gap-2 disabled:opacity-50 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -469,7 +469,7 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={() => router.push('/dashboard')}
-                  className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-rose-500 to-purple-600 text-white text-xs sm:text-sm font-extrabold shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                  className="w-full py-3.5 px-4 text-xs sm:text-sm font-extrabold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                 >
                   <span>Enter Our Space Now →</span>
                 </button>
@@ -497,7 +497,7 @@ export default function OnboardingPage() {
                     value={inviteCode}
                     onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                     placeholder="e.g. 7X8K2M"
-                    className="w-full pl-10 pr-4 py-2.5 font-mono text-center tracking-widest text-base font-bold rounded-2xl border border-slate-200 focus:ring-2 focus:ring-purple-300 focus:outline-hidden"
+                    className="w-full pl-10 pr-4 py-2.5 font-mono text-center tracking-widest text-base font-bold rounded-2xl border border-slate-200 focus:ring-2 focus:ring-focus focus:outline-hidden"
                   />
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1.5">
@@ -508,7 +508,7 @@ export default function OnboardingPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 px-4 rounded-2xl shadow-md bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-extrabold hover:opacity-95 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3 px-4 text-xs font-extrabold transition-opacity flex items-center justify-center gap-2 disabled:opacity-50 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
               >
                 {isSubmitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

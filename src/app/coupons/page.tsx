@@ -50,7 +50,7 @@ export default function CouponsPage() {
     <AppShell>
       <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300">
         {/* Header Banner */}
-        <div className="rounded-3xl bg-gradient-to-r from-[#F8C8D8] via-[#CBBEF4] to-[#B6DDF4] p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-hero">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-3xl shadow-xs">
               🎟️
@@ -65,7 +65,7 @@ export default function CouponsPage() {
 
           <button
             onClick={() => setShowGiftModal(true)}
-            className="px-4 py-2.5 rounded-2xl bg-[#292538] text-white font-bold text-xs sm:text-sm shadow-md hover:opacity-95 transition-all flex items-center gap-2 active:scale-95"
+            className="px-4 py-2.5 rounded-2xl bg-ink text-white font-bold text-xs sm:text-sm shadow-md hover:opacity-95 transition-all flex items-center gap-2 active:scale-95"
           >
             <Gift className="w-4 h-4 text-amber-300" />
             <span>Gift New Coupon</span>
@@ -114,12 +114,12 @@ export default function CouponsPage() {
                 className={`rounded-3xl p-6 border transition-all flex flex-col justify-between relative overflow-hidden group ${
                   isRedeemed
                     ? 'bg-slate-50/70 border-slate-200 opacity-75'
-                    : 'bg-white border-[#EFE4D6] shadow-sm hover:shadow-md'
+                    : 'bg-white border-line shadow-sm hover:shadow-md'
                 }`}
               >
                 {/* Perforated Ticket Edges */}
-                <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#FFF8EE] border-r border-[#EFE4D6]" />
-                <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#FFF8EE] border-l border-[#EFE4D6]" />
+                <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-canvas border-r border-line" />
+                <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-canvas border-l border-line" />
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -162,7 +162,7 @@ export default function CouponsPage() {
                   {!isRedeemed ? (
                     <button
                       onClick={() => redeemLoveCoupon(coupon.id)}
-                      className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-500 to-purple-600 text-white font-bold text-xs shadow-xs hover:opacity-95 transition-opacity active:scale-95"
+                      className="px-3.5 py-1.5 font-bold text-xs transition-opacity active:scale-95 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                     >
                       Redeem Now! ✨
                     </button>
@@ -201,7 +201,7 @@ export default function CouponsPage() {
                     placeholder="e.g. 1 Free 30-Min Foot Rub 💆‍♂️"
                     value={couponTitle}
                     onChange={(e) => setCouponTitle(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300 focus:outline-hidden"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
                   />
                 </div>
 
@@ -212,7 +212,7 @@ export default function CouponsPage() {
                     placeholder="e.g. Can be redeemed anytime with no questions asked!"
                     value={couponDesc}
                     onChange={(e) => setCouponDesc(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300 focus:outline-hidden"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
                   />
                 </div>
 
@@ -221,7 +221,7 @@ export default function CouponsPage() {
                   <select
                     value={couponCat}
                     onChange={(e) => setCouponCat(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300 focus:outline-hidden bg-white"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden bg-white"
                   >
                     <option value="Pampering">Pampering 💆‍♀️</option>
                     <option value="Chores">Chores & Pass 🍽️</option>
@@ -241,7 +241,7 @@ export default function CouponsPage() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold shadow-xs hover:opacity-95"
+                    className="flex-1 py-2 text-xs font-bold bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                   >
                     Gift Voucher 🎟️
                   </button>

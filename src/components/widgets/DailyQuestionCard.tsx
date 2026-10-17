@@ -34,7 +34,7 @@ export function DailyQuestionCard() {
 
   if (!isHydrated || !dayInfo) {
     return (
-      <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-xs animate-pulse h-48" />
+      <div className="rounded-[1.25rem] bg-surface border border-line p-6 animate-pulse h-48" />
     );
   }
 
@@ -61,31 +61,31 @@ export function DailyQuestionCard() {
   };
 
   return (
-    <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-xs space-y-4">
+    <div className="rounded-[1.25rem] bg-surface border border-line p-6 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div className="flex items-center justify-between pb-3 border-b border-line">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 fill-purple-300" />
+          <div className="w-9 h-9 rounded-full bg-purple-50 text-primary flex items-center justify-center">
+            <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-extrabold text-sm text-slate-900">Question for Us Today</h3>
-            <p className="text-[11px] text-slate-400">Blind Answer: Unlocks only when both answer</p>
+            <h3 className="font-display font-semibold text-lg text-ink leading-tight">Today’s question</h3>
+            <p className="text-[11px] text-ink-muted">Answers open once you’ve both replied</p>
           </div>
         </div>
 
         <Link
           href="/daily-spark"
-          className="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1"
+          className="text-xs font-semibold text-primary hover:text-primary-hover flex items-center gap-1"
         >
-          <span>All Answers</span>
+          <span>All answers</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
       {/* Question Title */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-50 via-pink-50 to-amber-50 border border-purple-100">
-        <p className="font-bold text-sm text-slate-900 leading-snug">
+      <div className="px-5 py-6 rounded-2xl bg-purple-50">
+        <p className="font-display italic text-xl sm:text-2xl text-ink leading-snug">
           "{currentQuestion}"
         </p>
       </div>
@@ -93,15 +93,15 @@ export function DailyQuestionCard() {
       {/* Answers Section */}
       {bothAnswered ? (
         <div className="space-y-3 animate-in fade-in">
-          <div className="flex items-center gap-2 text-xs font-extrabold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
-            <Unlock className="w-4 h-4 text-emerald-600" />
-            <span>Both answered! Answers Unlocked 💕</span>
+          <div className="inline-flex items-center gap-2 text-xs font-semibold text-purple-800 bg-purple-50 px-3 py-1.5 rounded-full">
+            <Unlock className="w-3.5 h-3.5 text-primary" />
+            <span>You both answered</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* My Answer */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-              <span className="text-[10px] font-black uppercase text-purple-700 tracking-wider">
+            <div className="p-4 rounded-2xl bg-surface border border-line space-y-1">
+              <span className="text-[10px] font-semibold uppercase text-purple-700 tracking-[0.12em]">
                 {activeProfile.name}’s Answer
               </span>
               <p className="text-xs text-slate-800 leading-relaxed font-medium">
@@ -110,8 +110,8 @@ export function DailyQuestionCard() {
             </div>
 
             {/* Partner Answer */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-              <span className="text-[10px] font-black uppercase text-rose-700 tracking-wider">
+            <div className="p-4 rounded-2xl bg-surface border border-line space-y-1">
+              <span className="text-[10px] font-semibold uppercase text-rose-700 tracking-[0.12em]">
                 {partnerProfile.name}’s Answer
               </span>
               <p className="text-xs text-slate-800 leading-relaxed font-medium">
@@ -121,17 +121,16 @@ export function DailyQuestionCard() {
           </div>
         </div>
       ) : myAnswer ? (
-        <div className="p-4 rounded-2xl bg-purple-50/60 border border-purple-200 text-center space-y-2 animate-in fade-in">
-          <div className="w-9 h-9 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center mx-auto text-sm">
-            🔒
+        <div className="p-5 rounded-2xl border border-dashed border-purple-200 text-center space-y-2 animate-in fade-in">
+          <div className="w-10 h-10 rounded-full bg-purple-50 text-primary flex items-center justify-center mx-auto">
+            <Lock className="w-4 h-4" />
           </div>
-          <h4 className="text-xs font-extrabold text-purple-900">Your Answer is Sealed!</h4>
+          <h4 className="font-display text-base font-semibold text-ink">Your answer is sealed</h4>
           <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
             You answered: <span className="italic font-medium">"{myAnswer.content}"</span>
           </p>
-          <div className="pt-2 text-[11px] text-purple-600 font-semibold flex items-center justify-center gap-1.5">
-            <Lock className="w-3.5 h-3.5" />
-            <span>Waiting for {partnerProfile.name} to answer to reveal both together!</span>
+          <div className="pt-1 text-xs text-purple-700 font-medium">
+            <span>It opens as soon as {partnerProfile.name} answers.</span>
           </div>
         </div>
       ) : (
@@ -142,15 +141,15 @@ export function DailyQuestionCard() {
             value={draftAnswer}
             onChange={(e) => setDraftAnswer(e.target.value)}
             placeholder={`Type your honest answer as ${activeProfile.name}...`}
-            className="w-full p-3 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-purple-300 focus:outline-hidden bg-slate-50"
+            className="w-full p-3.5 rounded-2xl border border-line text-sm focus:ring-2 focus:ring-focus focus:outline-hidden bg-canvas placeholder:text-ink-muted"
           />
 
           <button
             type="submit"
-            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs shadow-xs hover:opacity-95 transition-opacity flex items-center justify-center gap-2 active:scale-95"
+            className="w-full py-3 px-4 font-semibold text-sm transition-colors flex items-center justify-center gap-2 active:scale-95 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
           >
             <Lock className="w-3.5 h-3.5" />
-            <span>Lock In My Answer 🔒</span>
+            <span>Lock in my answer</span>
           </button>
         </form>
       )}

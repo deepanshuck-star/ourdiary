@@ -119,7 +119,8 @@ export default function BucketListPage() {
         particleCount: 60,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#F5A3A3', '#CBBEF4', '#F8DEA0', '#B8DCD1'],
+        colors: ['#BE185D', '#F9A8D4', '#E11D48', '#FBCFE8'],
+        disableForReducedMotion: true,
       });
     }
   };
@@ -128,7 +129,7 @@ export default function BucketListPage() {
     <AppShell>
       <div className="space-y-6 animate-in fade-in duration-300">
         {/* Header & Progress Banner */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#F8C8D8] via-[#CBBEF4] to-[#B6DDF4] shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="p-6 sm:p-8 rounded-3xl shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-hero">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="p-2 rounded-2xl bg-white/80 text-teal-700 shadow-xs">
@@ -153,7 +154,7 @@ export default function BucketListPage() {
             {/* Progress Bar */}
             <div className="w-full h-3 rounded-full bg-purple-100 overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#F5A3A3] via-[#CBBEF4] to-[#B8DCD1] transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-secondary to-primary transition-all duration-500"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -161,7 +162,7 @@ export default function BucketListPage() {
         </div>
 
         {/* Filter Controls & Add Button */}
-        <div className="p-4 rounded-3xl bg-white border border-[#EFE4D6] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="p-4 rounded-3xl bg-white border border-line shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-2 flex-wrap">
             {/* Category Filter */}
             <button
@@ -220,7 +221,7 @@ export default function BucketListPage() {
 
             <button
               onClick={handleOpenAdd}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#F5A3A3] to-[#CBBEF4] text-white font-bold text-xs shadow-sm hover:shadow-md flex items-center gap-1.5"
+              className="px-4 py-2 font-bold text-xs flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
             >
               <Plus className="w-4 h-4" />
               <span>Add Goal</span>
@@ -237,7 +238,7 @@ export default function BucketListPage() {
                 className={`p-4 sm:p-5 rounded-3xl border transition-all duration-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
                   item.completed
                     ? 'bg-emerald-50/40 border-emerald-200 text-slate-700'
-                    : 'bg-white border-[#EFE4D6] shadow-xs hover:border-purple-300'
+                    : 'bg-white border-line shadow-xs hover:border-purple-300'
                 }`}
               >
                 <div className="flex items-start gap-3.5 flex-1">
@@ -323,7 +324,7 @@ export default function BucketListPage() {
               </div>
             ))
           ) : (
-            <div className="p-16 text-center rounded-3xl bg-white border border-[#EFE4D6] space-y-3">
+            <div className="p-16 text-center rounded-3xl bg-white border border-line space-y-3">
               <div className="text-5xl">✨</div>
               <h3 className="font-bold text-slate-800 text-lg">No bucket list items here</h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -360,7 +361,7 @@ export default function BucketListPage() {
                     placeholder="e.g. Watch the Northern Lights, Bake handmade pasta..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-purple-300"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-focus"
                   />
                 </div>
 
@@ -372,7 +373,7 @@ export default function BucketListPage() {
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value as BucketCategory)}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300 bg-white"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus bg-white"
                     >
                       {CATEGORIES.map((cat) => (
                         <option key={cat} value={cat}>
@@ -390,7 +391,7 @@ export default function BucketListPage() {
                       type="date"
                       value={targetDate}
                       onChange={(e) => setTargetDate(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                     />
                   </div>
                 </div>
@@ -404,7 +405,7 @@ export default function BucketListPage() {
                     placeholder="Where to go, who to ask, or why this matters to us..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                   />
                 </div>
 
@@ -418,7 +419,7 @@ export default function BucketListPage() {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold hover:bg-purple-700 shadow-sm"
+                    className="px-5 py-2 text-xs font-bold bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                   >
                     {editingId ? 'Update Goal' : 'Add to Bucket List'}
                   </button>

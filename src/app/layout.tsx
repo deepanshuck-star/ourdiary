@@ -1,24 +1,31 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Playfair_Display, DM_Sans } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers/Providers';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+// Rose Quartz Romance: Playfair Display for display moments, DM Sans for all UI text.
+const displayFont = Playfair_Display({
+  variable: '--font-display-face',
   subsets: ['latin'],
   display: 'swap',
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const bodyFont = DM_Sans({
+  variable: '--font-body',
   subsets: ['latin'],
   display: 'swap',
 });
+
+// Applies the saved appearance (light / dark / system) before first paint so there is no flash.
+const appearanceScript = `try{var a=localStorage.getItem('ourdiary-appearance');document.documentElement.dataset.appearance=a==='dark'||a==='system'?a:'light'}catch(e){}`;
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ourdiary.app';
 
 export const viewport: Viewport = {
-  themeColor: '#F8C8D8',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#FFF7FA' },
+    { media: '(prefers-color-scheme: dark)', color: '#1A1015' },
+  ],
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
@@ -102,8 +109,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-[#FFF8EE] text-[#292538] font-sans">
+    <html
+      lang="en"
+      data-appearance="light"
+      suppressHydrationWarning
+      className={`${displayFont.variable} ${bodyFont.variable} h-full antialiased`}
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: appearanceScript }} />
+      </head>
+      <body className="min-h-full flex flex-col bg-canvas text-ink font-sans">
         <Providers>{children}</Providers>
       </body>
     </html>
