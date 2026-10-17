@@ -550,3 +550,49 @@ test('Navbar shows the couple photo top-left when set', () => {
   const navbar = read('src', 'components', 'layout', 'AppNavbar.tsx');
   assert.ok(navbar.includes('data.couple.photoUrl'));
 });
+
+// ==============================================================================
+// TEST SUITE: new-update branch fixes — empty-vs-failed, logout clears cache,
+// no dead-weight profiles upsert, photo-save failures are surfaced
+// ==============================================================================
+
+test('Fix: a genuinely empty fetch result is trusted, not confused with a failed fetch', () => {
+  const ctx = read('src', 'store', 'DiaryContext.tsx');
+  // The old bug: `list.length > 0 ? list : prev.list` treats "deleted your
+  // last item" the same as "the fetch failed" and silently undoes deletes.
+  assert.ok(!/events\.length > 0 \? events : prev\.events/.test(ctx));
+  assert.ok(!/letters\.length > 0 \? letters : prev\.letters/.test(ctx));
+  assert.ok(!/bucketList\.length > 0 \? bucketList : prev\.bucketList/.test(ctx));
+  // The fix distinguishes null (fetch rejected) from a real array (fetch ok).
+  assert.ok(ctx.includes('events ?? prev.events'));
+  assert.ok(ctx.includes('letters ?? prev.letters'));
+  assert.ok(ctx.includes('bucketList ?? prev.bucketList'));
+});
+
+test('Fix: logout clears every cached couple space from localStorage', () => {
+  const ctx = read('src', 'store', 'DiaryContext.tsx');
+  const logoutFn = ctx.slice(ctx.indexOf('const logout = async'), ctx.indexOf('const regenerateCoupleCode ='));
+  assert.ok(logoutFn.includes("key.startsWith('ourdiary_space_')"));
+  assert.ok(logoutFn.includes('localStorage.removeItem(key)'));
+});
+
+test('Fix: a failed sub-resource fetch shows a toast, not just a console log', () => {
+  const ctx = read('src', 'store', 'DiaryContext.tsx');
+  assert.ok(ctx.includes('failedLabels.length > 0'));
+  assert.ok(/showToast\(\s*`Couldn't load your/.test(ctx));
+});
+
+test('Fix: createMemoryRemote has no pointless profiles upsert (no INSERT RLS policy exists for it)', () => {
+  const src = read('src', 'lib', 'supabase', 'memories.ts');
+  assert.ok(!/from\('profiles'\)\s*\n?\s*\.upsert/.test(src));
+});
+
+test('Fix: a photo-save failure during memory creation is surfaced, not silently dropped', () => {
+  const sync = read('src', 'lib', 'supabase', 'memories.ts');
+  assert.ok(sync.includes('savedPhotos'));
+  assert.ok(sync.includes("Memory saved, but its photos failed to save"));
+
+  const ctx = read('src', 'store', 'DiaryContext.tsx');
+  assert.ok(ctx.includes('expectedPhotoCount'));
+  assert.ok(ctx.includes("couldn't be saved to the server"));
+});

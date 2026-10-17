@@ -345,9 +345,18 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     if (supabase && isLiveUser && currentUserId && data.couple.id) {
       createMemoryRemote(supabase, data.couple.id, currentUserId, newMem)
         .then((saved) => {
+          const expectedPhotoCount = newMem.photos?.length || 0;
+          if (saved.photos.length < expectedPhotoCount) {
+            showToast(
+              "The memory saved, but its photo(s) couldn't be saved to the server — please re-add them.",
+              'warn'
+            );
+          }
           setData((prev) => ({
             ...prev,
-            memories: prev.memories.map((m) => (m.id === tempId ? { ...m, id: saved.id } : m)),
+            memories: prev.memories.map((m) =>
+              m.id === tempId ? { ...m, id: saved.id, photos: saved.photos } : m
+            ),
             bucketList: prev.bucketList.map((b) =>
               b.memoryId === tempId ? { ...b, memoryId: saved.id } : b
             ),
@@ -577,52 +586,90 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
           fetchCoupleProfilesRemote(supabase, remoteCouple.id, userId, activeProfileId),
         ]);
 
-        const memories = results[0].status === 'fulfilled' ? results[0].value : [];
-        const events = results[1].status === 'fulfilled' ? results[1].value : [];
-        const letters = results[2].status === 'fulfilled' ? results[2].value : [];
-        const bucketList = results[3].status === 'fulfilled' ? results[3].value : [];
-        const loveCoupons = results[4].status === 'fulfilled' ? results[4].value : [];
-        const customWheelOptions = results[5].status === 'fulfilled' ? results[5].value : [];
-        const dailySparkAnswers = results[6].status === 'fulfilled' ? results[6].value : [];
-        const profiles = results[7].status === 'fulfilled' ? results[7].value : {};
-
+        // A rejected fetch and a fetch that legitimately returned zero rows
+        // are different things. Only a REJECTION falls back to the cached
+        // value; a real empty array (e.g. you deleted your last event) is
+        // trusted and applied, so deletions actually stick.
+        const labels = [
+          'memories', 'events', 'letters', 'bucketList', 'loveCoupons',
+          'customWheelOptions', 'dailySparkAnswers', 'profiles',
+        ] as const;
+        const failedLabels: string[] = [];
         results.forEach((r, idx) => {
           if (r.status === 'rejected') {
-            console.warn(`[OurDiary] Sub-resource ${idx} failed to load from remote:`, r.reason);
+            failedLabels.push(labels[idx]);
+            console.error(`[OurDiary] Failed to load ${labels[idx]} from database:`, r.reason);
           }
         });
+        if (failedLabels.length > 0) {
+          showToast(
+            `Couldn't load your ${failedLabels.join(', ')} right now — showing what was last saved. Please refresh to try again.`,
+            'warn'
+          );
+        }
 
-        const memoryIds = memories.map((m) => m.id);
-        const [notesRes, photosRes] = await Promise.allSettled([
-          fetchMemoryNotesForMemoriesRemote(supabase, memoryIds, userId, activeProfileId),
-          fetchMemoryPhotosForMemoriesRemote(supabase, memoryIds),
-        ]);
-        const notesByMemory = notesRes.status === 'fulfilled' ? notesRes.value : new Map<string, MemoryNote[]>();
-        const photosByMemory = photosRes.status === 'fulfilled' ? photosRes.value : new Map<string, MemoryPhoto[]>();
+        const memoriesFetch = results[0];
+        const memories = memoriesFetch.status === 'fulfilled' ? memoriesFetch.value : null;
+        const events = results[1].status === 'fulfilled' ? results[1].value : null;
+        const letters = results[2].status === 'fulfilled' ? results[2].value : null;
+        const bucketList = results[3].status === 'fulfilled' ? results[3].value : null;
+        const loveCoupons = results[4].status === 'fulfilled' ? results[4].value : null;
+        const customWheelOptions = results[5].status === 'fulfilled' ? results[5].value : null;
+        const dailySparkAnswers = results[6].status === 'fulfilled' ? results[6].value : null;
+        const profiles = results[7].status === 'fulfilled' ? results[7].value : {};
 
-        const memoriesWithDetails = memories.map((m) => ({
+        // Only fetch notes/photos if the memories fetch actually succeeded —
+        // otherwise there are no real ids to look them up by.
+        let notesByMemory = new Map<string, MemoryNote[]>();
+        let photosByMemory = new Map<string, MemoryPhoto[]>();
+        if (memories) {
+          const memoryIds = memories.map((m) => m.id);
+          const [notesRes, photosRes] = await Promise.allSettled([
+            fetchMemoryNotesForMemoriesRemote(supabase, memoryIds, userId, activeProfileId),
+            fetchMemoryPhotosForMemoriesRemote(supabase, memoryIds),
+          ]);
+          if (notesRes.status === 'fulfilled') {
+            notesByMemory = notesRes.value;
+          } else {
+            console.error('[OurDiary] Failed to load memory notes from database:', notesRes.reason);
+            showToast("Couldn't load some memory notes right now. Please refresh to try again.", 'warn');
+          }
+          if (photosRes.status === 'fulfilled') {
+            photosByMemory = photosRes.value;
+          } else {
+            console.error('[OurDiary] Failed to load memory photos from database:', photosRes.reason);
+            showToast("Couldn't load some memory photos right now. Please refresh to try again.", 'warn');
+          }
+        }
+
+        const memoriesWithDetails = (memories || []).map((m) => ({
           ...m,
           notes: notesByMemory.get(m.id) || [],
           photos: photosByMemory.get(m.id) || [],
         }));
 
         setData((prev) => {
-          // Merge remote memories with any locally created memories that haven't synced yet
-          const remoteIds = new Set(memoriesWithDetails.map((m) => m.id));
-          const localOnly = prev.memories.filter((m) => !remoteIds.has(m.id) && m.id.startsWith('mem_'));
-          const mergedMemories = [...memoriesWithDetails, ...localOnly].sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-          );
+          // Merge remote memories with any locally created memories that
+          // haven't synced yet (only meaningful when the fetch succeeded —
+          // if it failed, prev.memories is kept as-is below).
+          let mergedMemories = prev.memories;
+          if (memories) {
+            const remoteIds = new Set(memoriesWithDetails.map((m) => m.id));
+            const localOnly = prev.memories.filter((m) => !remoteIds.has(m.id) && m.id.startsWith('mem_'));
+            mergedMemories = [...memoriesWithDetails, ...localOnly].sort(
+              (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+            );
+          }
 
           const updated: OurDiaryData = {
             ...prev,
-            memories: mergedMemories.length > 0 ? mergedMemories : prev.memories,
-            events: events.length > 0 ? events : prev.events,
-            letters: letters.length > 0 ? letters : prev.letters,
-            bucketList: bucketList.length > 0 ? bucketList : prev.bucketList,
-            loveCoupons: loveCoupons.length > 0 ? loveCoupons : prev.loveCoupons,
-            customWheelOptions: customWheelOptions.length > 0 ? customWheelOptions : prev.customWheelOptions,
-            dailySparkAnswers: dailySparkAnswers.length > 0 ? dailySparkAnswers : prev.dailySparkAnswers,
+            memories: mergedMemories,
+            events: events ?? prev.events,
+            letters: letters ?? prev.letters,
+            bucketList: bucketList ?? prev.bucketList,
+            loveCoupons: loveCoupons ?? prev.loveCoupons,
+            customWheelOptions: customWheelOptions ?? prev.customWheelOptions,
+            dailySparkAnswers: dailySparkAnswers ?? prev.dailySparkAnswers,
             couple: {
               ...prev.couple,
               user1: profiles.user_1?.avatarUrl
@@ -660,6 +707,14 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('ourdiary_is_live_user');
       localStorage.removeItem('ourdiary_current_user_id');
       localStorage.removeItem('ourdiary_real_couple_v1');
+      // Logging out must actually clear your data from this device — on a
+      // shared/public computer, leaving it cached in localStorage means
+      // anyone with dev tools can read it after you've "signed out."
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('ourdiary_space_')) {
+          localStorage.removeItem(key);
+        }
+      });
     }
     setData(JSON.parse(JSON.stringify(initialDiaryData)));
     showToast('Logged out successfully. See you soon! 💕', 'heart');

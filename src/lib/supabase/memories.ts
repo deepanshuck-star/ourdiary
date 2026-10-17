@@ -70,11 +70,11 @@ export async function createMemoryRemote(
   authorId: string,
   memory: Omit<Memory, 'id' | 'reactions' | 'notes'>
 ): Promise<Memory> {
-  // Ensure author exists in profiles to satisfy FK created_by -> profiles(id)
-  await supabase
-    .from('profiles')
-    .upsert({ id: authorId, display_name: 'Partner' }, { onConflict: 'id', ignoreDuplicates: true });
-
+  // Note: the author's profiles row is guaranteed to already exist by this
+  // point — create_couple_space()/join_couple_by_code() (migration 06/07)
+  // create it before a user can ever reach a couple space at all, and
+  // `profiles` has no INSERT policy for a client-side upsert to use anyway.
+  // An upsert here would silently no-op (or be rejected by RLS) either way.
   const { data, error } = await supabase
     .from('memories')
     .insert({
@@ -95,19 +95,36 @@ export async function createMemoryRemote(
 
   if (error) throw new Error(error.message);
 
-  // If memory includes photos, persist them to memory_photos table
+  // If memory includes photos, persist them to memory_photos too. A failure
+  // here must not be swallowed: the memory itself still saved, but the
+  // caller needs to know its photos didn't, so it can tell the user instead
+  // of claiming a full, silent success.
+  let savedPhotos: Memory['photos'] = [];
   if (memory.photos && memory.photos.length > 0) {
     const photoInserts = memory.photos.map((p) => ({
       memory_id: data.id,
       url: p.url,
       caption: p.caption || null,
     }));
-    await supabase.from('memory_photos').insert(photoInserts);
+    const { data: photoRows, error: photoError } = await supabase
+      .from('memory_photos')
+      .insert(photoInserts)
+      .select();
+    if (photoError) {
+      console.error('[OurDiary] Memory saved, but its photos failed to save:', photoError.message);
+    } else {
+      savedPhotos = (photoRows || []).map((r: any) => ({
+        id: r.id,
+        url: r.url,
+        caption: r.caption || undefined,
+        dateAdded: r.created_at,
+      }));
+    }
   }
 
   return {
     ...rowToMemory(data as MemoryRow, memory.createdBy),
-    photos: memory.photos || [],
+    photos: savedPhotos,
   };
 }
 
