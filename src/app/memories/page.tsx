@@ -86,7 +86,7 @@ export default function MemoriesPage() {
     <AppShell>
       <div className="space-y-6 animate-in fade-in duration-300">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-[#EFE4D6] shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-line shadow-xs">
           <div>
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-2xl bg-rose-100 text-rose-600">
@@ -111,7 +111,7 @@ export default function MemoriesPage() {
             </Link>
             <Link
               href="/memories/new"
-              className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#F5A3A3] to-[#CBBEF4] text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+              className="px-5 py-2.5 font-bold text-xs sm:text-sm hover:scale-105 active:scale-95 transition-all flex items-center gap-2 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
             >
               <PlusCircle className="w-4 h-4" />
               <span>Record Memory</span>
@@ -120,7 +120,7 @@ export default function MemoriesPage() {
         </div>
 
         {/* Search & Filter Controls */}
-        <div className="p-4 sm:p-5 rounded-3xl bg-white border border-[#EFE4D6] shadow-xs space-y-4">
+        <div className="p-4 sm:p-5 rounded-3xl bg-white border border-line shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row items-center gap-3">
             {/* Search Input */}
             <div className="relative flex-1 w-full">
@@ -130,7 +130,7 @@ export default function MemoriesPage() {
                 placeholder="Search memories by title, location, story, or #tags..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-purple-300 bg-slate-50/50"
+                className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus focus:border-focus bg-slate-50/50"
               />
             </div>
 
@@ -139,7 +139,7 @@ export default function MemoriesPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-300"
+                className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-focus"
               >
                 <option value="newest">Sort: Newest First</option>
                 <option value="oldest">Sort: Oldest First</option>
@@ -180,7 +180,7 @@ export default function MemoriesPage() {
             <button
               onClick={() => setSelectedMood('all')}
               className={`px-2.5 py-1 rounded-lg font-medium flex-shrink-0 ${
-                selectedMood === 'all' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-600'
+                selectedMood === 'all' ? 'bg-primary text-on-primary' : 'bg-slate-100 text-slate-600'
               }`}
             >
               Any
@@ -191,7 +191,7 @@ export default function MemoriesPage() {
                 onClick={() => setSelectedMood(m.mood)}
                 className={`px-2.5 py-1 rounded-lg font-medium flex-shrink-0 flex items-center gap-1 ${
                   selectedMood === m.mood
-                    ? 'bg-purple-600 text-white'
+                    ? 'bg-primary text-on-primary'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -215,7 +215,7 @@ export default function MemoriesPage() {
               return (
                 <div
                   key={mem.id}
-                  className="rounded-3xl bg-white border border-[#EFE4D6] shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between overflow-hidden group"
+                  className="rounded-3xl bg-white border border-line shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between overflow-hidden group"
                 >
                   <div>
                     {/* Photo Header */}
@@ -227,13 +227,13 @@ export default function MemoriesPage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-tr from-[#F8C8D8] via-[#CBBEF4] to-[#B6DDF4] flex items-center justify-center text-4xl">
+                        <div className="w-full h-full flex items-center justify-center text-4xl bg-hero">
                           ✨
                         </div>
                       )}
                       {/* Top Badges */}
                       <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                        <span className="px-2.5 py-1 rounded-full bg-black/60 text-white text-[11px] font-semibold backdrop-blur-xs">
+                        <span className="px-2.5 py-1 rounded-full bg-black/60 text-snow text-[11px] font-semibold backdrop-blur-xs">
                           {mem.category}
                         </span>
                       </div>
@@ -329,7 +329,7 @@ export default function MemoriesPage() {
             })}
           </div>
         ) : (
-          <div className="p-12 text-center rounded-3xl bg-white border border-[#EFE4D6] space-y-3">
+          <div className="p-12 text-center rounded-3xl bg-white border border-line space-y-3">
             <div className="text-4xl">🔍</div>
             <h3 className="font-bold text-slate-800 text-lg">No memories match your filter</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">

@@ -5,10 +5,17 @@ import { AppNavbar } from './AppNavbar';
 import { AppSidebar } from './AppSidebar';
 import { MobileNav } from './MobileNav';
 import { ToastContainer } from '../ui/ToastContainer';
+import { useDiary } from '@/store/DiaryContext';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const { data } = useDiary();
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#FFF8EE] text-[#292538] selection:bg-rose-200">
+    // data-theme drives the decorative hero gradient chosen in Settings.
+    <div
+      data-theme={data.couple.theme || 'candy'}
+      className="min-h-screen flex flex-col bg-canvas text-ink"
+    >
       <AppNavbar />
       <div className="flex-1 flex w-full max-w-7xl mx-auto">
         <AppSidebar />

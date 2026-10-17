@@ -68,7 +68,7 @@ export default function OurStatsPage() {
     <AppShell>
       <div className="space-y-8 animate-in fade-in duration-300">
         {/* Header Banner */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#F8C8D8] via-[#CBBEF4] to-[#B6DDF4] shadow-md flex items-center justify-between">
+        <div className="p-6 sm:p-8 rounded-3xl shadow-md flex items-center justify-between bg-hero">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="p-2 rounded-2xl bg-white/80 text-purple-700 shadow-xs">
@@ -86,7 +86,7 @@ export default function OurStatsPage() {
 
         {/* Big Key Metric Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-5 rounded-3xl bg-white border border-[#EFE4D6] shadow-xs text-center space-y-1">
+          <div className="p-5 rounded-3xl bg-white border border-line shadow-xs text-center space-y-1">
             <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-500 mx-auto flex items-center justify-center">
               <Flame className="w-5 h-5 fill-rose-500" />
             </div>
@@ -94,7 +94,7 @@ export default function OurStatsPage() {
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Days Together</p>
           </div>
 
-          <div className="p-5 rounded-3xl bg-white border border-[#EFE4D6] shadow-xs text-center space-y-1">
+          <div className="p-5 rounded-3xl bg-white border border-line shadow-xs text-center space-y-1">
             <div className="w-10 h-10 rounded-2xl bg-purple-100 text-purple-600 mx-auto flex items-center justify-center">
               <Heart className="w-5 h-5 fill-purple-600" />
             </div>
@@ -102,7 +102,7 @@ export default function OurStatsPage() {
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Memories</p>
           </div>
 
-          <div className="p-5 rounded-3xl bg-white border border-[#EFE4D6] shadow-xs text-center space-y-1">
+          <div className="p-5 rounded-3xl bg-white border border-line shadow-xs text-center space-y-1">
             <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-600 mx-auto flex items-center justify-center">
               <Camera className="w-5 h-5" />
             </div>
@@ -110,7 +110,7 @@ export default function OurStatsPage() {
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Photos Kept</p>
           </div>
 
-          <div className="p-5 rounded-3xl bg-white border border-[#EFE4D6] shadow-xs text-center space-y-1">
+          <div className="p-5 rounded-3xl bg-white border border-line shadow-xs text-center space-y-1">
             <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center">
               <CheckCircle2 className="w-5 h-5" />
             </div>
@@ -122,7 +122,7 @@ export default function OurStatsPage() {
         {/* 2-Column: Mood Distribution & Memories by Year */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Mood Distribution */}
-          <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-sm space-y-5">
+          <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <Smile className="w-5 h-5 text-amber-500" />
@@ -167,7 +167,7 @@ export default function OurStatsPage() {
           </div>
 
           {/* Memories by Year Chart */}
-          <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-sm space-y-5">
+          <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-purple-600" />
@@ -187,7 +187,7 @@ export default function OurStatsPage() {
                     <span className="text-xs font-bold text-purple-700 opacity-80 group-hover:scale-110 transition-transform">
                       {count}
                     </span>
-                    <div className="w-12 rounded-t-2xl bg-gradient-to-t from-[#CBBEF4] to-[#F5A3A3] group-hover:brightness-105 transition-all shadow-sm" style={{ height: `${Math.max(20, heightPercent * 1.2)}px` }} />
+                    <div className="w-12 rounded-t-2xl bg-gradient-to-t from-secondary to-primary group-hover:brightness-105 transition-all shadow-sm" style={{ height: `${Math.max(20, heightPercent * 1.2)}px` }} />
                     <span className="text-xs font-bold text-slate-600">{yr}</span>
                   </div>
                 );
@@ -215,7 +215,7 @@ export default function OurStatsPage() {
         </div>
 
         {/* Full Milestone Timeline */}
-        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="rounded-3xl bg-white border border-line p-6 sm:p-8 shadow-sm space-y-6">
           <div className="flex items-center justify-between pb-4 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <Award className="w-5 h-5 text-amber-500" />

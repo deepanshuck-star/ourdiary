@@ -66,7 +66,7 @@ export function IncomingHeartbeatAlert() {
         {/* Receive Action */}
         <button
           onClick={markHeartbeatSeen}
-          className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 text-white font-extrabold text-xs shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 active:scale-95"
+          className="w-full py-3 px-4 font-extrabold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
         >
           <Check className="w-4 h-4" />
           <span>Receive With Love 🥰</span>

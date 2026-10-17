@@ -139,7 +139,7 @@ export function ToyTrainJourney() {
   if (sortedMemories.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="rounded-3xl bg-gradient-to-r from-[#F8C8D8] via-[#CBBEF4] to-[#B6DDF4] p-6 sm:p-8 shadow-sm">
+        <div className="rounded-3xl p-6 sm:p-8 shadow-sm bg-hero">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-2xl shadow-xs">
               🚂
@@ -153,7 +153,7 @@ export function ToyTrainJourney() {
           </div>
         </div>
 
-        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-12 text-center max-w-xl mx-auto shadow-sm space-y-4">
+        <div className="rounded-3xl bg-white border border-line p-12 text-center max-w-xl mx-auto shadow-sm space-y-4">
           <div className="w-20 h-20 rounded-3xl bg-purple-50 text-purple-600 flex items-center justify-center text-4xl mx-auto shadow-inner">
             🛤️
           </div>
@@ -165,7 +165,7 @@ export function ToyTrainJourney() {
           </div>
           <Link
             href="/memories/new"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500 to-purple-600 text-white font-bold text-xs shadow-md hover:opacity-95 transition-opacity"
+            className="inline-flex items-center gap-2 px-5 py-2.5 font-bold text-xs transition-opacity bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
           >
             <span>Lay Down Station #1 (Add Memory)</span>
             <ArrowRight className="w-4 h-4" />
@@ -178,7 +178,7 @@ export function ToyTrainJourney() {
   return (
     <div className="space-y-6">
       {/* Journey Header & Chapter Tabs */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-3xl bg-white border border-[#EFE4D6] shadow-xs">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-3xl bg-white border border-line shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-2xl bg-purple-100 text-purple-600">
@@ -202,7 +202,7 @@ export function ToyTrainJourney() {
             }}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
               selectedYear === 'all'
-                ? 'bg-gradient-to-r from-[#F5A3A3] to-[#CBBEF4] text-white shadow-sm'
+                ? 'shadow-sm bg-primary text-on-primary'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
@@ -217,7 +217,7 @@ export function ToyTrainJourney() {
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                 selectedYear === yr
-                  ? 'bg-purple-600 text-white shadow-sm'
+                  ? 'shadow-sm bg-primary text-on-primary'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
@@ -243,7 +243,7 @@ export function ToyTrainJourney() {
       {/* Main Track Viewport + Floating Station Preview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Candy Crush Style SVG Track Canvas (2 cols) */}
-        <div className="lg:col-span-2 relative rounded-3xl bg-gradient-to-b from-[#FFF8EE] via-[#FFF5F7] to-[#F2F7FF] border border-[#EFE4D6] shadow-sm p-4 overflow-hidden min-h-[600px]">
+        <div className="lg:col-span-2 relative rounded-3xl bg-gradient-to-b from-canvas to-surface border border-line shadow-sm p-4 overflow-hidden min-h-[600px]">
           {/* Background whimsical decorative clouds and trees */}
           <div className="absolute inset-0 pointer-events-none opacity-40">
             <div className="absolute top-10 left-8 text-4xl">☁️</div>
@@ -474,7 +474,7 @@ export function ToyTrainJourney() {
         {/* Station Memory Inspector Card (1 col) */}
         <div className="space-y-4">
           {/* Station Stepper Controls */}
-          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-[#EFE4D6] shadow-xs">
+          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-line shadow-xs">
             <button
               onClick={handlePrevStation}
               disabled={activeStationIndex <= 0}
@@ -505,7 +505,7 @@ export function ToyTrainJourney() {
 
           {/* Active Station Card Detail */}
           {activeStation ? (
-            <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-sm space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-4 animate-in fade-in zoom-in-95 duration-200">
               {/* Photo Banner */}
               {activeStation.memory.photos?.[0] ? (
                 <div className="h-44 rounded-2xl overflow-hidden relative group">
@@ -514,13 +514,13 @@ export function ToyTrainJourney() {
                     alt={activeStation.memory.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <div className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full bg-black/60 text-white text-xs font-semibold backdrop-blur-xs flex items-center gap-1">
+                  <div className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full bg-black/60 text-snow text-xs font-semibold backdrop-blur-xs flex items-center gap-1">
                     <span>{activeStation.emoji}</span>
                     <span>{activeStation.memory.category}</span>
                   </div>
                 </div>
               ) : (
-                <div className="h-32 rounded-2xl bg-gradient-to-tr from-[#F8C8D8] to-[#CBBEF4] flex items-center justify-center text-4xl shadow-inner">
+                <div className="h-32 rounded-2xl flex items-center justify-center text-4xl shadow-inner bg-hero">
                   {activeStation.emoji}
                 </div>
               )}
@@ -574,7 +574,7 @@ export function ToyTrainJourney() {
               <div className="pt-2 border-t border-slate-100">
                 <Link
                   href={`/memories/${activeStation.memory.id}`}
-                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-[#F5A3A3] via-[#CBBEF4] to-[#B6DDF4] text-slate-900 font-bold text-sm shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-bold text-sm shadow-cta hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
                   <span>Open Full Memory Details</span>
                   <ArrowRight className="w-4 h-4" />
@@ -582,7 +582,7 @@ export function ToyTrainJourney() {
               </div>
             </div>
           ) : (
-            <div className="p-6 rounded-3xl bg-white border border-[#EFE4D6] text-center text-slate-400 text-sm">
+            <div className="p-6 rounded-3xl bg-white border border-line text-center text-slate-400 text-sm">
               No stations available for this period.
             </div>
           )}

@@ -33,7 +33,7 @@ export default function DailySparkPage() {
           <span className="text-xs font-semibold text-slate-500">Back to Dashboard</span>
         </div>
 
-        <div className="rounded-3xl bg-gradient-to-r from-[#F8C8D8] via-[#CBBEF4] to-[#B6DDF4] p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-hero">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-3xl shadow-xs">
               ✨
@@ -51,7 +51,7 @@ export default function DailySparkPage() {
         <DailyQuestionCard />
 
         {/* Archives / Past Answered Questions */}
-        <div className="rounded-3xl bg-white border border-[#EFE4D6] p-6 sm:p-8 shadow-sm space-y-5">
+        <div className="rounded-3xl bg-white border border-line p-6 sm:p-8 shadow-sm space-y-5">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-purple-600" />

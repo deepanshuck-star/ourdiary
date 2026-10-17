@@ -101,7 +101,7 @@ export default function GalleryPage() {
     <AppShell>
       <div className="space-y-6 animate-in fade-in duration-300">
         {/* Gallery Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-[#EFE4D6] shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-line shadow-xs">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-2xl bg-emerald-100 text-emerald-600">
               <GalleryIcon className="w-5 h-5" />
@@ -116,7 +116,7 @@ export default function GalleryPage() {
 
           <button
             onClick={() => setShowUploadModal(true)}
-            className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#F5A3A3] via-[#CBBEF4] to-[#B6DDF4] text-slate-900 font-bold text-xs sm:text-sm shadow-sm hover:shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+            className="px-5 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-bold text-xs sm:text-sm shadow-cta hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
           >
             <Camera className="w-4 h-4" />
             <span>Add Photo</span>
@@ -172,7 +172,7 @@ export default function GalleryPage() {
                     date: photo.memoryDate,
                   })
                 }
-                className="group relative h-64 rounded-3xl overflow-hidden cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 border border-[#EFE4D6] bg-slate-100"
+                className="group relative h-64 rounded-3xl overflow-hidden cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 border border-line bg-slate-100"
               >
                 <img
                   src={photo.url}
@@ -183,10 +183,10 @@ export default function GalleryPage() {
                 />
 
                 {/* Hover Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-between text-white">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-between text-snow">
                   <div className="flex justify-end">
                     <span className="p-1.5 rounded-full bg-white/20 backdrop-blur-md">
-                      <ZoomIn className="w-4 h-4 text-white" />
+                      <ZoomIn className="w-4 h-4 text-snow" />
                     </span>
                   </div>
 
@@ -194,11 +194,11 @@ export default function GalleryPage() {
                     <span className="text-[10px] text-rose-300 font-bold uppercase tracking-wider block">
                       {formatDate(photo.memoryDate)}
                     </span>
-                    <h4 className="font-bold text-sm leading-tight text-white line-clamp-1">
+                    <h4 className="font-bold text-sm leading-tight text-snow line-clamp-1">
                       {photo.memoryTitle}
                     </h4>
                     {photo.caption && (
-                      <p className="text-xs text-slate-200 line-clamp-1 mt-0.5 italic">
+                      <p className="text-xs text-snow/80 line-clamp-1 mt-0.5 italic">
                         "{photo.caption}"
                       </p>
                     )}
@@ -208,7 +208,7 @@ export default function GalleryPage() {
             ))}
           </div>
         ) : (
-          <div className="p-16 text-center rounded-3xl bg-white border border-[#EFE4D6] space-y-3">
+          <div className="p-16 text-center rounded-3xl bg-white border border-line space-y-3">
             <div className="text-5xl">🖼️</div>
             <h3 className="font-bold text-slate-800 text-lg">No photos in this view</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -234,11 +234,11 @@ export default function GalleryPage() {
               />
 
               {/* Caption and Memory link bar */}
-              <div className="mt-4 p-4 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 text-white w-full flex items-center justify-between gap-4">
+              <div className="mt-4 p-4 rounded-2xl bg-snow/10 backdrop-blur-lg border border-snow/20 text-snow w-full flex items-center justify-between gap-4">
                 <div>
                   <h4 className="font-bold text-sm sm:text-base">{lightboxPhoto.memoryTitle}</h4>
                   {lightboxPhoto.caption && (
-                    <p className="text-xs text-slate-200 italic mt-0.5">"{lightboxPhoto.caption}"</p>
+                    <p className="text-xs text-snow/80 italic mt-0.5">"{lightboxPhoto.caption}"</p>
                   )}
                 </div>
 
@@ -255,7 +255,7 @@ export default function GalleryPage() {
 
               <button
                 onClick={() => setLightboxPhoto(null)}
-                className="absolute -top-3 -right-3 sm:top-2 sm:right-2 p-2 rounded-full bg-black/70 text-white hover:bg-black/95 transition-colors"
+                className="absolute -top-3 -right-3 sm:top-2 sm:right-2 p-2 rounded-full bg-black/70 text-snow hover:bg-black/95 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -285,7 +285,7 @@ export default function GalleryPage() {
                   <select
                     value={targetMemoryId}
                     onChange={(e) => setTargetMemoryId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-300 bg-white"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus bg-white"
                   >
                     {data.memories.map((m) => (
                       <option key={m.id} value={m.id}>
@@ -304,7 +304,7 @@ export default function GalleryPage() {
                     placeholder="https://images.unsplash.com/..."
                     value={uploadUrl}
                     onChange={(e) => setUploadUrl(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-300"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                   />
                 </div>
 
@@ -335,7 +335,7 @@ export default function GalleryPage() {
                     placeholder="e.g. Maya smiling by the sunset..."
                     value={uploadCaption}
                     onChange={(e) => setUploadCaption(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-300"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
                   />
                 </div>
 

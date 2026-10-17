@@ -102,7 +102,7 @@ export default function SpinWheelPage() {
     <AppShell>
       <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-300">
         {/* Header */}
-        <div className="rounded-3xl bg-gradient-to-r from-[#F8C8D8] via-[#CBBEF4] to-[#B6DDF4] p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-hero">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-3xl shadow-xs">
               🎡
@@ -123,7 +123,7 @@ export default function SpinWheelPage() {
               }}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                 activeCategory === 'food'
-                  ? 'bg-purple-600 text-white shadow-xs'
+                  ? 'shadow-xs bg-primary text-on-primary'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -150,7 +150,7 @@ export default function SpinWheelPage() {
         {/* Wheel & Options Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Wheel Canvas Container (7 cols) */}
-          <div className="lg:col-span-7 rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
+          <div className="lg:col-span-7 rounded-3xl bg-white border border-line p-6 shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
             {/* Pointer Marker */}
             <div className="absolute top-4 z-20 flex flex-col items-center">
               <div className="w-6 h-6 bg-rose-600 rotate-45 rounded-sm shadow-md border-2 border-white" />
@@ -214,7 +214,7 @@ export default function SpinWheelPage() {
             <button
               onClick={handleSpin}
               disabled={isSpinning || currentOptions.length === 0}
-              className="mt-2 py-3 px-8 rounded-2xl bg-gradient-to-r from-rose-500 via-purple-600 to-indigo-600 text-white font-extrabold text-sm shadow-md hover:opacity-95 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-40"
+              className="mt-2 py-3 px-8 font-extrabold text-sm transition-all flex items-center gap-2 active:scale-95 disabled:opacity-40 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
             >
               <RotateCcw className={`w-4 h-4 ${isSpinning ? 'animate-spin' : ''}`} />
               <span>{isSpinning ? 'Spinning Destiny...' : 'Spin the Wheel! 🎲'}</span>
@@ -222,7 +222,7 @@ export default function SpinWheelPage() {
           </div>
 
           {/* Options Manager (5 cols) */}
-          <div className="lg:col-span-5 rounded-3xl bg-white border border-[#EFE4D6] p-6 shadow-sm space-y-4">
+          <div className="lg:col-span-5 rounded-3xl bg-white border border-line p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="font-extrabold text-sm text-slate-900">
@@ -283,7 +283,7 @@ export default function SpinWheelPage() {
               <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
                 <button
                   onClick={handleSaveToCalendar}
-                  className="flex-1 py-2.5 rounded-xl bg-purple-600 text-white text-xs font-bold shadow-xs hover:bg-purple-700 flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 text-xs font-bold flex items-center justify-center gap-1.5 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
                 >
                   <Calendar className="w-3.5 h-3.5" />
                   <span>Schedule for Tomorrow</span>
@@ -331,7 +331,7 @@ export default function SpinWheelPage() {
                   placeholder="e.g. Authentic Korean BBQ 🥩"
                   value={newOptionText}
                   onChange={(e) => setNewOptionText(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-300 focus:outline-hidden"
+                  className="w-full p-3 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
                 />
 
                 <div className="flex gap-2">
@@ -344,7 +344,7 @@ export default function SpinWheelPage() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold shadow-xs hover:bg-purple-700"
+                    className="flex-1 py-2 text-xs font-bold bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full "
                   >
                     Add to Wheel
                   </button>
