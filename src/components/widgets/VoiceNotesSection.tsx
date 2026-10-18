@@ -11,6 +11,9 @@ import {
   saveVoiceNote,
   type VoiceNoteRecord,
 } from '@/lib/idb';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { uploadAudioToCloudinary } from '@/lib/cloudinary/upload';
+import { createVoiceNoteRemote, deleteVoiceNoteRemote, fetchVoiceNotesRemote, type VoiceNoteRow } from '@/lib/supabase/xsync';
 
 const MAX_SECONDS = 60;
 const MIME_CANDIDATES = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/ogg'];
@@ -34,16 +37,34 @@ function formatSeconds(s: number) {
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
 }
 
+// A single display shape both the local (IndexedDB) and remote (Supabase)
+// records map onto, so the list/playback UI doesn't need to know which mode
+// it's in.
+interface DisplayNote {
+  id: string;
+  authorName: string;
+  createdAt: string;
+  durationSec: number;
+  playUrl: string;
+  /** Present only for local-mode records, so they can be revoked on unmount. */
+  objectUrl?: string;
+}
+
 /**
- * Voice notes for a memory: record up to 60s with MediaRecorder, stored on
- * this device only (IndexedDB), keyed by memory id.
+ * Voice notes for a memory: record up to 60s with MediaRecorder.
+ * In a live cloud couple space, clips upload to Cloudinary and the list is
+ * shared with your partner's device. In demo mode (no Supabase), clips stay
+ * on this device only, in IndexedDB.
  */
 export function VoiceNotesSection({ memoryId }: { memoryId: string }) {
-  const { data, activeProfile, showToast } = useDiary();
+  const { data, activeProfile, partnerProfile, isLiveUser, currentUserId, showToast } = useDiary();
   const coupleId = data.couple.id;
+  const supabase = isLiveUser ? getSupabaseBrowserClient() : null;
+  const isRemote = Boolean(supabase);
 
   const [supported, setSupported] = useState<boolean | null>(null);
-  const [records, setRecords] = useState<VoiceNoteRecord[]>([]);
+  const [localRecords, setLocalRecords] = useState<VoiceNoteRecord[]>([]);
+  const [remoteRecords, setRemoteRecords] = useState<VoiceNoteRow[]>([]);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [phase, setPhase] = useState<'idle' | 'starting' | 'recording' | 'saving'>('idle');
   const [elapsed, setElapsed] = useState(0);
@@ -59,32 +80,60 @@ export function VoiceNotesSection({ memoryId }: { memoryId: string }) {
       typeof window !== 'undefined' &&
         typeof MediaRecorder !== 'undefined' &&
         Boolean(navigator.mediaDevices?.getUserMedia) &&
-        isIndexedDbSupported()
+        (isRemote || isIndexedDbSupported())
     );
-  }, []);
+  }, [isRemote]);
 
   const reload = useCallback(async () => {
+    if (isRemote && supabase) {
+      try {
+        setRemoteRecords(await fetchVoiceNotesRemote(supabase, memoryId));
+      } catch (err) {
+        console.error('[OurDiary] Failed to load voice notes from database:', err);
+        setError('Voice notes couldn’t be loaded from the server.');
+      }
+      return;
+    }
     if (!isIndexedDbSupported()) return;
     try {
-      setRecords(await listVoiceNotes(memoryId, coupleId));
+      setLocalRecords(await listVoiceNotes(memoryId, coupleId));
     } catch {
       setError('Voice notes couldn’t be loaded on this device.');
     }
-  }, [memoryId, coupleId]);
+  }, [memoryId, coupleId, isRemote, supabase]);
 
   useEffect(() => {
     void reload();
   }, [reload]);
 
-  // Object URLs for playback; revoked whenever the list changes or on unmount.
+  // Build the unified display list + object URLs for local-mode playback
+  // (remote clips play straight from their Cloudinary URL, no object URL needed).
+  const notes: DisplayNote[] = isRemote
+    ? remoteRecords.map((r) => ({
+        id: r.id,
+        authorName: r.authorId === currentUserId ? activeProfile.name : partnerProfile.name,
+        createdAt: r.createdAt,
+        durationSec: r.durationSec,
+        playUrl: r.url,
+      }))
+    : localRecords.map((r) => ({
+        id: r.id,
+        authorName: r.authorName,
+        createdAt: r.createdAt,
+        durationSec: r.durationSec,
+        playUrl: urls[r.id] || '',
+        objectUrl: urls[r.id],
+      }));
+
   useEffect(() => {
+    if (isRemote) return;
     const map: Record<string, string> = {};
-    records.forEach((r) => {
+    localRecords.forEach((r) => {
       map[r.id] = URL.createObjectURL(r.blob);
     });
     setUrls(map);
     return () => Object.values(map).forEach((u) => URL.revokeObjectURL(u));
-  }, [records]);
+  }, [localRecords, isRemote]);
 
   const clearTimers = () => {
     if (timerRef.current !== null) window.clearInterval(timerRef.current);
@@ -161,21 +210,35 @@ export function VoiceNotesSection({ memoryId }: { memoryId: string }) {
       }
       setPhase('saving');
       try {
-        await saveVoiceNote({
-          id: newId('voice'),
-          memoryId,
-          coupleId,
-          authorId: data.activeProfileId,
-          authorName: activeProfile.name,
-          createdAt: new Date().toISOString(),
-          durationSec,
-          mimeType: type,
-          blob,
-        });
+        if (isRemote && supabase) {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (!user) throw new Error('Not signed in');
+          const { secureUrl, publicId } = await uploadAudioToCloudinary(blob, { filename: `voice-${Date.now()}.webm` });
+          await createVoiceNoteRemote(supabase, memoryId, user.id, {
+            url: secureUrl,
+            cloudinaryPublicId: publicId,
+            durationSec,
+            mimeType: type,
+          });
+        } else {
+          await saveVoiceNote({
+            id: newId('voice'),
+            memoryId,
+            coupleId,
+            authorId: data.activeProfileId,
+            authorName: activeProfile.name,
+            createdAt: new Date().toISOString(),
+            durationSec,
+            mimeType: type,
+            blob,
+          });
+        }
         await reload();
         showToast('Voice note saved', 'success');
-      } catch {
-        setError('We couldn’t save that voice note on this device (storage may be full or blocked).');
+      } catch (err: any) {
+        setError(err?.message || 'We couldn’t save that voice note. Please try again.');
       } finally {
         setPhase('idle');
         setElapsed(0);
@@ -193,8 +256,13 @@ export function VoiceNotesSection({ memoryId }: { memoryId: string }) {
 
   const remove = async (id: string) => {
     try {
-      await deleteVoiceNote(id);
-      setRecords((prev) => prev.filter((r) => r.id !== id));
+      if (isRemote && supabase) {
+        await deleteVoiceNoteRemote(supabase, id);
+        setRemoteRecords((prev) => prev.filter((r) => r.id !== id));
+      } else {
+        await deleteVoiceNote(id);
+        setLocalRecords((prev) => prev.filter((r) => r.id !== id));
+      }
     } catch {
       setError('That voice note couldn’t be deleted.');
     }
@@ -212,7 +280,8 @@ export function VoiceNotesSection({ memoryId }: { memoryId: string }) {
             Voice notes
           </h3>
           <p className="text-xs text-ink-muted mt-0.5">
-            Say it out loud — up to a minute. Saved on this device only.
+            Say it out loud — up to a minute.{' '}
+            {isRemote ? 'Shared with your partner.' : 'Saved on this device only.'}
           </p>
         </div>
         {supported && (
@@ -257,11 +326,11 @@ export function VoiceNotesSection({ memoryId }: { memoryId: string }) {
         </p>
       )}
 
-      {records.length === 0 ? (
+      {notes.length === 0 ? (
         supported !== false && <p className="text-sm text-ink-muted">No voice notes yet. Tell this story in your own voice.</p>
       ) : (
         <ul className="space-y-3">
-          {records.map((r) => (
+          {notes.map((r) => (
             <li key={r.id} className="rounded-2xl border border-line bg-canvas p-3 sm:p-4 space-y-2">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs text-ink-muted">
@@ -278,8 +347,8 @@ export function VoiceNotesSection({ memoryId }: { memoryId: string }) {
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
-              {urls[r.id] && (
-                <audio controls preload="metadata" src={urls[r.id]} className="w-full">
+              {r.playUrl && (
+                <audio controls preload="metadata" src={r.playUrl} className="w-full">
                   Your browser can't play this recording.
                 </audio>
               )}

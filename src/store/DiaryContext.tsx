@@ -27,6 +27,7 @@ import {
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { fetchMemoriesRemote, createMemoryRemote, updateMemoryRemote, deleteMemoryRemote } from '@/lib/supabase/memories';
 import { fetchCoupleProfilesRemote, updateMyAvatarRemote, updateCouplePhotoRemote } from '@/lib/supabase/profiles';
+import { setSyncContext, setSyncErrorHandler } from '@/lib/local-store';
 import {
   fetchEventsRemote, createEventRemote, updateEventRemote, deleteEventRemote,
   fetchLettersRemote, createLetterRemote, updateLetterRemote, deleteLetterRemote,
@@ -61,6 +62,7 @@ interface DiaryContextValue {
   addReaction: (memoryId: string, emoji: string, label: string) => void;
   removeReaction: (memoryId: string, reactionId: string) => void;
   isLiveUser: boolean;
+  currentUserId: string | null;
   setIsLiveUser: (live: boolean) => void;
   initCleanCoupleSpace: (couple: Couple) => void;
   regenerateCoupleCode: () => Promise<string>;
@@ -244,6 +246,13 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 3800);
   };
+
+  // Let the local-store sync layer (which has no React context of its own)
+  // surface background sync failures as a real toast instead of a silent log.
+  useEffect(() => {
+    setSyncErrorHandler(showToast);
+    return () => setSyncErrorHandler(null);
+  }, []);
 
   const dismissToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -498,6 +507,9 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       currentUserId ||
       (typeof window !== 'undefined' ? localStorage.getItem('ourdiary_current_user_id') : null);
     setIsLiveUser(true);
+    if (userId) {
+      setSyncContext({ coupleId: couple.id, userId, mySlot: 'user_1' });
+    }
     if (typeof window !== 'undefined') {
       localStorage.setItem('ourdiary_is_live_user', 'true');
       if (userId) {
@@ -517,6 +529,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     setIsLiveUser(true);
     setCurrentUserId(userId);
     const activeProfileId: ProfileId = role === 'partner' ? 'user_2' : 'user_1';
+    setSyncContext({ coupleId: remoteCouple.id, userId, mySlot: activeProfileId });
 
     const defaultAvatar1 = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80';
     const defaultAvatar2 = 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80';
@@ -699,6 +712,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     }
     setIsLiveUser(false);
     setCurrentUserId(null);
+    setSyncContext(null);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('ourdiary_is_live_user');
       localStorage.removeItem('ourdiary_current_user_id');
@@ -707,7 +721,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       // shared/public computer, leaving it cached in localStorage means
       // anyone with dev tools can read it after you've "signed out."
       Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith('ourdiary_space_')) {
+        if (key.startsWith('ourdiary_space_') || key.startsWith('ourdiary-x:')) {
           localStorage.removeItem(key);
         }
       });
@@ -1470,6 +1484,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         exportJSON,
         importJSON,
         isLiveUser,
+        currentUserId,
         setIsLiveUser,
         initCleanCoupleSpace,
         regenerateCoupleCode,
