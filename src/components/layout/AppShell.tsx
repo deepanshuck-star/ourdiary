@@ -6,9 +6,16 @@ import { AppSidebar } from './AppSidebar';
 import { MobileNav } from './MobileNav';
 import { ToastContainer } from '../ui/ToastContainer';
 import { useDiary } from '@/store/DiaryContext';
+import { OnThisDayNotifier } from '../widgets/OnThisDayNotifier';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { data } = useDiary();
+  const { data, isHydrated } = useDiary();
+
+  // The diary and "today" only exist in the browser: the server render uses seed data and a
+  // fixed demo date, so rendering the shell before hydration caused text mismatches on every page.
+  if (!isHydrated) {
+    return <div className="min-h-screen bg-canvas" aria-busy="true" />;
+  }
 
   return (
     // data-theme drives the decorative hero gradient chosen in Settings.
@@ -25,6 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
       <MobileNav />
       <ToastContainer />
+      <OnThisDayNotifier />
     </div>
   );
 }

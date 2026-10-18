@@ -21,6 +21,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
+import { exploreItems } from './exploreNav';
 
 const mainMobileItems = [
   { name: 'Home', href: '/dashboard', icon: LayoutDashboard },
@@ -42,6 +43,7 @@ export function MobileNav() {
     { name: 'Time Letters', href: '/letters', icon: MailCheck },
     { name: 'Bucket List', href: '/bucket-list', icon: CheckSquare },
     { name: 'Love Stats', href: '/our-stats', icon: BarChart3 },
+    ...exploreItems,
     { name: 'Settings', href: '/settings', icon: SlidersHorizontal },
   ];
 

@@ -10,6 +10,12 @@ import {
   X,
 } from 'lucide-react';
 import { formatDate } from '@/lib/date-utils';
+import { useLocalState } from '@/lib/local-store';
+import { addUniqueId } from '@/lib/features/fx-math';
+import { TiltCard } from '@/components/fx/TiltCard';
+import { ScratchLayer } from '@/components/fx/ScratchLayer';
+
+const NO_REVEALED: string[] = [];
 
 export default function CouponsPage() {
   const { data, partnerProfile, addLoveCoupon, redeemLoveCoupon } = useDiary();
@@ -21,6 +27,13 @@ export default function CouponsPage() {
   const [couponCat, setCouponCat] = useState('Pampering');
 
   const coupons = data.loveCoupons || [];
+
+  // Coupons this profile has already scratched open (device-local).
+  const [revealedIds, setRevealedIds] = useLocalState<string[]>(
+    `coupons-revealed:${data.couple.id}:${data.activeProfileId}`,
+    NO_REVEALED
+  );
+  const markRevealed = (id: string) => setRevealedIds((prev) => addUniqueId(prev, id));
 
   const filteredCoupons = coupons.filter((c) => {
     if (filter === 'active') return !c.redeemed;
@@ -107,11 +120,15 @@ export default function CouponsPage() {
           {filteredCoupons.map((coupon) => {
             const colors = CATEGORY_COLORS[coupon.category] || CATEGORY_COLORS.Love;
             const isRedeemed = coupon.redeemed;
+            const isCovered =
+              !isRedeemed &&
+              coupon.toId === data.activeProfileId &&
+              !(Array.isArray(revealedIds) && revealedIds.includes(coupon.id));
 
             return (
+              <TiltCard key={coupon.id} className="rounded-3xl" disabled={isCovered} gyro>
               <div
-                key={coupon.id}
-                className={`rounded-3xl p-6 border transition-all flex flex-col justify-between relative overflow-hidden group ${
+                className={`h-full rounded-3xl p-6 border transition-all flex flex-col justify-between relative overflow-hidden group ${
                   isRedeemed
                     ? 'bg-slate-50/70 border-slate-200 opacity-75'
                     : 'bg-white border-line shadow-sm hover:shadow-md'
@@ -121,6 +138,7 @@ export default function CouponsPage() {
                 <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-canvas border-r border-line" />
                 <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-canvas border-l border-line" />
 
+                <div inert={isCovered} className="contents">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span
@@ -170,7 +188,13 @@ export default function CouponsPage() {
                     <span className="text-xs text-slate-400 font-semibold italic">Fulfilled with love</span>
                   )}
                 </div>
+                </div>
+
+                {isCovered && (
+                  <ScratchLayer label={coupon.category} onReveal={() => markRevealed(coupon.id)} />
+                )}
               </div>
+              </TiltCard>
             );
           })}
         </div>

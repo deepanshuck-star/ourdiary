@@ -2,9 +2,13 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
 import { formatDate } from '@/lib/date-utils';
+import { useLocalState } from '@/lib/local-store';
+import { usePrefersReducedMotion, useWebGLSupport } from '@/components/three/capabilities';
+import { ThreeFallback, ThreeLoading } from '@/components/three/ThreeFallback';
 import {
   Image as GalleryIcon,
   UploadCloud,
@@ -12,11 +16,27 @@ import {
   ArrowRight,
   ZoomIn,
   Camera,
+  LayoutGrid,
+  Orbit,
 } from 'lucide-react';
+
+const PhotoRing = dynamic(() => import('@/components/three/PhotoRing'), {
+  ssr: false,
+  loading: () => <ThreeLoading text="Arranging your photos..." />,
+});
+
+// Keeps the ring light enough for phones; the grid still shows everything.
+const RING_MAX_PHOTOS = 30;
+
+type GalleryView = 'grid' | 'ring';
 
 export default function GalleryPage() {
   const { data, addPhotoToMemory } = useDiary();
   const [selectedMemoryFilter, setSelectedMemoryFilter] = useState<string>('all');
+  const [view, setView] = useLocalState<GalleryView>(`gallery-view:${data.couple.id}`, 'grid');
+  const [ringAnyway, setRingAnyway] = useState(false);
+  const reducedMotion = usePrefersReducedMotion();
+  const webgl = useWebGLSupport();
   const [lightboxPhoto, setLightboxPhoto] = useState<{
     url: string;
     caption?: string;
@@ -63,6 +83,8 @@ export default function GalleryPage() {
     if (selectedMemoryFilter === 'all') return allPhotos;
     return allPhotos.filter((p) => p.memoryId === selectedMemoryFilter);
   }, [allPhotos, selectedMemoryFilter]);
+
+  const ringPhotos = useMemo(() => filteredPhotos.slice(0, RING_MAX_PHOTOS), [filteredPhotos]);
 
   const handleUploadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,6 +145,40 @@ export default function GalleryPage() {
           </button>
         </div>
 
+        {/* Grid | 3D ring view toggle */}
+        <div className="flex items-center justify-between gap-3">
+          <div
+            role="radiogroup"
+            aria-label="Gallery view"
+            className="inline-flex p-1 rounded-full bg-surface border border-line shadow-xs"
+          >
+            {(
+              [
+                { id: 'grid', label: 'Grid', Icon: LayoutGrid },
+                { id: 'ring', label: '3D ring', Icon: Orbit },
+              ] as const
+            ).map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                role="radio"
+                aria-checked={view === id}
+                onClick={() => setView(id)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                  view === id ? 'bg-primary text-on-primary shadow-cta' : 'text-ink-muted hover:text-ink'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {label}
+              </button>
+            ))}
+          </div>
+          {view === 'ring' && filteredPhotos.length > RING_MAX_PHOTOS && (
+            <p className="text-[11px] text-ink-muted">
+              Showing the first {RING_MAX_PHOTOS} of {filteredPhotos.length} photos
+            </p>
+          )}
+        </div>
+
         {/* Filter by Memory Selector */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0">
@@ -157,8 +213,35 @@ export default function GalleryPage() {
           })}
         </div>
 
-        {/* Photo Grid */}
-        {filteredPhotos.length > 0 ? (
+        {/* 3D ring view */}
+        {view === 'ring' && filteredPhotos.length > 0 ? (
+          webgl === null ? (
+            <ThreeLoading text="Arranging your photos..." />
+          ) : !webgl ? (
+            <ThreeFallback reason="no-webgl">
+              <p className="text-xs text-ink-muted">Switch back to Grid to browse every photo.</p>
+            </ThreeFallback>
+          ) : reducedMotion && !ringAnyway ? (
+            <ThreeFallback reason="reduced-motion" onShowAnyway={() => setRingAnyway(true)} />
+          ) : (
+            <PhotoRing
+              photos={ringPhotos}
+              still={reducedMotion}
+              onOpen={(i) => {
+                const photo = ringPhotos[i];
+                if (!photo) return;
+                setLightboxPhoto({
+                  url: photo.url,
+                  caption: photo.caption,
+                  memoryTitle: photo.memoryTitle,
+                  memoryId: photo.memoryId,
+                  date: photo.memoryDate,
+                });
+              }}
+            />
+          )
+        ) : /* Photo Grid */
+        filteredPhotos.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredPhotos.map((photo) => (
               <div

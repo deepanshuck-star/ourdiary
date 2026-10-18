@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
 import { formatDate } from '@/lib/date-utils';
+import { VoiceNotesSection } from '@/components/widgets/VoiceNotesSection';
 import {
   Calendar,
   MapPin,
@@ -796,6 +797,9 @@ function MemoryDetailContent() {
             )}
           </div>
         </div>
+
+        {/* Voice Notes (device-local, IndexedDB) */}
+        <VoiceNotesSection memoryId={memory.id} />
 
         {/* Related Memories */}
         {relatedMemories.length > 0 && (

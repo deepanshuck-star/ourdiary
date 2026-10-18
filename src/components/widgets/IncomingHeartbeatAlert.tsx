@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import {Heart, X, Check} from 'lucide-react';
+import {X, Check} from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
+import { LoveHeart } from '@/components/fx/LoveHeart';
 import {} from '@/lib/date-utils';
 
 export function IncomingHeartbeatAlert() {
@@ -32,13 +33,15 @@ export function IncomingHeartbeatAlert() {
         <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
           <div className="absolute inset-0 rounded-full bg-rose-400/20 animate-ping" />
           <div className="absolute inset-2 rounded-full bg-rose-400/30 animate-pulse" />
-          <div className="relative w-16 h-16 rounded-full bg-gradient-to-tr from-rose-500 via-pink-500 to-purple-600 flex items-center justify-center shadow-lg shadow-rose-300">
-            {isWarmHug ? (
+          {isWarmHug ? (
+            <div className="relative w-16 h-16 rounded-full bg-gradient-to-tr from-rose-500 via-pink-500 to-purple-600 flex items-center justify-center shadow-lg shadow-rose-300">
               <span className="text-3xl animate-bounce">🤗</span>
-            ) : (
-              <Heart className="w-8 h-8 text-white fill-white animate-pulse" />
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="relative w-20 h-20 rounded-full bg-surface border border-line flex items-center justify-center shadow-card">
+              <LoveHeart className="w-full h-full" />
+            </div>
+          )}
         </div>
 
         {/* Header Content */}

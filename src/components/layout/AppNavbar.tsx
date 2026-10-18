@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 export function AppNavbar() {
-  const { data, activeProfile, partnerProfile, switchProfile, logout, isLiveUser } = useDiary();
+  const { data, activeProfile, partnerProfile, switchProfile, logout, isLiveUser, isHydrated } = useDiary();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const daysTogether = calculateDaysTogether(data.couple.startDate);
@@ -63,7 +63,7 @@ export function AppNavbar() {
             className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-100 text-purple-800 text-xs font-semibold hover:bg-purple-100 transition-colors"
           >
             <Heart className="w-3.5 h-3.5 text-primary fill-primary" />
-            <span>Day {daysTogether} together</span>
+            <span>{isHydrated ? `Day ${daysTogether} together` : "Together"}</span>
           </Link>
 
           {/* Mode Pill */}

@@ -6,6 +6,7 @@ import { useDiary } from '@/store/DiaryContext';
 import { formatDate, getDaysUntil, isPastOrToday } from '@/lib/date-utils';
 import { Letter } from '@/types';
 import confetti from 'canvas-confetti';
+import { EnvelopeGate } from '@/components/fx/EnvelopeOpening';
 import {
   MailCheck,
   Plus,
@@ -273,6 +274,12 @@ export default function LettersPage() {
 
         {/* Read Letter Modal */}
         {readingLetter && (
+          <EnvelopeGate
+            key={readingLetter.id}
+            color={readingLetter.envelopeColor || '#F8C8D8'}
+            title={readingLetter.title}
+            onDismiss={() => setReadingLetter(null)}
+          >
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
             onClick={() => setReadingLetter(null)}
@@ -319,6 +326,7 @@ export default function LettersPage() {
               </div>
             </div>
           </div>
+          </EnvelopeGate>
         )}
 
         {/* Compose Letter Modal */}

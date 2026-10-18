@@ -40,6 +40,8 @@ import { HeartbeatLovePingModal } from '@/components/widgets/HeartbeatLovePingMo
 import { OnThisDayCard } from '@/components/widgets/OnThisDayCard';
 import { DailyQuestionCard } from '@/components/widgets/DailyQuestionCard';
 import { CassettePlayerWidget } from '@/components/widgets/CassettePlayerWidget';
+import { CoupleStreakChip } from '@/components/widgets/CoupleStreakChip';
+import { MoodHistoryRecorder } from '@/components/widgets/MoodHistoryRecorder';
 
 type Ritual = {
   key: string;
@@ -214,6 +216,7 @@ export default function DashboardPage() {
   return (
     <AppShell>
       <IncomingHeartbeatAlert />
+      <MoodHistoryRecorder />
       <div className="space-y-10 animate-in fade-in duration-300">
         {/* Couple header — pillow-shaped section break */}
         <header className="relative rounded-pillow overflow-hidden bg-hero px-6 py-8 sm:px-10 sm:py-10">
@@ -283,6 +286,7 @@ export default function DashboardPage() {
                 {isHydrated ? `${ritualsDone} of ${rituals.length} done` : '—'}
               </span>
             </div>
+            <CoupleStreakChip />
             {isHydrated ? (
               <ul className="divide-y divide-line">
                 {rituals.map((r) => (

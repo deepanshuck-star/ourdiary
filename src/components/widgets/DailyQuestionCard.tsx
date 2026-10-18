@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {Sparkles, Lock, Unlock, ArrowRight} from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
+import { useLocalState } from '@/lib/local-store';
+import { FlipCard } from '@/components/fx/FlipCard';
 
 const QUESTIONS_POOL = [
   'What is one small thing I did this week that made your heart melt?',
@@ -92,7 +94,8 @@ export function DailyQuestionCard() {
 
       {/* Answers Section */}
       {bothAnswered ? (
-        <div className="space-y-3 animate-in fade-in">
+        <AnswersReveal questionId={questionId} partnerName={partnerProfile.name}>
+        <div className="space-y-3">
           <div className="inline-flex items-center gap-2 text-xs font-semibold text-purple-800 bg-purple-50 px-3 py-1.5 rounded-full">
             <Unlock className="w-3.5 h-3.5 text-primary" />
             <span>You both answered</span>
@@ -120,6 +123,7 @@ export function DailyQuestionCard() {
             </div>
           </div>
         </div>
+        </AnswersReveal>
       ) : myAnswer ? (
         <div className="p-5 rounded-2xl border border-dashed border-purple-200 text-center space-y-2 animate-in fade-in">
           <div className="w-10 h-10 rounded-full bg-purple-50 text-primary flex items-center justify-center mx-auto">
@@ -154,5 +158,63 @@ export function DailyQuestionCard() {
         </form>
       )}
     </div>
+  );
+}
+
+/**
+ * Shows a "sealed" face first and flips over to the answers when opened. Which question was
+ * last opened is remembered on this device, so the reveal only plays once per day.
+ */
+function AnswersReveal({
+  questionId,
+  partnerName,
+  children,
+}: {
+  questionId: string;
+  partnerName: string;
+  children: React.ReactNode;
+}) {
+  const { data } = useDiary();
+  const [openedQuestion, setOpenedQuestion] = useLocalState<string>(
+    `daily-flip:${data.couple.id}:${data.activeProfileId}`,
+    ''
+  );
+  const frontRef = useRef<HTMLDivElement>(null);
+  const flipped = openedQuestion === questionId;
+
+  const open = () => {
+    setOpenedQuestion(questionId);
+    // Hand focus to the revealed side once it is no longer inert.
+    window.setTimeout(() => frontRef.current?.focus({ preventScroll: true }), 30);
+  };
+
+  return (
+    <FlipCard
+      flipped={flipped}
+      back={
+        <div className="h-full p-5 rounded-2xl border border-line bg-hero text-center flex flex-col items-center justify-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-surface text-primary flex items-center justify-center shadow-card">
+            <Lock className="w-4 h-4" aria-hidden="true" />
+          </div>
+          <div className="space-y-1">
+            <h4 className="font-display text-base font-semibold text-ink">Both answers are sealed inside</h4>
+            <p className="text-xs text-ink-muted">You and {partnerName} have both replied. Ready to see?</p>
+          </div>
+          <button
+            type="button"
+            onClick={open}
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary hover:bg-primary-hover text-on-primary shadow-cta text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          >
+            <Unlock className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>Turn it over</span>
+          </button>
+        </div>
+      }
+      front={
+        <div ref={frontRef} tabIndex={-1} className="outline-none">
+          {children}
+        </div>
+      }
+    />
   );
 }

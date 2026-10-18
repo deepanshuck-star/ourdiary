@@ -20,6 +20,7 @@ import {
   Ticket,
   LogOut,
 } from 'lucide-react';
+import { exploreItems } from './exploreNav';
 
 export const navItems = [
   {
@@ -151,15 +152,20 @@ export function AppSidebar() {
 
       {/* Navigation List */}
       <nav className="flex-1 space-y-1 shrink-0" aria-label="Main">
-        {navItems.map((item) => {
+        {[...navItems, ...exploreItems.map((item) => ({ ...item, badge: null as string | null }))].map((item, index) => {
           const isActive =
             pathname === item.href ||
             (item.href !== '/dashboard' && pathname.startsWith(item.href));
           const Icon = item.icon;
 
           return (
+            <React.Fragment key={item.href}>
+            {index === navItems.length && (
+              <p className="px-3 pt-5 pb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
+                Explore
+              </p>
+            )}
             <Link
-              key={item.href}
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               className={`flex items-center justify-between px-3 py-2 rounded-full font-medium text-sm transition-colors duration-200 group ${
@@ -184,6 +190,7 @@ export function AppSidebar() {
                 </span>
               )}
             </Link>
+            </React.Fragment>
           );
         })}
       </nav>

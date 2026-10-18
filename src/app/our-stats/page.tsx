@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { MoodHistorySection } from '@/components/widgets/MoodHistorySection';
 import {
   calculateDaysTogether,
   getMilestones,
@@ -18,6 +19,7 @@ import {
   Award,
   TrendingUp,
 } from 'lucide-react';
+import { TiltCard } from '@/components/fx/TiltCard';
 
 export default function OurStatsPage() {
   const { data } = useDiary();
@@ -228,9 +230,9 @@ export default function OurStatsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {milestones.map((m) => (
+              <TiltCard key={m.days} className="rounded-2xl" maxTilt={6} gyro>
               <div
-                key={m.days}
-                className={`p-4 rounded-2xl border transition-all ${
+                className={`h-full p-4 rounded-2xl border transition-all ${
                   m.reached
                     ? 'bg-emerald-50/80 border-emerald-200'
                     : 'bg-slate-50 border-slate-200'
@@ -250,9 +252,13 @@ export default function OurStatsPage() {
                 </div>
                 <p className="text-xs text-slate-500">Target: {formatDate(m.targetDate)}</p>
               </div>
+              </TiltCard>
             ))}
           </div>
         </div>
+
+        {/* Mood history for both partners */}
+        <MoodHistorySection />
       </div>
     </AppShell>
   );
