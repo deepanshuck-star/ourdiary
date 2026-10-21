@@ -6,10 +6,7 @@ import {
   extensionOf,
   formatDuration,
   isAudioFile,
-  nextSongIndex,
   parseSongMetaFromFilename,
-  previousSongIndex,
-  resolveCurrentSong,
   validateSongFile,
   MAX_SONG_BYTES,
 } from '../src/lib/features/music.ts';
@@ -89,48 +86,52 @@ test('formatDuration pads seconds and copes with unknown values', () => {
   assert.equal(formatDuration(-5), '—');
 });
 
-test('resolveCurrentSong prefers the pinned song, else the newest', () => {
-  const songs = [
-    { id: 'c', title: 'Newest' },
-    { id: 'b', title: 'Middle' },
-    { id: 'a', title: 'Oldest' },
-  ];
-  assert.equal(resolveCurrentSong(songs, 'b').id, 'b');
-  assert.equal(resolveCurrentSong(songs, null).id, 'c');
-  // Pinned song deleted on the other device: fall back rather than show nothing.
-  assert.equal(resolveCurrentSong(songs, 'gone').id, 'c');
-  assert.equal(resolveCurrentSong([], 'b'), null);
-});
-
-test('nextSongIndex / previousSongIndex wrap around the playlist', () => {
-  assert.equal(nextSongIndex(0, 3), 1);
-  assert.equal(nextSongIndex(2, 3), 0);
-  assert.equal(nextSongIndex(-1, 3), 0);
-  assert.equal(nextSongIndex(0, 0), -1);
-
-  assert.equal(previousSongIndex(2, 3), 1);
-  assert.equal(previousSongIndex(0, 3), 2);
-  assert.equal(previousSongIndex(-1, 3), 2);
-  assert.equal(previousSongIndex(0, 0), -1);
-});
-
 test('Migration 15: couple_songs has RLS, and only the uploader may delete', () => {
   const sql = read('supabase', 'migrations', '20261014000015_couple_songs_and_chat.sql');
   assert.ok(sql.includes('CREATE TABLE IF NOT EXISTS public.couple_songs'));
   assert.ok(sql.includes('ALTER TABLE public.couple_songs ENABLE ROW LEVEL SECURITY;'));
   assert.ok(sql.includes('uploaded_by = auth.uid()'));
   assert.ok(sql.includes('public.is_couple_member(couple_id)'));
-  // Pinning a song must not cascade a delete into the couple row.
-  assert.ok(sql.includes('current_song_id UUID REFERENCES public.couple_songs(id) ON DELETE SET NULL'));
 });
 
-test('music.ts data layer targets couple_songs and the pinned-song column', () => {
+test('music.ts data layer fetches a single song and no longer pins one', () => {
   const src = read('src', 'lib', 'supabase', 'music.ts');
   assert.ok(src.includes("from('couple_songs')"));
-  assert.ok(src.includes('export async function fetchSongsRemote'));
+  assert.ok(src.includes('export async function fetchSongRemote'));
   assert.ok(src.includes('export async function createSongRemote'));
   assert.ok(src.includes('export async function deleteSongRemote'));
-  assert.ok(src.includes('current_song_id'));
+  assert.equal(src.includes('current_song_id'), false);
+});
+
+test('replacing the song deletes the file it replaced', () => {
+  const src = read('src', 'hooks', 'useCoupleSongs.ts');
+  assert.ok(src.includes('destroyCloudinaryAsset'));
+  // The old row goes before the insert (unique index), and the old FILE only
+  // after the new row is safely stored.
+  const deleteRow = src.indexOf('deleteSongRemote(supabase, previous.id)');
+  const createRow = src.indexOf('createSongRemote(');
+  const destroyFile = src.indexOf("destroyCloudinaryAsset(previous.url, 'video')");
+  assert.ok(deleteRow > -1 && createRow > -1 && destroyFile > -1);
+  assert.ok(deleteRow < createRow, 'old row must be removed before inserting the new one');
+  assert.ok(createRow < destroyFile, 'old file must only be destroyed after the new row is saved');
+});
+
+test('replacing a profile or couple photo deletes the file it replaced', () => {
+  const src = read('src', 'store', 'DiaryContext.tsx');
+  assert.ok(src.includes('destroyCloudinaryAsset'));
+  // Both must be inside .then() — destroying on a failed save would delete
+  // the photo still in use.
+  assert.ok(src.includes("destroyCloudinaryAsset(previousPhotoUrl, 'image')"));
+  assert.ok(src.includes("destroyCloudinaryAsset(previousAvatar, 'image')"));
+});
+
+test('the destroy endpoint authorizes by the couple folder, not a bare id', () => {
+  const src = read('src', 'app', 'api', 'media', 'destroy', 'route.ts');
+  assert.ok(src.includes('isOwnedByCouple'));
+  assert.ok(src.includes('auth.getUser()'));
+  // Without a couple to scope to there is nothing to authorize against.
+  assert.ok(src.includes('isSupabaseConfigured'));
+  assert.equal(src.includes('CLOUDINARY_API_SECRET'), false);
 });
 
 test('song upload goes through the signed Cloudinary flow, never a raw secret', () => {

@@ -2,7 +2,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 // ============================================================================
 // Couple songs — audio files on Cloudinary, metadata in Supabase.
-// Backed by migration 15 (couple_songs + couples.current_song_id).
+// Backed by couple_songs (migration 15), capped at one row per couple by
+// migration 16 — replacing the song deletes the old row and its file.
 // ============================================================================
 
 export interface CoupleSongRow {
@@ -31,15 +32,25 @@ function rowToSong(r: any): CoupleSongRow {
   };
 }
 
-/** Newest first, so the most recent upload is what plays when nothing is pinned. */
-export async function fetchSongsRemote(supabase: SupabaseClient, coupleId: string): Promise<CoupleSongRow[]> {
+/**
+ * The couple's one song, or null before they've set one. Migration 16 keeps
+ * this to a single row per couple with a unique index; the ordering and
+ * limit are belt-and-braces so a pre-migration database with leftovers
+ * still returns the newest rather than an arbitrary row.
+ */
+export async function fetchSongRemote(
+  supabase: SupabaseClient,
+  coupleId: string
+): Promise<CoupleSongRow | null> {
   const { data, error } = await supabase
     .from('couple_songs')
     .select('*')
     .eq('couple_id', coupleId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
   if (error) throw new Error(error.message);
-  return (data || []).map(rowToSong);
+  return data ? rowToSong(data) : null;
 }
 
 export async function createSongRemote(
@@ -89,30 +100,4 @@ export async function updateSongRemote(
 export async function deleteSongRemote(supabase: SupabaseClient, id: string): Promise<void> {
   const { error } = await supabase.from('couple_songs').delete().eq('id', id);
   if (error) throw new Error(error.message);
-}
-
-/**
- * Pins (or unpins, with null) the couple's song. The FK is ON DELETE SET
- * NULL, so deleting the pinned song unpins it instead of failing here.
- */
-export async function setCurrentSongRemote(
-  supabase: SupabaseClient,
-  coupleId: string,
-  songId: string | null
-): Promise<void> {
-  const { error } = await supabase.from('couples').update({ current_song_id: songId }).eq('id', coupleId);
-  if (error) throw new Error(error.message);
-}
-
-export async function fetchCurrentSongIdRemote(
-  supabase: SupabaseClient,
-  coupleId: string
-): Promise<string | null> {
-  const { data, error } = await supabase
-    .from('couples')
-    .select('current_song_id')
-    .eq('id', coupleId)
-    .single();
-  if (error) throw new Error(error.message);
-  return (data as any)?.current_song_id ?? null;
 }

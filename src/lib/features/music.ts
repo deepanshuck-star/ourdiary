@@ -86,34 +86,3 @@ export function formatDuration(seconds: number | null | undefined): string {
   const secs = whole % 60;
   return `${mins}:${String(secs).padStart(2, '0')}`;
 }
-
-export interface SongLike {
-  id: string;
-  title: string;
-  artist?: string | null;
-}
-
-/** The song to show in the player: the pinned one, else the most recent upload. */
-export function resolveCurrentSong<T extends SongLike>(songs: T[], currentSongId: string | null | undefined): T | null {
-  if (songs.length === 0) return null;
-  if (currentSongId) {
-    const pinned = songs.find((s) => s.id === currentSongId);
-    if (pinned) return pinned;
-    // Pinned song was deleted on the other device — fall through to the
-    // newest rather than showing an empty player.
-  }
-  return songs[0];
-}
-
-/** Index of the next song to play, wrapping at the end of the list. */
-export function nextSongIndex(currentIndex: number, total: number): number {
-  if (total <= 0) return -1;
-  if (currentIndex < 0) return 0;
-  return (currentIndex + 1) % total;
-}
-
-export function previousSongIndex(currentIndex: number, total: number): number {
-  if (total <= 0) return -1;
-  if (currentIndex <= 0) return total - 1;
-  return currentIndex - 1;
-}

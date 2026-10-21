@@ -6,13 +6,12 @@ import { Play, Pause, Disc3, Music4 } from 'lucide-react';
 import { useCoupleSongs } from '@/hooks/useCoupleSongs';
 
 /**
- * The dashboard cassette player. Plays the song pinned as "our song" on the
- * /music page (falling back to the most recent upload), from the couple's
- * real uploaded audio — until migration 15 this was a hardcoded title and a
+ * The dashboard cassette player. Plays the couple's one uploaded song, set
+ * on the /music page — until migration 15 this was a hardcoded title and a
  * play button that toggled a boolean and played nothing.
  */
 export function CassettePlayerWidget() {
-  const { currentSong, loading } = useCoupleSongs();
+  const { song, loading } = useCoupleSongs();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -23,11 +22,11 @@ export function CassettePlayerWidget() {
     if (!el) return;
     el.pause();
     setIsPlaying(false);
-  }, [currentSong?.id]);
+  }, [song?.id]);
 
   const toggle = () => {
     const el = audioRef.current;
-    if (!el || !currentSong) return;
+    if (!el || !song) return;
     if (el.paused) {
       void el.play().catch(() => setIsPlaying(false));
     } else {
@@ -54,7 +53,7 @@ export function CassettePlayerWidget() {
           className="text-[11px] text-primary hover:text-primary-hover font-semibold flex items-center gap-1"
         >
           <Music4 className="w-3 h-3" aria-hidden="true" />
-          <span>All songs</span>
+          <span>Change song</span>
         </Link>
       </div>
 
@@ -74,10 +73,10 @@ export function CassettePlayerWidget() {
             Side A • Our Mix
           </div>
           <p className="font-extrabold text-sm text-amber-600 truncate mt-1.5">
-            {currentSong ? currentSong.title : loading ? 'Loading…' : 'No song yet'}
+            {song ? song.title : loading ? 'Loading…' : 'No song yet'}
           </p>
           <p className="text-xs text-ink-muted truncate">
-            {currentSong ? currentSong.artist || 'Unknown artist' : 'Upload one to get started'}
+            {song ? song.artist || 'Unknown artist' : 'Upload one to get started'}
           </p>
         </div>
 
@@ -94,14 +93,14 @@ export function CassettePlayerWidget() {
       {/* Controls */}
       <div className="flex items-center justify-between gap-3 pt-1">
         <span className="text-[11px] text-ink-muted italic min-w-0 truncate">
-          {currentSong
+          {song
             ? isPlaying
               ? '🎶 Playing your song...'
               : 'Press play to set the mood'
             : 'Add a song to start your mixtape'}
         </span>
 
-        {currentSong ? (
+        {song ? (
           <button
             onClick={toggle}
             aria-label={isPlaying ? 'Pause our song' : 'Play our song'}
@@ -130,10 +129,10 @@ export function CassettePlayerWidget() {
         )}
       </div>
 
-      {currentSong && (
+      {song && (
         <audio
           ref={audioRef}
-          src={currentSong.url}
+          src={song.url}
           preload="none"
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}

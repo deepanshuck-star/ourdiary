@@ -1,6 +1,48 @@
 'use client';
 
 import { MAX_SONG_BYTES, validateSongFile } from '@/lib/features/music';
+import { publicIdFromCloudinaryUrl } from '@/lib/cloudinary/publicId';
+
+/**
+ * Deletes a Cloudinary asset the couple is replacing (their song, a profile
+ * photo, the couple photo), so one couple occupies one file per slot instead
+ * of accumulating every version ever uploaded.
+ *
+ * Deliberately never throws: this is cleanup that runs *after* the
+ * replacement is already saved. Failing loudly here would report an error
+ * for an action that actually succeeded, so a failure is logged and the
+ * (billable, harmless) orphan is left behind. Returns whether it worked, for
+ * callers that want to know.
+ */
+export async function destroyCloudinaryAsset(
+  publicIdOrUrl: string | null | undefined,
+  resourceType: 'image' | 'video' = 'image'
+): Promise<boolean> {
+  if (!publicIdOrUrl) return false;
+  // Accept either a stored public_id or the delivery URL, since avatars and
+  // the couple photo only ever stored the URL.
+  const publicId = publicIdOrUrl.startsWith('http')
+    ? publicIdFromCloudinaryUrl(publicIdOrUrl)
+    : publicIdOrUrl;
+  if (!publicId) return false;
+
+  try {
+    const res = await fetch('/api/media/destroy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ publicId, resourceType }),
+    });
+    if (!res.ok) {
+      console.warn('[OurDiary] Could not delete the replaced file:', res.status);
+      return false;
+    }
+    const data = await res.json().catch(() => ({}));
+    return Boolean(data?.deleted);
+  } catch (err) {
+    console.warn('[OurDiary] Could not delete the replaced file:', err);
+    return false;
+  }
+}
 
 /**
  * Uploads an image from the browser straight to Cloudinary using a short-lived

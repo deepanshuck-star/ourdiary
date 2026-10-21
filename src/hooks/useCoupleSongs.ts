@@ -1,21 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDiary } from '@/store/DiaryContext';
 import { newId } from '@/hooks/useNow';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { uploadSongToCloudinary } from '@/lib/cloudinary/upload';
-import {
-  createSongRemote,
-  deleteSongRemote,
-  fetchCurrentSongIdRemote,
-  fetchSongsRemote,
-  setCurrentSongRemote,
-  updateSongRemote,
-} from '@/lib/supabase/music';
-import { deleteSong as deleteLocalSong, listSongs, saveSong, isIndexedDbSupported, type LocalSongRecord } from '@/lib/idb';
-import { readLocal, writeLocal } from '@/lib/local-store';
-import { parseSongMetaFromFilename, resolveCurrentSong, validateSongFile } from '@/lib/features/music';
+import { destroyCloudinaryAsset, uploadSongToCloudinary } from '@/lib/cloudinary/upload';
+import { createSongRemote, deleteSongRemote, fetchSongRemote, updateSongRemote } from '@/lib/supabase/music';
+import { deleteSong as deleteLocalSong, listSongs, saveSong, isIndexedDbSupported } from '@/lib/idb';
+import { parseSongMetaFromFilename, validateSongFile } from '@/lib/features/music';
 
 /** One shape for the UI, whichever mode supplied the song. */
 export interface PlayableSong {
@@ -27,20 +19,21 @@ export interface PlayableSong {
   createdAt: string;
   /** Null in demo mode, where there is no signed-in user to attribute to. */
   uploadedBy: string | null;
-  /** True when this device's user may delete it. */
+  /** True when this device's user may remove it. */
   canDelete: boolean;
 }
 
-const DEMO_PINNED_KEY = 'music:pinned';
-
 /**
- * The couple's uploaded songs, in whichever mode the app is running.
+ * The couple's one song.
  *
- * Live space: files on Cloudinary, metadata in `couple_songs`, the pinned
- * song in `couples.current_song_id` — both partners see the same playlist.
- * Demo mode: files in IndexedDB on this device, the pinned id in
- * localStorage. Nothing leaves the browser, and it is labeled as such in
- * the UI.
+ * A couple keeps exactly one (enforced by a unique index in migration 16),
+ * so setting a new one REPLACES the old: the previous row and its Cloudinary
+ * file are deleted rather than piling up. The cleanup runs after the new
+ * song is safely stored and never fails the replacement — an orphaned file
+ * costs storage, a lost upload costs the user their song.
+ *
+ * Live space: file on Cloudinary, metadata in `couple_songs`, shared with
+ * the partner. Demo mode: the file sits in IndexedDB on this device only.
  */
 export function useCoupleSongs() {
   const { data, isLiveUser, currentUserId, showToast } = useDiary();
@@ -48,87 +41,86 @@ export function useCoupleSongs() {
   const supabase = isLiveUser && currentUserId ? getSupabaseBrowserClient() : null;
   const isRemote = Boolean(supabase && coupleId);
 
-  const [songs, setSongs] = useState<PlayableSong[]>([]);
-  const [pinnedId, setPinnedId] = useState<string | null>(null);
+  const [song, setSong] = useState<PlayableSong | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
 
-  // Object URLs for demo-mode blobs; revoked when the list changes or the
-  // component unmounts, or the browser leaks them for the whole session.
-  const objectUrls = useRef<string[]>([]);
-  const revokeAll = () => {
-    objectUrls.current.forEach((u) => URL.revokeObjectURL(u));
-    objectUrls.current = [];
+  // Object URL for the demo-mode blob; revoked when it's replaced or the
+  // component unmounts, or the browser holds the file for the whole session.
+  const objectUrl = useRef<string | null>(null);
+  const revoke = () => {
+    if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
+    objectUrl.current = null;
   };
-
-  const localToPlayable = useCallback((rows: LocalSongRecord[]): PlayableSong[] => {
-    revokeAll();
-    return rows.map((r) => {
-      const url = URL.createObjectURL(r.blob);
-      objectUrls.current.push(url);
-      return {
-        id: r.id,
-        title: r.title,
-        artist: r.artist,
-        url,
-        durationSec: r.durationSec,
-        createdAt: r.createdAt,
-        uploadedBy: null,
-        canDelete: true,
-      };
-    });
-  }, []);
 
   const reload = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       if (isRemote && supabase) {
-        const [rows, current] = await Promise.all([
-          fetchSongsRemote(supabase, coupleId),
-          fetchCurrentSongIdRemote(supabase, coupleId).catch(() => null),
-        ]);
-        setSongs(
-          rows.map((r) => ({
-            id: r.id,
-            title: r.title,
-            artist: r.artist || '',
-            url: r.url,
-            durationSec: r.durationSec,
-            createdAt: r.createdAt,
-            uploadedBy: r.uploadedBy,
-            canDelete: r.uploadedBy === currentUserId,
-          }))
+        const row = await fetchSongRemote(supabase, coupleId);
+        setSong(
+          row && {
+            id: row.id,
+            title: row.title,
+            artist: row.artist || '',
+            url: row.url,
+            durationSec: row.durationSec,
+            createdAt: row.createdAt,
+            uploadedBy: row.uploadedBy,
+            // Either partner may replace the shared song; the row's RLS
+            // delete policy is the uploader's, so the replace path deletes
+            // through the API only when it's ours (see replace()).
+            canDelete: row.uploadedBy === currentUserId,
+          }
         );
-        setPinnedId(current);
       } else {
         if (!isIndexedDbSupported()) {
-          setSongs([]);
-          setError('This browser can’t store songs on the device.');
+          setSong(null);
+          setError('This browser can’t store a song on the device.');
           return;
         }
-        setSongs(localToPlayable(await listSongs(coupleId || 'demo_couple')));
-        setPinnedId(readLocal<string | null>(DEMO_PINNED_KEY, null));
+        const rows = await listSongs(coupleId || 'demo_couple');
+        revoke();
+        const row = rows[0];
+        if (!row) {
+          setSong(null);
+        } else {
+          objectUrl.current = URL.createObjectURL(row.blob);
+          setSong({
+            id: row.id,
+            title: row.title,
+            artist: row.artist,
+            url: objectUrl.current,
+            durationSec: row.durationSec,
+            createdAt: row.createdAt,
+            uploadedBy: null,
+            canDelete: true,
+          });
+        }
       }
     } catch (err: any) {
-      console.error('[OurDiary] Failed to load songs:', err);
-      setError('We couldn’t load your songs just now.');
+      console.error('[OurDiary] Failed to load the couple song:', err);
+      setError('We couldn’t load your song just now.');
     } finally {
       setLoading(false);
     }
-  }, [isRemote, supabase, coupleId, currentUserId, localToPlayable]);
+  }, [isRemote, supabase, coupleId, currentUserId]);
 
   useEffect(() => {
     void reload();
   }, [reload]);
 
-  // Revoke any outstanding object URLs on unmount.
-  useEffect(() => () => revokeAll(), []);
+  useEffect(() => () => revoke(), []);
 
-  const currentSong = useMemo(() => resolveCurrentSong(songs, pinnedId), [songs, pinnedId]);
-
-  const upload = useCallback(
+  /**
+   * Uploads `file` as the couple's song, replacing whatever was there.
+   * Order matters: the new song is stored first, and only then is the old
+   * one removed, so a failure part-way leaves the couple with a song rather
+   * than none.
+   */
+  const replace = useCallback(
     async (file: File, meta?: { title?: string; artist?: string }) => {
       const problem = validateSongFile(file);
       if (problem) {
@@ -139,20 +131,36 @@ export function useCoupleSongs() {
       const parsed = parseSongMetaFromFilename(file.name);
       const title = (meta?.title ?? parsed.title).trim() || 'Untitled';
       const artist = (meta?.artist ?? parsed.artist).trim();
+      const previous = song;
 
       setUploading(true);
       setError('');
       try {
         if (isRemote && supabase && currentUserId) {
           const { secureUrl, publicId, durationSec } = await uploadSongToCloudinary(file);
-          await createSongRemote(supabase, coupleId, currentUserId, {
-            title,
-            artist,
-            url: secureUrl,
-            cloudinaryPublicId: publicId,
-            durationSec,
-            mimeType: file.type || 'audio/mpeg',
-          });
+
+          // The unique index allows one row per couple, so the old row goes
+          // before the new one is inserted. Its Cloudinary file is cleaned
+          // up after, once the replacement is definitely saved.
+          if (previous) await deleteSongRemote(supabase, previous.id).catch(() => undefined);
+
+          try {
+            await createSongRemote(supabase, coupleId, currentUserId, {
+              title,
+              artist,
+              url: secureUrl,
+              cloudinaryPublicId: publicId,
+              durationSec,
+              mimeType: file.type || 'audio/mpeg',
+            });
+          } catch (insertErr) {
+            // The new row didn't land and the old one is already gone, so
+            // don't also delete the file we just uploaded — surface it.
+            await destroyCloudinaryAsset(publicId, 'video');
+            throw insertErr;
+          }
+
+          if (previous?.url) await destroyCloudinaryAsset(previous.url, 'video');
         } else {
           await saveSong({
             id: newId('song'),
@@ -160,98 +168,66 @@ export function useCoupleSongs() {
             title,
             artist,
             createdAt: new Date().toISOString(),
-            // The browser decodes duration lazily; the <audio> element fills
-            // it in on the player, so storing null here is fine.
+            // The <audio> element fills duration in once it loads metadata.
             durationSec: null,
             mimeType: file.type || 'audio/mpeg',
             blob: file,
           });
+          if (previous) await deleteLocalSong(previous.id);
         }
         await reload();
-        showToast(`“${title}” added to your soundtrack 🎵`, 'heart');
+        showToast(previous ? `Your song is now “${title}” 🎵` : `“${title}” is now your song 🎵`, 'heart');
         return true;
       } catch (err: any) {
         const message = err?.message || 'That song couldn’t be uploaded.';
         setError(message);
         showToast(message, 'warn');
+        await reload();
         return false;
       } finally {
         setUploading(false);
       }
     },
-    [isRemote, supabase, currentUserId, coupleId, reload, showToast]
+    [isRemote, supabase, currentUserId, coupleId, song, reload, showToast]
   );
 
-  const remove = useCallback(
-    async (id: string) => {
-      try {
-        if (isRemote && supabase) {
-          await deleteSongRemote(supabase, id);
-        } else {
-          await deleteLocalSong(id);
-          if (readLocal<string | null>(DEMO_PINNED_KEY, null) === id) writeLocal(DEMO_PINNED_KEY, null);
-        }
-        await reload();
-        showToast('Song removed', 'info');
-      } catch (err: any) {
-        const message = err?.message || 'That song couldn’t be removed.';
-        setError(message);
-        showToast(message, 'warn');
+  const remove = useCallback(async () => {
+    if (!song) return;
+    try {
+      if (isRemote && supabase) {
+        await deleteSongRemote(supabase, song.id);
+        await destroyCloudinaryAsset(song.url, 'video');
+      } else {
+        await deleteLocalSong(song.id);
       }
-    },
-    [isRemote, supabase, reload, showToast]
-  );
+      await reload();
+      showToast('Song removed', 'info');
+    } catch (err: any) {
+      const message = err?.message || 'That song couldn’t be removed.';
+      setError(message);
+      showToast(message, 'warn');
+    }
+  }, [song, isRemote, supabase, reload, showToast]);
 
   const rename = useCallback(
-    async (id: string, updates: { title: string; artist: string }) => {
+    async (updates: { title: string; artist: string }) => {
+      if (!song) return;
       try {
         if (isRemote && supabase) {
-          await updateSongRemote(supabase, id, updates);
-          await reload();
+          await updateSongRemote(supabase, song.id, updates);
         } else {
           const rows = await listSongs(coupleId || 'demo_couple');
-          const row = rows.find((r) => r.id === id);
+          const row = rows.find((r) => r.id === song.id);
           if (row) await saveSong({ ...row, title: updates.title, artist: updates.artist });
-          await reload();
         }
+        await reload();
         showToast('Song details updated', 'success');
       } catch (err: any) {
         setError(err?.message || 'That change couldn’t be saved.');
       }
     },
-    [isRemote, supabase, coupleId, reload, showToast]
+    [song, isRemote, supabase, coupleId, reload, showToast]
   );
 
-  const pin = useCallback(
-    async (id: string | null) => {
-      setPinnedId(id);
-      try {
-        if (isRemote && supabase) {
-          await setCurrentSongRemote(supabase, coupleId, id);
-        } else {
-          writeLocal(DEMO_PINNED_KEY, id);
-        }
-        if (id) showToast('Set as your song 💞', 'heart');
-      } catch (err: any) {
-        console.error('[OurDiary] Failed to pin song:', err);
-        showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
-      }
-    },
-    [isRemote, supabase, coupleId, showToast]
-  );
-
-  return {
-    songs,
-    currentSong,
-    pinnedId,
-    loading,
-    uploading,
-    error,
-    isRemote,
-    upload,
-    remove,
-    rename,
-    pin,
-    reload,
-  };
+  return { song, loading, uploading, error, isRemote, replace, remove, rename, reload };
 }

@@ -39,6 +39,7 @@ import {
   fetchMemoryPhotosForMemoriesRemote, createMemoryPhotoRemote, deleteMemoryPhotoRemote,
 } from '@/lib/supabase/sync';
 import { sendPushNotification } from '@/lib/notifications';
+import { destroyCloudinaryAsset } from '@/lib/cloudinary/upload';
 
 export interface ToastInfo {
   id: string;
@@ -277,12 +278,22 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     showToast('Relationship settings saved!', 'success');
 
     if (updates.photoUrl !== undefined) {
+      const previousPhotoUrl = data.couple.photoUrl;
       const supabase = isLiveUser && currentUserId ? getSupabaseBrowserClient() : null;
       if (supabase && data.couple.id) {
-        updateCouplePhotoRemote(supabase, data.couple.id, updates.photoUrl).catch((err) => {
-          console.error('[OurDiary] Failed to save couple photo to database:', err);
-          showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
-        });
+        updateCouplePhotoRemote(supabase, data.couple.id, updates.photoUrl)
+          .then(() => {
+            // A couple keeps one couple photo, so the one it replaced is
+            // dead weight in Cloudinary. Only after the new URL is saved,
+            // or a failure here would delete the photo still in use.
+            if (previousPhotoUrl && previousPhotoUrl !== updates.photoUrl) {
+              void destroyCloudinaryAsset(previousPhotoUrl, 'image');
+            }
+          })
+          .catch((err) => {
+            console.error('[OurDiary] Failed to save couple photo to database:', err);
+            showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+          });
       }
     }
   };
@@ -304,12 +315,24 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     // Only sync the photo to the database for your OWN profile — RLS would
     // reject writing your partner's row anyway, and the UI shouldn't try.
     if (updates.avatar !== undefined && profileId === data.activeProfileId) {
+      const previousAvatar =
+        profileId === 'user_1' ? data.couple.user1.avatar : data.couple.user2.avatar;
       const supabase = isLiveUser && currentUserId ? getSupabaseBrowserClient() : null;
       if (supabase && currentUserId) {
-        updateMyAvatarRemote(supabase, currentUserId, updates.avatar).catch((err) => {
-          console.error('[OurDiary] Failed to save avatar to database:', err);
-          showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
-        });
+        updateMyAvatarRemote(supabase, currentUserId, updates.avatar)
+          .then(() => {
+            // Same as the couple photo: one avatar per person, so the one it
+            // replaced is deleted once the new URL is stored. The seeded
+            // Unsplash defaults aren't ours, and destroyCloudinaryAsset
+            // ignores any URL that isn't a Cloudinary one.
+            if (previousAvatar && previousAvatar !== updates.avatar) {
+              void destroyCloudinaryAsset(previousAvatar, 'image');
+            }
+          })
+          .catch((err) => {
+            console.error('[OurDiary] Failed to save avatar to database:', err);
+            showToast("Couldn't sync this change to the server — it's only on this device for now.", 'warn');
+          });
       }
     }
   };
