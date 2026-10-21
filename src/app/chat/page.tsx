@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 import { Loader2, MessagesSquare, Send, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
-import { newId } from '@/hooks/useNow';
+import { newId, useNow } from '@/hooks/useNow';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useLocalState } from '@/lib/local-store';
 import {
@@ -92,7 +92,16 @@ export default function ChatPage() {
     return mergeMessages(base, stillPending);
   }, [isRemote, remote, local, pending, currentUserId, data.activeProfileId]);
 
-  const groups = useMemo(() => groupMessagesByDay(messages), [messages]);
+  // "Today"/"Yesterday" headings depend on the current time, which must not be
+  // read while Next prerenders this component — the build fails on it, and a
+  // prerendered date would be frozen at build time anyway. useNow() returns
+  // null until mounted, so grouping waits for the client.
+  const nowMs = useNow(60_000);
+  const groups = useMemo(
+    () => (nowMs === null ? [] : groupMessagesByDay(messages, new Date(nowMs))),
+    [messages, nowMs]
+  );
+  const booting = loading || nowMs === null;
 
   // ------------------------------------------------------------- loading ---
   const reload = useCallback(async () => {
@@ -276,7 +285,7 @@ export default function ChatPage() {
           </h2>
 
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5" role="log" aria-live="polite">
-            {loading ? (
+            {booting ? (
               <p className="text-sm text-ink-muted">Loading your messages…</p>
             ) : messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center gap-2 px-6">
