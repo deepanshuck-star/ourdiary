@@ -189,13 +189,6 @@ export interface LoveCoupon {
   redeemedAt?: string;
 }
 
-export interface MemorySoundtrack {
-  currentSong?: string;
-  currentArtist?: string;
-  spotifyUrl?: string;
-  isPlaying?: boolean;
-}
-
 export interface OurDiaryData {
   couple: Couple;
   activeProfileId: ProfileId;
@@ -213,6 +206,5 @@ export interface OurDiaryData {
   dailySparkAnswers?: DailySparkAnswer[];
   customWheelOptions?: WheelOption[];
   loveCoupons?: LoveCoupon[];
-  soundtrack?: MemorySoundtrack;
 }
 

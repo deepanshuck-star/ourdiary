@@ -799,10 +799,4 @@ export const initialDiaryData: OurDiaryData = {
       redeemed: false,
     },
   ],
-  soundtrack: {
-    currentSong: 'Until I Found You',
-    currentArtist: 'Stephen Sanchez',
-    spotifyUrl: 'https://open.spotify.com/track/0T5iIrXA4p5GsubkhuBIKV',
-    isPlaying: false,
-  },
 };

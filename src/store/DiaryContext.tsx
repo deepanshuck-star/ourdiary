@@ -94,7 +94,6 @@ interface DiaryContextValue {
   deleteWheelOption: (id: string) => void;
   addLoveCoupon: (title: string, description: string, category: string) => void;
   redeemLoveCoupon: (id: string) => void;
-  toggleSoundtrack: () => void;
   loadExistingCoupleSpace: (userId: string, remoteCouple: any, role?: 'creator' | 'partner') => void;
   logout: (redirectToLogin?: boolean) => Promise<void>;
   toasts: ToastInfo[];
@@ -185,11 +184,6 @@ function buildCleanCoupleData(couple: Couple): OurDiaryData {
         redeemed: false,
       },
     ],
-    soundtrack: {
-      currentSong: 'Our Song',
-      currentArtist: 'Couple Favorite',
-      isPlaying: false,
-    },
   };
   return freshCleanData;
 }
@@ -580,7 +574,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
 
     // The database is the durable source of truth: pull everything meaningful
     // back so nothing created before is lost after logout/login. Ephemeral
-    // state (heartbeat pings, mood beacons, soundtrack) stays local-only.
+    // state (heartbeat pings, mood beacons) stays local-only.
     const supabase = getSupabaseBrowserClient();
     if (supabase) {
       try {
@@ -1439,16 +1433,6 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const toggleSoundtrack = () => {
-    setData((prev) => ({
-      ...prev,
-      soundtrack: {
-        ...(prev.soundtrack || { currentSong: 'Until I Found You', currentArtist: 'Stephen Sanchez' }),
-        isPlaying: !prev.soundtrack?.isPlaying,
-      },
-    }));
-  };
-
   return (
     <DiaryContext.Provider
       value={{
@@ -1499,7 +1483,6 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         deleteWheelOption,
         addLoveCoupon,
         redeemLoveCoupon,
-        toggleSoundtrack,
         loadExistingCoupleSpace,
         logout,
         toasts,

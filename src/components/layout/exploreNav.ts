@@ -8,11 +8,15 @@ import {
   Clock3,
   Wallet,
   MapPinned,
+  MessagesSquare,
+  Music4,
 } from 'lucide-react';
 
 // Newer features — synced to the shared couple space in Supabase (see
 // src/lib/supabase/xsync.ts), same as memories/events/etc.
 export const exploreItems = [
+  { name: 'Our Chat', href: '/chat', icon: MessagesSquare },
+  { name: 'Our Soundtrack', href: '/music', icon: Music4 },
   { name: 'Memory Globe', href: '/globe', icon: Globe2 },
   { name: 'Couple Quizzes', href: '/quizzes', icon: HelpCircle },
   { name: 'Date Ideas', href: '/date-ideas', icon: HeartHandshake },
