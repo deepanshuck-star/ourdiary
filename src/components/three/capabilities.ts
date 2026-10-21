@@ -98,7 +98,7 @@ function subscribeTheme(onChange: () => void) {
   const observer = new MutationObserver(onChange);
   observer.observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ['data-appearance', 'data-theme', 'class', 'style'],
+    attributeFilter: ['data-appearance', 'data-palette', 'data-theme', 'class', 'style'],
   });
   const mq = window.matchMedia('(prefers-color-scheme: dark)');
   mq.addEventListener('change', onChange);

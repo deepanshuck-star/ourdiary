@@ -25,6 +25,7 @@ import {
 } from '@/lib/notifications';
 import { uploadImageToCloudinary } from '@/lib/cloudinary/upload';
 import { getAppearance, setAppearance, type Appearance } from '@/lib/appearance';
+import { getPalette, setPalette, PALETTES, type Palette } from '@/lib/palette';
 
 export default function SettingsPage() {
   const {
@@ -42,10 +43,12 @@ export default function SettingsPage() {
 
   const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
   const [appearance, setAppearanceState] = useState<Appearance>('light');
+  const [palette, setPaletteState] = useState<Palette>('rose');
 
   useEffect(() => {
     setPushPermission(getNotificationPermission());
     setAppearanceState(getAppearance());
+    setPaletteState(getPalette());
   }, []);
 
   const handleEnablePush = async () => {
@@ -326,17 +329,17 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Couple theme — tints the header gradient within the Rose Quartz palette */}
+            {/* Couple theme — tints the header gradient within the chosen palette */}
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Header tint
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  { id: 'candy', name: 'Rose Quartz' },
-                  { id: 'sunset', name: 'Rosé Dusk' },
-                  { id: 'lavender', name: 'Petal' },
-                  { id: 'mint', name: 'Velvet' },
+                  { id: 'candy', name: 'Classic' },
+                  { id: 'sunset', name: 'Dusk' },
+                  { id: 'lavender', name: 'Soft' },
+                  { id: 'mint', name: 'Deep' },
                 ].map((th) => (
                   <button
                     key={th.id}
@@ -376,6 +379,41 @@ export default function SettingsPage() {
               </button>
             </div>
           </form>
+        </div>
+
+        {/* Palette — per-device preference, applied instantly */}
+        <div className="rounded-3xl bg-white border border-line p-6 shadow-sm">
+          <h3 className="font-extrabold text-base text-slate-900 mb-1">Palette</h3>
+          <p className="text-xs text-slate-500 mb-4">
+            The colours and lettering the whole app wears. Saved on this device only.
+          </p>
+          <div role="radiogroup" aria-label="Palette" className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {PALETTES.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                role="radio"
+                aria-checked={palette === option.id}
+                onClick={() => {
+                  setPalette(option.id);
+                  setPaletteState(option.id);
+                }}
+                className={`p-3 rounded-2xl border text-left transition-colors ${
+                  palette === option.id
+                    ? 'border-primary ring-2 ring-primary/30 bg-purple-50'
+                    : 'border-line hover:border-purple-300 bg-surface'
+                }`}
+              >
+                <div className="flex h-8 rounded-full overflow-hidden mb-2 border border-line">
+                  {option.swatch.map((colour) => (
+                    <span key={colour} className="flex-1" style={{ backgroundColor: colour }} />
+                  ))}
+                </div>
+                <span className="text-xs font-semibold text-ink">{option.name}</span>
+                <p className="text-[11px] text-ink-muted mt-0.5">{option.description}</p>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Appearance — per-device preference, applied instantly */}
