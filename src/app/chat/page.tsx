@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Loader2, MessagesSquare, Send, Trash2 } from 'lucide-react';
+import { CheckCheck, Clock, Loader2, MessagesSquare, Send, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
 import { newId, useNow } from '@/hooks/useNow';
@@ -17,6 +17,8 @@ import {
 } from '@/lib/supabase/chat';
 import {
   MAX_MESSAGE_LENGTH,
+  decodeChatMessage,
+  encodeChatMessage,
   formatChatTime,
   groupMessagesByDay,
   mergeMessages,
@@ -40,6 +42,7 @@ interface LocalChatMessage {
 interface ViewMessage {
   id: string;
   senderId: string;
+  senderProfile?: ProfileId;
   content: string;
   createdAt: string;
   readAt: string | null;
@@ -49,14 +52,13 @@ interface ViewMessage {
 }
 
 export default function ChatPage() {
-  const { data, activeProfile, partnerProfile, isLiveUser, currentUserId, showToast } = useDiary();
+  const { data, activeProfile, partnerProfile, switchProfile, isLiveUser, currentUserId, showToast } = useDiary();
   const coupleId = data.couple.id;
   const supabase = isLiveUser && currentUserId ? getSupabaseBrowserClient() : null;
   const isRemote = Boolean(supabase && coupleId);
 
   const [remote, setRemote] = useState<ChatMessageRow[]>([]);
-  // Demo mode keeps the thread on this device. Not in the synced-prefix
-  // allowlist in local-store.ts on purpose: demo mode has no second device.
+  // Demo mode keeps the thread on this device.
   const [local, setLocal] = useLocalState<LocalChatMessage[]>(`chat:${coupleId || 'demo'}`, []);
   const [pending, setPending] = useState<ViewMessage[]>([]);
 
@@ -69,23 +71,40 @@ export default function ChatPage() {
   const endRef = useRef<HTMLDivElement | null>(null);
 
   const messages: ViewMessage[] = useMemo(() => {
+    const myProfile = data.activeProfileId;
     const base: ViewMessage[] = isRemote
-      ? remote.map((m) => ({
-          id: m.id,
-          senderId: m.senderId,
-          content: m.content,
-          createdAt: m.createdAt,
-          readAt: m.readAt,
-          mine: m.senderId === currentUserId,
-        }))
-      : local.map((m) => ({
-          id: m.id,
-          senderId: m.senderId,
-          content: m.content,
-          createdAt: m.createdAt,
-          readAt: m.readAt,
-          mine: m.senderId === data.activeProfileId,
-        }));
+      ? remote.map((m) => {
+          const decoded = decodeChatMessage(m.content);
+          // If the message has an embedded profile tag, use that to align with
+          // the currently active profile view (even when simulating viewpoints).
+          // Otherwise fall back to comparing auth user IDs for untagged rows.
+          const isMine = decoded.profile
+            ? decoded.profile === myProfile
+            : m.senderId === currentUserId;
+          return {
+            id: m.id,
+            senderId: m.senderId,
+            senderProfile: (decoded.profile as ProfileId) || undefined,
+            content: decoded.text,
+            createdAt: m.createdAt,
+            readAt: m.readAt,
+            mine: isMine,
+          };
+        })
+      : local.map((m) => {
+          const decoded = decodeChatMessage(m.content);
+          const effectiveProfile = (decoded.profile as ProfileId) || m.senderId;
+          return {
+            id: m.id,
+            senderId: m.senderId,
+            senderProfile: effectiveProfile,
+            content: decoded.text,
+            createdAt: m.createdAt,
+            readAt: m.readAt,
+            mine: effectiveProfile === myProfile,
+          };
+        });
+
     // Drop any optimistic row the server has since echoed back to us.
     const confirmed = new Set(base.map((m) => m.id));
     const stillPending = pending.filter((p) => !confirmed.has(p.id));
@@ -93,9 +112,7 @@ export default function ChatPage() {
   }, [isRemote, remote, local, pending, currentUserId, data.activeProfileId]);
 
   // "Today"/"Yesterday" headings depend on the current time, which must not be
-  // read while Next prerenders this component — the build fails on it, and a
-  // prerendered date would be frozen at build time anyway. useNow() returns
-  // null until mounted, so grouping waits for the client.
+  // read while Next prerenders this component — useNow() returns null until mounted.
   const nowMs = useNow(60_000);
   const groups = useMemo(
     () => (nowMs === null ? [] : groupMessagesByDay(messages, new Date(nowMs))),
@@ -133,8 +150,6 @@ export default function ChatPage() {
       onDelete: (id) => setRemote((prev) => prev.filter((m) => m.id !== id)),
     });
     return () => {
-      // Without this the subscription survives navigation and each remount
-      // adds another, so one message arrives several times over.
       void supabase.removeChannel(channel);
     };
   }, [isRemote, supabase, coupleId]);
@@ -148,7 +163,6 @@ export default function ChatPage() {
     );
     if (ids.length === 0) return;
     markMessagesReadRemote(supabase, ids).catch((err) => {
-      // A failed read receipt is cosmetic — never surface it as an error.
       console.warn('[OurDiary] Could not mark messages read:', err);
     });
   }, [isRemote, supabase, currentUserId, remote]);
@@ -156,18 +170,23 @@ export default function ChatPage() {
   // Demo mode: opening the thread marks the other slot's messages read.
   useEffect(() => {
     if (isRemote) return;
-    const hasUnread = local.some((m) => m.senderId !== data.activeProfileId && !m.readAt);
+    const hasUnread = local.some((m) => {
+      const decoded = decodeChatMessage(m.content);
+      const sender = decoded.profile || m.senderId;
+      return sender !== data.activeProfileId && !m.readAt;
+    });
     if (!hasUnread) return;
     const now = new Date().toISOString();
     setLocal((prev) =>
-      prev.map((m) => (m.senderId !== data.activeProfileId && !m.readAt ? { ...m, readAt: now } : m))
+      prev.map((m) => {
+        const decoded = decodeChatMessage(m.content);
+        const sender = decoded.profile || m.senderId;
+        return sender !== data.activeProfileId && !m.readAt ? { ...m, readAt: now } : m;
+      })
     );
   }, [isRemote, local, data.activeProfileId, setLocal]);
 
   // ------------------------------------------------------------ scrolling ---
-  // Jump to the newest message whenever the count grows, but only when the
-  // reader is already near the bottom — otherwise scrolling back through
-  // history yanks them forward every time a message lands.
   const countRef = useRef(0);
   useLayoutEffect(() => {
     const container = scrollRef.current;
@@ -191,17 +210,20 @@ export default function ChatPage() {
       return;
     }
     const content = draft.trim();
+    const myProfile = data.activeProfileId;
     setError('');
     setDraft('');
     setSending(true);
+
+    const encoded = encodeChatMessage(content, myProfile);
 
     if (!isRemote) {
       setLocal((prev) => [
         ...prev,
         {
           id: newId('msg'),
-          senderId: data.activeProfileId,
-          content,
+          senderId: myProfile,
+          content: encoded,
           createdAt: new Date().toISOString(),
           readAt: null,
         },
@@ -210,11 +232,12 @@ export default function ChatPage() {
       return;
     }
 
-    // Show it immediately, then reconcile with the row the server returns.
+    // Show it immediately on the right side, then reconcile with the server row.
     const tempId = newId('msg');
     const optimistic: ViewMessage = {
       id: tempId,
       senderId: currentUserId || '',
+      senderProfile: myProfile,
       content,
       createdAt: new Date().toISOString(),
       readAt: null,
@@ -224,12 +247,11 @@ export default function ChatPage() {
     setPending((prev) => [...prev, optimistic]);
 
     try {
-      const saved = await sendMessageRemote(supabase!, coupleId, currentUserId!, content);
+      const saved = await sendMessageRemote(supabase!, coupleId, currentUserId!, encoded);
       setRemote((prev) => mergeMessages(prev, [saved]));
       setPending((prev) => prev.filter((m) => m.id !== tempId));
     } catch (err: any) {
       setPending((prev) => prev.filter((m) => m.id !== tempId));
-      // Hand the text back rather than losing what they typed.
       setDraft(content);
       setError(err?.message || 'That message didn’t send. Try again.');
     } finally {
@@ -251,88 +273,190 @@ export default function ChatPage() {
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Enter sends, Shift+Enter makes a new line — what every chat does.
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       void send(e as unknown as React.FormEvent);
     }
   };
 
-  const lastMine = [...messages].reverse().find((m) => m.mine);
-
   return (
     <AppShell>
-      <div className="max-w-3xl mx-auto space-y-6">
-        <header>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Just us</p>
-          <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1">
-            Chat with {partnerProfile.name}
-          </h1>
-          <p className="text-sm text-ink-muted mt-2 max-w-2xl">
-            {isRemote
-              ? 'Private to the two of you. Messages appear on your partner’s device as you send them.'
-              : 'Demo mode: this thread stays on this device. Switch profiles in the navbar to see both sides.'}
-          </p>
+      <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
+        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Just us</p>
+            <h1 className="font-display text-2xl sm:text-4xl font-semibold text-ink mt-0.5">
+              Chat with {partnerProfile.name}
+            </h1>
+            <p className="text-xs sm:text-sm text-ink-muted mt-1 max-w-xl">
+              {isRemote
+                ? 'Private two-person chat with WhatsApp-style segregation: incoming on left, yours on right.'
+                : 'Demo mode: this thread stays on this device. Switch viewpoints to reply from either side.'}
+            </p>
+          </div>
+
+          <div className="inline-flex items-center gap-2 self-start sm:self-auto px-3 py-1.5 rounded-full bg-surface border border-line text-xs shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-ink-muted">Active side:</span>
+            <span className="font-bold text-ink">{activeProfile.name}</span>
+          </div>
         </header>
 
         <section
           aria-labelledby="thread-heading"
           className="rounded-[1.25rem] border border-line bg-surface shadow-card overflow-hidden flex flex-col"
-          style={{ height: 'min(68vh, 36rem)' }}
+          style={{ height: 'min(72vh, 38rem)' }}
         >
           <h2 id="thread-heading" className="sr-only">
             Message thread
           </h2>
 
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5" role="log" aria-live="polite">
+          {/* WhatsApp / Instagram style chat top bar */}
+          <div className="px-4 py-2.5 sm:py-3 border-b border-line bg-surface/90 backdrop-blur-xs flex items-center justify-between gap-3 z-10">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <div className="relative flex-shrink-0">
+                <img
+                  src={partnerProfile.avatar}
+                  alt={partnerProfile.name}
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover ring-2 ring-primary/20 shadow-xs"
+                />
+                <span
+                  className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-surface rounded-full"
+                  title="Online in space"
+                />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-semibold text-sm sm:text-base text-ink truncate leading-tight">
+                    {partnerProfile.name}
+                  </h3>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium hidden xs:inline">
+                    Cross Profile
+                  </span>
+                </div>
+                <p className="text-[11px] text-ink-muted truncate">
+                  Incoming on left • Yours on right
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Switch Perspective Pill */}
+            <button
+              type="button"
+              onClick={() => switchProfile(partnerProfile.id)}
+              title={`Switch viewpoint to ${partnerProfile.name}`}
+              className="px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs font-medium rounded-full border border-line bg-canvas hover:bg-surface text-ink transition-colors flex items-center gap-1.5 shadow-2xs flex-shrink-0"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
+              <span className="hidden sm:inline">Reply as</span>
+              <span className="font-semibold text-primary">{partnerProfile.name}</span>
+            </button>
+          </div>
+
+          {/* Messages scroll area */}
+          <div
+            ref={scrollRef}
+            className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-4 bg-canvas/30"
+            role="log"
+            aria-live="polite"
+          >
             {booting ? (
-              <p className="text-sm text-ink-muted">Loading your messages…</p>
+              <div className="h-full flex items-center justify-center">
+                <Loader2 className="w-6 h-6 text-primary animate-spin" />
+              </div>
             ) : messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center gap-2 px-6">
-                <MessagesSquare className="w-8 h-8 text-primary" aria-hidden="true" />
-                <p className="text-sm text-ink-muted">
-                  No messages yet. Say something only {partnerProfile.name} gets to read.
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-1">
+                  <MessagesSquare className="w-6 h-6" aria-hidden="true" />
+                </div>
+                <p className="font-medium text-sm text-ink">No messages yet</p>
+                <p className="text-xs text-ink-muted max-w-sm">
+                  Say something sweet to {partnerProfile.name}. Outgoing messages will stay on your right, and their replies will land on the left.
                 </p>
               </div>
             ) : (
               groups.map((group) => (
                 <div key={group.date} className="space-y-3">
-                  <p className="text-center">
-                    <span className="inline-block px-3 py-1 rounded-full bg-canvas border border-line text-[11px] font-semibold text-ink-muted">
+                  <div className="flex justify-center my-1">
+                    <span className="inline-block px-3 py-0.5 rounded-full bg-surface/90 border border-line/70 text-[11px] font-semibold text-ink-muted shadow-2xs">
                       {group.label}
                     </span>
-                  </p>
+                  </div>
+
                   {group.messages.map((message) => (
                     <div
                       key={message.id}
                       className={`group flex items-end gap-2 ${message.mine ? 'justify-end' : 'justify-start'}`}
                     >
+                      {/* Cross Profile (Partner): Avatar on the left */}
+                      {!message.mine && (
+                        <div className="flex-shrink-0 mb-0.5" title={partnerProfile.name}>
+                          <img
+                            src={partnerProfile.avatar}
+                            alt={partnerProfile.name}
+                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover ring-2 ring-line shadow-2xs"
+                          />
+                        </div>
+                      )}
+
+                      {/* My Profile: Unsend button on hover (left of bubble) */}
                       {message.mine && (
                         <button
                           type="button"
                           onClick={() => removeMessage(message.id)}
                           aria-label="Unsend this message"
-                          className="p-1.5 rounded-full text-ink-muted hover:text-danger opacity-0 focus:opacity-100 group-hover:opacity-100 sm:opacity-60"
+                          className="p-1 rounded-full text-ink-muted hover:text-danger opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity mb-0.5 sm:opacity-50"
+                          title="Unsend"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       )}
+
+                      {/* WhatsApp / Instagram Style Bubble */}
                       <div
-                        className={`max-w-[78%] rounded-2xl px-4 py-2.5 ${
+                        className={`max-w-[80%] sm:max-w-[72%] rounded-2xl px-4 py-2.5 ${
                           message.mine
                             ? 'bg-primary text-on-primary rounded-br-md'
-                            : 'bg-canvas border border-line text-ink rounded-bl-md'
+                            : 'bg-surface text-ink border border-line rounded-bl-md'
                         } ${message.pending ? 'opacity-70' : ''}`}
                       >
+                        {/* Cross Profile: Partner Name Header */}
                         {!message.mine && (
-                          <p className="text-[11px] font-semibold text-primary mb-0.5">{partnerProfile.name}</p>
+                          <p className="text-[11px] font-bold text-primary mb-0.5 leading-tight tracking-tight">
+                            {partnerProfile.name}
+                          </p>
                         )}
-                        <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
-                        <p
-                          className={`text-[10px] mt-1 ${message.mine ? 'text-on-primary/70' : 'text-ink-muted'}`}
-                        >
-                          {message.pending ? 'Sending…' : formatChatTime(message.createdAt)}
+
+                        {/* Message Text */}
+                        <p className="text-sm whitespace-pre-wrap break-words leading-relaxed select-text">
+                          {message.content}
                         </p>
+
+                        {/* Bubble Footer: Time + WhatsApp-style Delivery/Seen Ticks */}
+                        <div
+                          className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${
+                            message.mine ? 'text-on-primary/75' : 'text-ink-muted'
+                          }`}
+                        >
+                          <span>{formatChatTime(message.createdAt)}</span>
+                          {message.mine && (
+                            <span className="inline-flex items-center">
+                              {message.pending ? (
+                                <Clock className="w-3 h-3 text-on-primary/70 animate-pulse" />
+                              ) : message.readAt ? (
+                                <CheckCheck
+                                  className="w-3.5 h-3.5 text-sky-200"
+                                  title={`Seen by ${partnerProfile.name}`}
+                                />
+                              ) : (
+                                <CheckCheck
+                                  className="w-3.5 h-3.5 text-on-primary/70"
+                                  title="Delivered"
+                                />
+                              )}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -342,13 +466,8 @@ export default function ChatPage() {
             <div ref={endRef} />
           </div>
 
-          {lastMine && !lastMine.pending && (
-            <p className="px-5 pb-1 text-right text-[11px] text-ink-muted">
-              {lastMine.readAt ? `Seen by ${partnerProfile.name}` : 'Delivered'}
-            </p>
-          )}
-
-          <form onSubmit={send} className="border-t border-line p-3 sm:p-4 flex items-end gap-2 bg-surface">
+          {/* Form input bar */}
+          <form onSubmit={send} className="border-t border-line p-2.5 sm:p-3.5 flex items-end gap-2 bg-surface">
             <label htmlFor="chat-draft" className="sr-only">
               Message {partnerProfile.name}
             </label>
@@ -359,14 +478,14 @@ export default function ChatPage() {
               onKeyDown={onKeyDown}
               rows={1}
               maxLength={MAX_MESSAGE_LENGTH}
-              placeholder={`Message ${partnerProfile.name}…`}
-              className="flex-1 resize-none max-h-32 px-4 py-2.5 rounded-2xl border border-line bg-canvas text-ink text-sm focus:outline-none focus:ring-2 focus:ring-focus"
+              placeholder={`Message ${partnerProfile.name} as ${activeProfile.name}…`}
+              className="flex-1 resize-none max-h-32 px-4 py-2.5 rounded-2xl border border-line bg-canvas text-ink text-sm focus:outline-none focus:ring-2 focus:ring-focus placeholder:text-ink-muted/60"
             />
             <button
               type="submit"
               disabled={sending || !draft.trim()}
               aria-label="Send message"
-              className="p-3 rounded-full bg-primary hover:bg-primary-hover text-on-primary shadow-cta disabled:opacity-50 flex-shrink-0"
+              className="p-3 rounded-full bg-primary hover:bg-primary-hover text-on-primary shadow-cta disabled:opacity-40 flex-shrink-0 transition-transform active:scale-95"
             >
               {sending ? <Loader2 className="w-4 h-4 motion-safe:animate-spin" /> : <Send className="w-4 h-4" />}
             </button>
@@ -374,14 +493,19 @@ export default function ChatPage() {
         </section>
 
         {error && (
-          <p role="alert" className="text-sm text-danger">
+          <p role="alert" className="text-sm text-danger font-medium">
             {error}
           </p>
         )}
 
-        <p className="text-xs text-ink-muted">
-          Signed in as <span className="font-semibold text-ink">{activeProfile.name}</span>.
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-ink-muted gap-1 px-1">
+          <p>
+            Logged in view: <span className="font-semibold text-ink">{activeProfile.name}</span>.
+          </p>
+          <p className="italic">
+            Tip: Press Enter to send, Shift + Enter for a new line.
+          </p>
+        </div>
       </div>
     </AppShell>
   );
