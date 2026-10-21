@@ -305,7 +305,7 @@ export default function ChatPage() {
                   {group.messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex items-end gap-2 ${message.mine ? 'justify-end' : 'justify-start'}`}
+                      className={`group flex items-end gap-2 ${message.mine ? 'justify-end' : 'justify-start'}`}
                     >
                       {message.mine && (
                         <button

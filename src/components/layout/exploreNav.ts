@@ -10,6 +10,8 @@ import {
   MapPinned,
   MessagesSquare,
   Music4,
+  ShoppingBag,
+  ThumbsDown,
 } from 'lucide-react';
 
 // Newer features — synced to the shared couple space in Supabase (see
@@ -17,6 +19,8 @@ import {
 export const exploreItems = [
   { name: 'Our Chat', href: '/chat', icon: MessagesSquare },
   { name: 'Our Soundtrack', href: '/music', icon: Music4 },
+  { name: 'Gifts Wardrobe', href: '/gifts', icon: ShoppingBag },
+  { name: 'Bad Habits', href: '/habits', icon: ThumbsDown },
   { name: 'Memory Globe', href: '/globe', icon: Globe2 },
   { name: 'Couple Quizzes', href: '/quizzes', icon: HelpCircle },
   { name: 'Date Ideas', href: '/date-ideas', icon: HeartHandshake },

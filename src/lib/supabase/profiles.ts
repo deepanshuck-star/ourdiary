@@ -53,3 +53,21 @@ export async function updateCouplePhotoRemote(supabase: SupabaseClient, coupleId
   const { error } = await supabase.from('couples').update({ photo_url: photoUrl }).eq('id', coupleId);
   if (error) throw new Error(error.message);
 }
+
+/**
+ * Both partners' auth user ids, labelled relative to the caller. Features
+ * that record a direction between the two people (gifts, whose habit it is)
+ * need the partner's real id, which the profile-slot mapping above hides.
+ *
+ * `partner` is null until the second partner has joined the space.
+ */
+export async function fetchCoupleMemberIdsRemote(
+  supabase: SupabaseClient,
+  coupleId: string,
+  myUserId: string
+): Promise<{ me: string; partner: string | null }> {
+  const { data, error } = await supabase.from('couple_members').select('user_id').eq('couple_id', coupleId);
+  if (error) throw new Error(error.message);
+  const ids = (data || []).map((r: any) => r.user_id as string);
+  return { me: myUserId, partner: ids.find((id) => id !== myUserId) ?? null };
+}
