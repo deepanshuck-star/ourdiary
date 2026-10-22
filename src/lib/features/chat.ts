@@ -4,36 +4,6 @@
 /** Matches the CHECK constraint on chat_messages.content in migration 15. */
 export const MAX_MESSAGE_LENGTH = 4000;
 
-/**
- * Encodes sender profile metadata into the message content payload.
- * Uses a concise bracket tag so existing database schemas and constraints
- * work seamlessly across devices and simulated profile mode.
- */
-export function encodeChatMessage(content: string, profileId?: string): string {
-  if (!profileId) return content;
-  const tag = '⟦p:' + profileId + '⟧';
-  if (content.length + tag.length > MAX_MESSAGE_LENGTH) {
-    return tag + content.slice(0, MAX_MESSAGE_LENGTH - tag.length);
-  }
-  return tag + content;
-}
-
-/**
- * Extracts display text and optional sender profile tag from a stored message string.
- * Gracefully handles legacy untagged strings.
- */
-export function decodeChatMessage(raw: string): { text: string; profile?: string } {
-  if (typeof raw === 'string' && raw.startsWith('⟦p:')) {
-    const end = raw.indexOf('⟧');
-    if (end > 3) {
-      const profile = raw.slice(3, end);
-      const text = raw.slice(end + 1);
-      return { text, profile };
-    }
-  }
-  return { text: raw };
-}
-
 export interface ChatMessageLike {
   id: string;
   senderId: string;
@@ -50,6 +20,28 @@ export function validateMessage(raw: string): string | null {
     return `That message is too long (max ${MAX_MESSAGE_LENGTH} characters).`;
   }
   return null;
+}
+
+/**
+ * Strips a legacy `⟦p:user_1⟧` prefix from a stored message.
+ *
+ * Messages used to be written with the sender's profile slot embedded in the
+ * content column so the profile switcher could align them. That was wrong in
+ * two ways: `chat_messages.sender_id` already identifies the sender, and on
+ * the partner's device the tag matched THEIR active profile, so a message
+ * they never wrote appeared on their own side. It also surfaced raw in
+ * anything reading the row without decoding — push notifications, exports,
+ * the table view in Supabase.
+ *
+ * Nothing writes the tag any more. This stays so rows written before the fix
+ * still render as plain text instead of showing the marker.
+ */
+export function stripLegacyProfileTag(raw: string): string {
+  if (typeof raw === 'string' && raw.startsWith('⟦p:')) {
+    const end = raw.indexOf('⟧');
+    if (end > 3) return raw.slice(end + 1);
+  }
+  return raw;
 }
 
 export interface ChatDayGroup<T> {

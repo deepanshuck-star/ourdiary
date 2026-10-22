@@ -10,8 +10,7 @@ import {
   unreadCount,
   unreadIdsToMark,
   validateMessage,
-  encodeChatMessage,
-  decodeChatMessage,
+  stripLegacyProfileTag,
 } from '../src/lib/features/chat.ts';
 
 const read = (...p) => fs.readFileSync(path.join(process.cwd(), ...p), 'utf8');
@@ -160,27 +159,28 @@ test('chat page removes its realtime channel on unmount', () => {
 });
 
 
-test('encodeChatMessage and decodeChatMessage round-trip correctly', () => {
-  const raw = 'Hello sweetie!';
-  const encoded = encodeChatMessage(raw, 'user_1');
-  assert.notEqual(encoded, raw);
-  const decoded = decodeChatMessage(encoded);
-  assert.equal(decoded.text, raw);
-  assert.equal(decoded.profile, 'user_1');
+test('stripLegacyProfileTag removes a tag written before the fix', () => {
+  assert.equal(stripLegacyProfileTag('\u27E6p:user_1\u27E7hey babe'), 'hey babe');
+  assert.equal(stripLegacyProfileTag('\u27E6p:user_2\u27E7'), '');
 });
 
-test('decodeChatMessage handles legacy messages without profile tag', () => {
-  const legacy = 'I love you so much';
-  const decoded = decodeChatMessage(legacy);
-  assert.equal(decoded.text, legacy);
-  assert.equal(decoded.profile, undefined);
+test('stripLegacyProfileTag leaves ordinary messages alone', () => {
+  assert.equal(stripLegacyProfileTag('hey babe'), 'hey babe');
+  assert.equal(stripLegacyProfileTag(''), '');
+  // A lone opening marker with no terminator isn't a tag.
+  assert.equal(stripLegacyProfileTag('\u27E6p:broken'), '\u27E6p:broken');
+  // Brackets mid-message are the user's own text.
+  assert.equal(stripLegacyProfileTag('look \u27E6p:x\u27E7 here'), 'look \u27E6p:x\u27E7 here');
 });
 
-test('encodeChatMessage caps at MAX_MESSAGE_LENGTH', () => {
-  const longText = 'x'.repeat(MAX_MESSAGE_LENGTH);
-  const encoded = encodeChatMessage(longText, 'user_2');
-  assert.ok(encoded.length <= MAX_MESSAGE_LENGTH);
-  const decoded = decodeChatMessage(encoded);
-  assert.equal(decoded.profile, 'user_2');
-  assert.ok(decoded.text.startsWith('x'));
+test('nothing writes a profile tag into the message content any more', () => {
+  const page = read('src', 'app', 'chat', 'page.tsx');
+  // sender_id identifies the sender in a live space. Deriving it from the
+  // profile switcher put a message you sent "as" your partner onto THEIR
+  // side of THEIR screen, and leaked the marker into anything reading the
+  // row without decoding.
+  assert.equal(page.includes('encodeChatMessage'), false);
+  assert.ok(page.includes('mine: m.senderId === currentUserId'));
+  const chat = read('src', 'lib', 'features', 'chat.ts');
+  assert.equal(chat.includes('export function encodeChatMessage'), false);
 });

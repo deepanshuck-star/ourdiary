@@ -197,6 +197,9 @@ export function createMemoryDeck(photoUrls: string[] = []): MemoryMatchCard[] {
 
 // --------------------------------------------------------------- Love Wordle ---
 
+// Every entry must be exactly five letters: evaluateWordleGuess compares
+// five positions and the board renders five tiles, so a shorter word makes
+// the last tile unwinnable. tests/games.test.mjs checks the whole list.
 export const LOVE_WORDS = [
   'HEART',
   'SWEET',
@@ -215,7 +218,7 @@ export const LOVE_WORDS = [
   'TRUST',
   'DREAM',
   'TOUCH',
-  'WARM',
+  'WARMS',
   'HAPPY',
   'GRACE',
   'KISSY',

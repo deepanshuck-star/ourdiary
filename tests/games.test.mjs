@@ -124,3 +124,26 @@ test('getWordOfTheDay returns a valid 5-letter word deterministically', () => {
   assert.equal(word1.length, 5);
   assert.ok(LOVE_WORDS.includes(word1));
 });
+
+test('every Wordle answer is exactly five letters', () => {
+  // evaluateWordleGuess compares five positions and the board renders five
+  // tiles, so a four-letter answer makes the last tile unwinnable. 'WARM'
+  // slipped into the list and getWordOfTheDay served it on 15 April.
+  const wrong = LOVE_WORDS.filter((w) => w.length !== 5);
+  assert.deepEqual(wrong, [], `not five letters: ${wrong.join(', ')}`);
+});
+
+test('every word the year can serve is playable', () => {
+  // Walk a full cycle of dates rather than spot-checking one, which is how
+  // the broken entry survived the original test.
+  for (let i = 0; i < LOVE_WORDS.length + 5; i++) {
+    const word = getWordOfTheDay(new Date(2026, 0, 1 + i));
+    assert.equal(word.length, 5, `${word} is not five letters`);
+    // A correct guess of the answer must score five greens.
+    assert.deepEqual(evaluateWordleGuess(word, word), new Array(5).fill('correct'));
+  }
+});
+
+test('Wordle answers are unique, so the daily cycle never repeats early', () => {
+  assert.equal(new Set(LOVE_WORDS).size, LOVE_WORDS.length);
+});

@@ -17,8 +17,7 @@ import {
 } from '@/lib/supabase/chat';
 import {
   MAX_MESSAGE_LENGTH,
-  decodeChatMessage,
-  encodeChatMessage,
+  stripLegacyProfileTag,
   formatChatTime,
   groupMessagesByDay,
   mergeMessages,
@@ -42,7 +41,6 @@ interface LocalChatMessage {
 interface ViewMessage {
   id: string;
   senderId: string;
-  senderProfile?: ProfileId;
   content: string;
   createdAt: string;
   readAt: string | null;
@@ -73,37 +71,28 @@ export default function ChatPage() {
   const messages: ViewMessage[] = useMemo(() => {
     const myProfile = data.activeProfileId;
     const base: ViewMessage[] = isRemote
-      ? remote.map((m) => {
-          const decoded = decodeChatMessage(m.content);
-          // If the message has an embedded profile tag, use that to align with
-          // the currently active profile view (even when simulating viewpoints).
-          // Otherwise fall back to comparing auth user IDs for untagged rows.
-          const isMine = decoded.profile
-            ? decoded.profile === myProfile
-            : m.senderId === currentUserId;
-          return {
-            id: m.id,
-            senderId: m.senderId,
-            senderProfile: (decoded.profile as ProfileId) || undefined,
-            content: decoded.text,
-            createdAt: m.createdAt,
-            readAt: m.readAt,
-            mine: isMine,
-          };
-        })
-      : local.map((m) => {
-          const decoded = decodeChatMessage(m.content);
-          const effectiveProfile = (decoded.profile as ProfileId) || m.senderId;
-          return {
-            id: m.id,
-            senderId: m.senderId,
-            senderProfile: effectiveProfile,
-            content: decoded.text,
-            createdAt: m.createdAt,
-            readAt: m.readAt,
-            mine: effectiveProfile === myProfile,
-          };
-        });
+      ? remote.map((m) => ({
+          id: m.id,
+          senderId: m.senderId,
+          // In a live space the account that wrote the row is the sender,
+          // full stop. Deriving it from the profile switcher instead meant a
+          // message you sent "as" your partner appeared on THEIR side of
+          // THEIR screen — a message they never wrote, attributed to them.
+          content: stripLegacyProfileTag(m.content),
+          createdAt: m.createdAt,
+          readAt: m.readAt,
+          mine: m.senderId === currentUserId,
+        }))
+      : local.map((m) => ({
+          id: m.id,
+          senderId: m.senderId,
+          // Demo mode has no accounts, so the stored senderId is already the
+          // profile slot — switching profiles is the whole point there.
+          content: stripLegacyProfileTag(m.content),
+          createdAt: m.createdAt,
+          readAt: m.readAt,
+          mine: m.senderId === myProfile,
+        }));
 
     // Drop any optimistic row the server has since echoed back to us.
     const confirmed = new Set(base.map((m) => m.id));
@@ -170,19 +159,11 @@ export default function ChatPage() {
   // Demo mode: opening the thread marks the other slot's messages read.
   useEffect(() => {
     if (isRemote) return;
-    const hasUnread = local.some((m) => {
-      const decoded = decodeChatMessage(m.content);
-      const sender = decoded.profile || m.senderId;
-      return sender !== data.activeProfileId && !m.readAt;
-    });
+    const hasUnread = local.some((m) => m.senderId !== data.activeProfileId && !m.readAt);
     if (!hasUnread) return;
     const now = new Date().toISOString();
     setLocal((prev) =>
-      prev.map((m) => {
-        const decoded = decodeChatMessage(m.content);
-        const sender = decoded.profile || m.senderId;
-        return sender !== data.activeProfileId && !m.readAt ? { ...m, readAt: now } : m;
-      })
+      prev.map((m) => (m.senderId !== data.activeProfileId && !m.readAt ? { ...m, readAt: now } : m))
     );
   }, [isRemote, local, data.activeProfileId, setLocal]);
 
@@ -215,15 +196,13 @@ export default function ChatPage() {
     setDraft('');
     setSending(true);
 
-    const encoded = encodeChatMessage(content, myProfile);
-
     if (!isRemote) {
       setLocal((prev) => [
         ...prev,
         {
           id: newId('msg'),
           senderId: myProfile,
-          content: encoded,
+          content,
           createdAt: new Date().toISOString(),
           readAt: null,
         },
@@ -237,7 +216,6 @@ export default function ChatPage() {
     const optimistic: ViewMessage = {
       id: tempId,
       senderId: currentUserId || '',
-      senderProfile: myProfile,
       content,
       createdAt: new Date().toISOString(),
       readAt: null,
@@ -247,7 +225,7 @@ export default function ChatPage() {
     setPending((prev) => [...prev, optimistic]);
 
     try {
-      const saved = await sendMessageRemote(supabase!, coupleId, currentUserId!, encoded);
+      const saved = await sendMessageRemote(supabase!, coupleId, currentUserId!, content);
       setRemote((prev) => mergeMessages(prev, [saved]));
       setPending((prev) => prev.filter((m) => m.id !== tempId));
     } catch (err: any) {
