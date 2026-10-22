@@ -4,6 +4,36 @@
 /** Matches the CHECK constraint on chat_messages.content in migration 15. */
 export const MAX_MESSAGE_LENGTH = 4000;
 
+/**
+ * Encodes sender profile metadata into the message content payload.
+ * Uses a concise bracket tag so existing database schemas and constraints
+ * work seamlessly across devices and simulated profile mode.
+ */
+export function encodeChatMessage(content: string, profileId?: string): string {
+  if (!profileId) return content;
+  const tag = '⟦p:' + profileId + '⟧';
+  if (content.length + tag.length > MAX_MESSAGE_LENGTH) {
+    return tag + content.slice(0, MAX_MESSAGE_LENGTH - tag.length);
+  }
+  return tag + content;
+}
+
+/**
+ * Extracts display text and optional sender profile tag from a stored message string.
+ * Gracefully handles legacy untagged strings.
+ */
+export function decodeChatMessage(raw: string): { text: string; profile?: string } {
+  if (typeof raw === 'string' && raw.startsWith('⟦p:')) {
+    const end = raw.indexOf('⟧');
+    if (end > 3) {
+      const profile = raw.slice(3, end);
+      const text = raw.slice(end + 1);
+      return { text, profile };
+    }
+  }
+  return { text: raw };
+}
+
 export interface ChatMessageLike {
   id: string;
   senderId: string;

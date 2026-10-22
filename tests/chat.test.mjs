@@ -10,6 +10,8 @@ import {
   unreadCount,
   unreadIdsToMark,
   validateMessage,
+  encodeChatMessage,
+  decodeChatMessage,
 } from '../src/lib/features/chat.ts';
 
 const read = (...p) => fs.readFileSync(path.join(process.cwd(), ...p), 'utf8');
@@ -155,4 +157,30 @@ test('chat.ts data layer targets chat_messages and cleans up its channel', () =>
 test('chat page removes its realtime channel on unmount', () => {
   const src = read('src', 'app', 'chat', 'page.tsx');
   assert.ok(src.includes('removeChannel'));
+});
+
+
+test('encodeChatMessage and decodeChatMessage round-trip correctly', () => {
+  const raw = 'Hello sweetie!';
+  const encoded = encodeChatMessage(raw, 'user_1');
+  assert.notEqual(encoded, raw);
+  const decoded = decodeChatMessage(encoded);
+  assert.equal(decoded.text, raw);
+  assert.equal(decoded.profile, 'user_1');
+});
+
+test('decodeChatMessage handles legacy messages without profile tag', () => {
+  const legacy = 'I love you so much';
+  const decoded = decodeChatMessage(legacy);
+  assert.equal(decoded.text, legacy);
+  assert.equal(decoded.profile, undefined);
+});
+
+test('encodeChatMessage caps at MAX_MESSAGE_LENGTH', () => {
+  const longText = 'x'.repeat(MAX_MESSAGE_LENGTH);
+  const encoded = encodeChatMessage(longText, 'user_2');
+  assert.ok(encoded.length <= MAX_MESSAGE_LENGTH);
+  const decoded = decodeChatMessage(encoded);
+  assert.equal(decoded.profile, 'user_2');
+  assert.ok(decoded.text.startsWith('x'));
 });

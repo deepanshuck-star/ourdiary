@@ -12,11 +12,13 @@ import {
   Music4,
   ShoppingBag,
   ThumbsDown,
+  Gamepad2,
 } from 'lucide-react';
 
 // Newer features — synced to the shared couple space in Supabase (see
 // src/lib/supabase/xsync.ts), same as memories/events/etc.
 export const exploreItems = [
+  { name: 'Couple Games', href: '/games', icon: Gamepad2 },
   { name: 'Our Chat', href: '/chat', icon: MessagesSquare },
   { name: 'Our Soundtrack', href: '/music', icon: Music4 },
   { name: 'Gifts Wardrobe', href: '/gifts', icon: ShoppingBag },
