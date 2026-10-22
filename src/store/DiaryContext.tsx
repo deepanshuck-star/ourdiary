@@ -25,6 +25,7 @@ import {
   validateAndImportDiaryData,
 } from '@/lib/storage';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { regenerateInviteCodeRemote, removePartnerRemote } from '@/lib/supabase/couple';
 import { fetchMemoriesRemote, createMemoryRemote, updateMemoryRemote, deleteMemoryRemote } from '@/lib/supabase/memories';
 import { fetchCoupleProfilesRemote, updateMyAvatarRemote, updateCouplePhotoRemote } from '@/lib/supabase/profiles';
 import { setSyncContext, setSyncErrorHandler } from '@/lib/local-store';
@@ -67,6 +68,9 @@ interface DiaryContextValue {
   setIsLiveUser: (live: boolean) => void;
   initCleanCoupleSpace: (couple: Couple) => void;
   regenerateCoupleCode: () => Promise<string>;
+  removePartner: (rotateCode?: boolean) => Promise<void>;
+  /** Whether the signed-in user created this space (owner-only controls). */
+  isCoupleCreator: boolean;
   addNote: (memoryId: string, content: string, visibility: 'shared' | 'private') => void;
   toggleNoteLock: (memoryId: string, noteId: string) => void;
   toggleNoteVisibleWhenLocked: (memoryId: string, noteId: string) => void;
@@ -120,6 +124,8 @@ function buildCleanCoupleData(couple: Couple): OurDiaryData {
       animationsEnabled: true,
       inviteCode: couple.inviteCode || Math.random().toString(36).substring(2, 8).toUpperCase(),
       isLocked: false,
+      // Whoever runs this flow is, by definition, the creator.
+      myRole: couple.myRole || 'creator',
       user1: {
         ...couple.user1,
         avatar: defaultAvatar1,
@@ -560,6 +566,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       theme: remoteCouple.theme || 'candy',
       inviteCode: remoteCouple.invite_code,
       photoUrl: remoteCouple.photo_url || undefined,
+      myRole: role,
     };
 
     let cached: OurDiaryData | null = null;
@@ -755,28 +762,11 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const regenerateCoupleCode = async (): Promise<string> => {
-    const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-    // If Supabase is connected and real couple exists, update remote database
-    const supabase = getSupabaseBrowserClient();
-    if (supabase && data.couple.id && isLiveUser) {
-      try {
-        await supabase
-          .from('couples')
-          .update({ invite_code: newCode })
-          .eq('id', data.couple.id);
-      } catch (err) {
-        console.warn('Could not update remote couple code:', err);
-      }
-    }
-
+  /** Mirrors a server-issued invite code into local state and the cache. */
+  const applyNewInviteCode = (newCode: string) => {
     setData((prev) => ({
       ...prev,
-      couple: {
-        ...prev.couple,
-        inviteCode: newCode,
-      },
+      couple: { ...prev.couple, inviteCode: newCode },
     }));
 
     if (isLiveUser && typeof window !== 'undefined') {
@@ -791,9 +781,56 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         }
       }
     }
+  };
 
-    showToast(`New couple code generated: ${newCode}. Previous code deleted! 🔒`, 'success');
-    return newCode;
+  /**
+   * Rotates the invite code. The server generates and stores it, and this
+   * only adopts what came back — the previous version generated a code
+   * locally, fired an UPDATE whose `error` it never read (supabase-js
+   * returns one rather than throwing), and reported success regardless. A
+   * rejected write left the screen showing a code that existed nowhere else,
+   * which nobody could then use to join.
+   *
+   * Throws on failure so the caller can say so instead of claiming success.
+   */
+  const regenerateCoupleCode = async (): Promise<string> => {
+    const supabase = getSupabaseBrowserClient();
+
+    // Demo mode has no server to ask, so the local code is the only code.
+    if (!supabase || !isLiveUser || !data.couple.id) {
+      const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      applyNewInviteCode(newCode);
+      showToast(`New couple code generated: ${newCode} 🔒`, 'success');
+      return newCode;
+    }
+
+    const couple = await regenerateInviteCodeRemote(supabase);
+    applyNewInviteCode(couple.invite_code);
+    showToast(`New code: ${couple.invite_code}. The old one no longer works 🔒`, 'success');
+    return couple.invite_code;
+  };
+
+  /**
+   * Removes the other partner from the space and, by default, rotates the
+   * invite code — they still know the current one, and the seat they just
+   * lost is now free, so leaving it alone lets them rejoin immediately.
+   *
+   * Creator-only, enforced in the database. Their memories and notes stay:
+   * those belong to the couple, not to the membership.
+   */
+  const removePartner = async (rotateCode: boolean = true): Promise<void> => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase || !isLiveUser || !data.couple.id) {
+      throw new Error('This only works in a signed-in couple space.');
+    }
+    const couple = await removePartnerRemote(supabase, rotateCode);
+    if (couple.invite_code) applyNewInviteCode(couple.invite_code);
+    showToast(
+      rotateCode
+        ? 'Partner removed, and a new invite code issued.'
+        : 'Partner removed.',
+      'info'
+    );
   };
 
   const addNote = (memoryId: string, content: string, visibility: 'shared' | 'private') => {
@@ -1495,6 +1532,8 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         setIsLiveUser,
         initCleanCoupleSpace,
         regenerateCoupleCode,
+        removePartner,
+        isCoupleCreator: data.couple.myRole !== 'partner',
         toggleNoteLock,
         toggleNoteVisibleWhenLocked,
         sendHeartbeatPing,
