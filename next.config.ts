@@ -23,6 +23,8 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   poweredByHeader: false,
   experimental: {
+    // Set by `next upgrade --agent=security` (16.4.0 -> 16.4.2).
+    agentUpgrade: 'security',
     optimizePackageImports: ['lucide-react', 'date-fns'],
   },
   images: {
