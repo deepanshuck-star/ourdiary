@@ -93,9 +93,14 @@ export default function OnboardingPage() {
           setPartner2Name('Partner');
           setCoupleName(`${userDisplayName} & Partner's Space`);
         } else {
-          setPartner1Name('You');
-          setPartner2Name('Partner');
-          setCoupleName('Our Couple Space');
+          // Signed out on a cloud-backed app. Previously this fell through
+          // to the form, and both handlers below then took their offline
+          // branch — fabricating a convincing local-only space and telling
+          // the visitor they had joined, while the database never heard of
+          // them. Sign in first; the account is what a space is attached to.
+          showToast('Please sign in first — your couple space is tied to your account.', 'info');
+          router.replace('/login');
+          return;
         }
       } catch (err) {
         console.error('Auth verification note:', err);
@@ -137,6 +142,16 @@ export default function OnboardingPage() {
     let coupleId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'c_' + Date.now();
     let finalName = coupleName.trim();
     let finalStart = startDate;
+
+    // On a cloud-backed app a space only exists if the database says so.
+    // Falling back to the local branch here would hand the visitor a space
+    // their partner can never join.
+    if (supabase && !authenticatedUser) {
+      showToast('Please sign in first — your couple space is tied to your account.', 'warn');
+      setIsSubmitting(false);
+      router.replace('/login');
+      return;
+    }
 
     // If Supabase is live and user is authenticated, the database is the source of truth.
     // The RPC is idempotent: it returns the user's existing space instead of creating a duplicate.
@@ -189,6 +204,17 @@ export default function OnboardingPage() {
 
     setIsSubmitting(true);
 
+    // This is the bug that let a partner "join" without an account: with no
+    // session the handler used to fall through to the offline branch below,
+    // build a local-only space seeded with demo data, and report success.
+    // Nothing reached the database, so the real space never gained a member.
+    if (supabase && !authenticatedUser) {
+      setJoinError('Please sign in or create an account first — a code can only be redeemed by an account.');
+      setIsSubmitting(false);
+      router.replace('/login');
+      return;
+    }
+
     if (supabase && authenticatedUser) {
       try {
         // Server-side RPC validates the code, enforces the 2-member limit and links the partner.
@@ -204,7 +230,8 @@ export default function OnboardingPage() {
       }
     }
 
-    // Mock / Offline join
+    // Demo mode only (no Supabase configured at all). Unreachable on a
+    // cloud-backed app thanks to the guard above.
     initCleanCoupleSpace({
       id: 'c_' + Date.now(),
       name: 'Our Couple Space',

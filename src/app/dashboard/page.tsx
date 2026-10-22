@@ -30,6 +30,7 @@ import {
   Key,
   Copy,
   RefreshCw,
+  UserMinus,
   Check,
   Dices,
   Ticket,
@@ -97,11 +98,15 @@ export default function DashboardPage() {
     isLiveUser,
     isHydrated,
     regenerateCoupleCode,
+    removePartner,
+    isCoupleCreator,
     showToast,
   } = useDiary();
   const [randomMemoryIndex, setRandomMemoryIndex] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showRegenModal, setShowRegenModal] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
   const [showHeartbeatModal, setShowHeartbeatModal] = useState(false);
 
   const handleCopyCode = () => {
@@ -116,10 +121,25 @@ export default function DashboardPage() {
     try {
       await regenerateCoupleCode();
       setShowRegenModal(false);
-    } catch {
-      showToast('Failed to regenerate code', 'warn');
+    } catch (err: any) {
+      // Say what the server actually refused. The old code swallowed this
+      // and claimed success, which is how a code could appear on screen
+      // that the database had never stored.
+      showToast(err?.message || 'Failed to regenerate code', 'warn');
     } finally {
       setIsRegenerating(false);
+    }
+  };
+
+  const handleConfirmRemovePartner = async () => {
+    setIsRemoving(true);
+    try {
+      await removePartner(true);
+      setShowRemoveModal(false);
+    } catch (err: any) {
+      showToast(err?.message || 'Could not remove your partner', 'warn');
+    } finally {
+      setIsRemoving(false);
     }
   };
 
@@ -699,14 +719,29 @@ export default function DashboardPage() {
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setShowRegenModal(true)}
-                className="px-4 py-2 rounded-full bg-surface border border-line text-ink hover:bg-slate-50 text-xs font-semibold transition-colors flex items-center gap-1.5 flex-shrink-0"
-              >
-                <RefreshCw className="w-3.5 h-3.5 text-primary" />
-                <span>Regenerate</span>
-              </button>
+              {/* Owner-only. The database enforces this too — a partner
+                  calling the RPC directly is refused — so hiding it here is
+                  about not offering an action that would fail. */}
+              {isCoupleCreator && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowRegenModal(true)}
+                    className="px-4 py-2 rounded-full bg-surface border border-line text-ink hover:bg-slate-50 text-xs font-semibold transition-colors flex items-center gap-1.5 flex-shrink-0"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 text-primary" />
+                    <span>Regenerate</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowRemoveModal(true)}
+                    className="px-4 py-2 rounded-full bg-surface border border-line text-ink hover:bg-slate-50 text-xs font-semibold transition-colors flex items-center gap-1.5 flex-shrink-0"
+                  >
+                    <UserMinus className="w-3.5 h-3.5 text-primary" />
+                    <span>Remove partner</span>
+                  </button>
+                </>
+              )}
             </div>
           </section>
         )}
@@ -741,6 +776,42 @@ export default function DashboardPage() {
                 className="flex-1 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-on-primary text-xs font-semibold shadow-cta transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
               >
                 {isRegenerating ? 'Regenerating…' : 'Delete & regenerate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Remove partner confirmation */}
+      {showRemoveModal && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-surface rounded-[1.5rem] p-6 max-w-md w-full shadow-2xl border border-line space-y-4 animate-in fade-in zoom-in-95">
+            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+              <UserMinus className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-display text-xl font-semibold text-ink">Remove {partnerProfile.name} from this space?</h3>
+              <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                They lose access immediately, and a fresh invite code is issued so the old one can't be used to come
+                straight back. Everything they added — memories, notes, gifts — stays here.
+              </p>
+            </div>
+
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowRemoveModal(false)}
+                className="flex-1 py-2.5 rounded-full border border-line text-ink text-xs font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmRemovePartner}
+                disabled={isRemoving}
+                className="flex-1 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-on-primary text-xs font-semibold shadow-cta transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+              >
+                {isRemoving ? 'Removing…' : 'Remove and reissue code'}
               </button>
             </div>
           </div>

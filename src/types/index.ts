@@ -22,6 +22,10 @@ export interface Couple {
   isLocked?: boolean;
   // A single photo of both partners together, shown top-left in the navbar.
   photoUrl?: string;
+  // The SIGNED-IN user's role in this space, cached here because the stored
+  // space blob is already per-user. Used to show or hide owner-only controls;
+  // it is never the authority — the database re-checks on every call.
+  myRole?: 'creator' | 'partner';
 }
 
 export type MemoryCategory =

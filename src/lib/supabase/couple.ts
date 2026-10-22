@@ -56,3 +56,36 @@ export async function joinCoupleByCodeRemote(
   if (error) throw new Error(error.message);
   return data as RemoteCouple;
 }
+
+/**
+ * Rotates the invite code. Creator-only, enforced in the database by both
+ * the RPC and a trigger on `couples`, so a partner is refused even if they
+ * call the table directly.
+ *
+ * Returns the code the server actually stored. The old client-side UPDATE
+ * never checked its result and reported success regardless, which left the
+ * screen showing a code the database had never seen.
+ */
+export async function regenerateInviteCodeRemote(supabase: SupabaseClient): Promise<RemoteCouple> {
+  const { data, error } = await supabase.rpc('regenerate_invite_code');
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error('The server did not return a new invite code.');
+  return data as RemoteCouple;
+}
+
+/**
+ * Removes the other partner from the space. Creator-only.
+ *
+ * `rotateCode` defaults to true on purpose: the person being removed still
+ * knows the current code, and the seat they just lost is now free, so
+ * leaving the code alone lets them walk straight back in.
+ */
+export async function removePartnerRemote(
+  supabase: SupabaseClient,
+  rotateCode = true
+): Promise<RemoteCouple> {
+  const { data, error } = await supabase.rpc('remove_partner', { p_rotate_code: rotateCode });
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error('The server did not confirm the change.');
+  return data as RemoteCouple;
+}
