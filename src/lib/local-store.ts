@@ -61,6 +61,7 @@ const SYNCED_SHARED_PREFIXES = [
   'countdowns:custom:',
   'budget:',
   'surprises:',
+  'games:',
 ];
 const SYNCED_OWNED_PREFIX = 'quiz:';
 
