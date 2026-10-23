@@ -50,7 +50,7 @@ interface ViewMessage {
 }
 
 export default function ChatPage() {
-  const { data, activeProfile, partnerProfile, switchProfile, isLiveUser, currentUserId, showToast } = useDiary();
+  const { data, activeProfile, partnerProfile, isLiveUser, currentUserId, showToast } = useDiary();
   const coupleId = data.couple.id;
   const supabase = isLiveUser && currentUserId ? getSupabaseBrowserClient() : null;
   const isRemote = Boolean(supabase && coupleId);
@@ -308,9 +308,6 @@ export default function ChatPage() {
                   <h3 className="font-semibold text-sm sm:text-base text-ink truncate leading-tight">
                     {partnerProfile.name}
                   </h3>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium hidden xs:inline">
-                    Cross Profile
-                  </span>
                 </div>
                 <p className="text-[11px] text-ink-muted truncate">
                   Incoming on left • Yours on right
@@ -318,17 +315,6 @@ export default function ChatPage() {
               </div>
             </div>
 
-            {/* Quick Switch Perspective Pill */}
-            <button
-              type="button"
-              onClick={() => switchProfile(partnerProfile.id)}
-              title={`Switch viewpoint to ${partnerProfile.name}`}
-              className="px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs font-medium rounded-full border border-line bg-canvas hover:bg-surface text-ink transition-colors flex items-center gap-1.5 shadow-2xs flex-shrink-0"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
-              <span className="hidden sm:inline">Reply as</span>
-              <span className="font-semibold text-primary">{partnerProfile.name}</span>
-            </button>
           </div>
 
           {/* Messages scroll area */}
@@ -366,7 +352,7 @@ export default function ChatPage() {
                       key={message.id}
                       className={`group flex items-end gap-2 ${message.mine ? 'justify-end' : 'justify-start'}`}
                     >
-                      {/* Cross Profile (Partner): Avatar on the left */}
+                      {/* Partner's message: avatar on the left */}
                       {!message.mine && (
                         <div className="flex-shrink-0 mb-0.5" title={partnerProfile.name}>
                           <img
@@ -398,7 +384,7 @@ export default function ChatPage() {
                             : 'bg-surface text-ink border border-line rounded-bl-md'
                         } ${message.pending ? 'opacity-70' : ''}`}
                       >
-                        {/* Cross Profile: Partner Name Header */}
+                        {/* Partner's name above their first bubble */}
                         {!message.mine && (
                           <p className="text-[11px] font-bold text-primary mb-0.5 leading-tight tracking-tight">
                             {partnerProfile.name}

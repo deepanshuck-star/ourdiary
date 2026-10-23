@@ -184,3 +184,12 @@ test('nothing writes a profile tag into the message content any more', () => {
   const chat = read('src', 'lib', 'features', 'chat.ts');
   assert.equal(chat.includes('export function encodeChatMessage'), false);
 });
+
+test('chat offers no way to post as your partner', () => {
+  const page = read('src', 'app', 'chat', 'page.tsx');
+  // Nobody wants to write a message as the other person. Who you are in a
+  // live space comes from the account, so the chat screen must not expose a
+  // control that changes it.
+  assert.equal(/Reply as/i.test(page), false);
+  assert.equal(page.includes('switchProfile'), false);
+});
