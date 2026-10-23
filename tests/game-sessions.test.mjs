@@ -92,3 +92,42 @@ test('the game hook cleans up its realtime channel', () => {
   const src = read('src', 'hooks', 'useGameSession.ts');
   assert.ok(src.includes('removeChannel'));
 });
+
+test('the arcade lists every registered game and can open each one', () => {
+  const page = read('src', 'app', 'games', 'page.tsx');
+  const registry = read('src', 'lib', 'features', 'games', 'registry.ts');
+  // A game in the registry with no component would render a blank screen
+  // behind a tile that says "Play".
+  const ids = [...registry.matchAll(/^\s{4}id: '([a-z0-9]+)',$/gm)].map((m) => m[1]);
+  assert.ok(ids.length >= 20, `expected the full catalogue, found ${ids.length}`);
+  for (const id of ids) {
+    assert.ok(new RegExp(`^\\s+${id}: `, 'm').test(page), `no component wired up for "${id}"`);
+  }
+});
+
+test('every game tile carries its rules and a player count', () => {
+  const registry = read('src', 'lib', 'features', 'games', 'registry.ts');
+  const blocks = registry.split(/^\s{2}\{$/m).slice(1);
+  assert.ok(blocks.length >= 20);
+  for (const block of blocks) {
+    if (!block.includes('id:')) continue;
+    assert.ok(block.includes('rules: ['), 'a game is missing its rules');
+    assert.ok(block.includes('players:'), 'a game is missing its player count');
+    assert.ok(block.includes('tagline:'), 'a game is missing its tagline');
+  }
+});
+
+test('the arcade has a way back to the tiles', () => {
+  const page = read('src', 'app', 'games', 'page.tsx');
+  assert.ok(page.includes('All games'));
+  assert.ok(page.includes('setOpenId(null)'));
+});
+
+test('games that need data say so rather than opening empty', () => {
+  const registry = read('src', 'lib', 'features', 'games', 'registry.ts');
+  assert.ok(registry.includes('export function unmetRequirement'));
+  const page = read('src', 'app', 'games', 'page.tsx');
+  assert.ok(page.includes('unmetRequirement'));
+  // A blocked tile must not be clickable into a dead end.
+  assert.ok(page.includes('disabled={Boolean(blocked)}'));
+});

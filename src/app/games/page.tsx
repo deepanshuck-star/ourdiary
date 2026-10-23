@@ -1,192 +1,216 @@
 'use client';
 
-import React, { useState } from 'react';
-import {
-  Gamepad2,
-  Heart,
-  Flame,
-  HelpCircle,
-  Puzzle,
-  FileText,
-  Palette,
-  Sparkles,
-  Trophy,
-} from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { ArrowLeft, Gamepad2, Lock } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { useCoupleMembers } from '@/hooks/useCoupleMembers';
+import { useLocalState } from '@/lib/local-store';
+import { locationKey, type GeocodeCache } from '@/lib/features/geocode-queue';
+import {
+  CATEGORIES,
+  GAMES,
+  gameById,
+  gamesInCategory,
+  unmetRequirement,
+  type LibraryStats,
+} from '@/lib/features/games/registry';
+
 import { TicTacToeGame } from '@/components/games/TicTacToeGame';
 import { TruthOrDareGame } from '@/components/games/TruthOrDareGame';
 import { WouldYouRatherGame } from '@/components/games/WouldYouRatherGame';
 import { MemoryMatchGame } from '@/components/games/MemoryMatchGame';
 import { LoveWordleGame } from '@/components/games/LoveWordleGame';
 import { LoveDoodleGame } from '@/components/games/LoveDoodleGame';
+import { Connect4Game } from '@/components/games/Connect4Game';
+import { DotsAndBoxesGame } from '@/components/games/DotsAndBoxesGame';
+import { HangmanGame } from '@/components/games/HangmanGame';
+import { WordChainGame } from '@/components/games/WordChainGame';
+import { GuessTheMemoryGame } from '@/components/games/GuessTheMemoryGame';
+import { TimelineRushGame } from '@/components/games/TimelineRushGame';
+import { WhereWereWeGame } from '@/components/games/WhereWereWeGame';
+import { GiftRecallGame } from '@/components/games/GiftRecallGame';
+import { KnowMeGame } from '@/components/games/KnowMeGame';
+import { ThirtySixQuestionsGame } from '@/components/games/ThirtySixQuestionsGame';
+import { TwoTruthsGame } from '@/components/games/TwoTruthsGame';
+import { RoseBudThornGame } from '@/components/games/RoseBudThornGame';
+import { StoryTennisGame } from '@/components/games/StoryTennisGame';
+import { RelationshipBingoGame } from '@/components/games/RelationshipBingoGame';
 
-type GameId = 'tictactoe' | 'truthordare' | 'wouldyourather' | 'memorymatch' | 'wordle' | 'doodle';
+/** Registry id -> component. Kept here so the registry stays pure data. */
+const COMPONENTS: Record<string, React.ComponentType> = {
+  guessmemory: GuessTheMemoryGame,
+  timeline: TimelineRushGame,
+  wherewerewe: WhereWereWeGame,
+  giftrecall: GiftRecallGame,
+  knowme: KnowMeGame,
+  connect4: Connect4Game,
+  dots: DotsAndBoxesGame,
+  hangman: HangmanGame,
+  wordchain: WordChainGame,
+  tictactoe: TicTacToeGame,
+  memorymatch: MemoryMatchGame,
+  wordle: LoveWordleGame,
+  thirtysix: ThirtySixQuestionsGame,
+  twotruths: TwoTruthsGame,
+  rosebudthorn: RoseBudThornGame,
+  truthordare: TruthOrDareGame,
+  wouldyourather: WouldYouRatherGame,
+  storytennis: StoryTennisGame,
+  bingo: RelationshipBingoGame,
+  doodle: LoveDoodleGame,
+};
 
-interface GameTab {
-  id: GameId;
-  title: string;
-  tagline: string;
-  badge: string;
-  icon: any;
-  accent: string;
-}
+export default function GamesPage() {
+  const { data } = useDiary();
+  const { partnerId } = useCoupleMembers();
+  const coupleId = data.couple.id || 'demo';
 
-const GAME_TABS: GameTab[] = [
-  {
-    id: 'tictactoe',
-    title: 'Hearts & Kisses',
-    tagline: 'Tic-Tac-Toe with romantic stakes',
-    badge: 'Popular',
-    icon: Heart,
-    accent: 'from-pink-500 to-rose-500',
-  },
-  {
-    id: 'truthordare',
-    title: 'Truth or Dare',
-    tagline: 'Romantic, intimate & spicy prompts',
-    badge: 'Spicy 🔥',
-    icon: Flame,
-    accent: 'from-red-500 to-rose-600',
-  },
-  {
-    id: 'wouldyourather',
-    title: 'Would You Rather',
-    tagline: 'Dilemmas & Never Have I Ever',
-    badge: 'Match',
-    icon: HelpCircle,
-    accent: 'from-purple-500 to-indigo-600',
-  },
-  {
-    id: 'memorymatch',
-    title: 'Memory Match',
-    tagline: 'Pair matching with real photos',
-    badge: 'Photos',
-    icon: Puzzle,
-    accent: 'from-amber-500 to-orange-500',
-  },
-  {
-    id: 'wordle',
-    title: 'Love Wordle',
-    tagline: 'Guess the daily 5-letter love word',
-    badge: 'Daily',
-    icon: FileText,
-    accent: 'from-emerald-500 to-teal-600',
-  },
-  {
-    id: 'doodle',
-    title: 'Love Doodle',
-    tagline: 'Draw cute sketches for each other',
-    badge: 'Creative',
-    icon: Palette,
-    accent: 'from-blue-500 to-cyan-500',
-  },
-];
+  // Selection is local state rather than a query param: ?game= would need a
+  // Suspense boundary under Next's prerender, for a Back button that works
+  // just as well without one.
+  const [openId, setOpenId] = useState<string | null>(null);
 
-export default function GamesArcadePage() {
-  const { data, activeProfile } = useDiary();
-  const [activeGame, setActiveGame] = useState<GameId>('tictactoe');
+  // The globe's geocode cache tells us which memories can actually be placed.
+  const [geocache] = useLocalState<GeocodeCache>(`globe-geocache:${coupleId}`, {});
+  const [localGifts] = useLocalState<unknown[]>(`gifts:${coupleId}`, []);
 
-  const selectedTab = GAME_TABS.find((t) => t.id === activeGame) || GAME_TABS[0];
+  const stats = useMemo<LibraryStats>(() => {
+    const memories = data.memories;
+    return {
+      hasPartner: Boolean(partnerId),
+      memories: memories.length,
+      photos: memories.reduce((n, m) => n + (m.photos?.length ?? 0), 0),
+      datedMemories: memories.filter((m) => /^\d{4}-\d{2}-\d{2}$/.test(m.date)).length,
+      placedMemories: memories.filter((m) => {
+        const key = locationKey(m.location);
+        return key ? geocache[key]?.status === 'found' : false;
+      }).length,
+      // Gifts live in Supabase in a live space; counting them here would
+      // mean a query on every arcade visit. The tile stays open and the
+      // game itself explains if the wardrobe is empty.
+      gifts: Math.max(localGifts.length, 2),
+    };
+  }, [data.memories, partnerId, geocache, localGifts.length]);
+
+  const open = gameById(openId);
+  const OpenComponent = openId ? COMPONENTS[openId] : null;
+
+  if (open && OpenComponent) {
+    return (
+      <AppShell>
+        <div className="max-w-3xl mx-auto space-y-6">
+          <div>
+            <button
+              type="button"
+              onClick={() => setOpenId(null)}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-muted hover:text-ink mb-3"
+            >
+              <ArrowLeft className="w-4 h-4" /> All games
+            </button>
+            <h1 className="font-display text-3xl font-semibold text-ink">{open.title}</h1>
+            <p className="text-sm text-ink-muted mt-1">{open.tagline}</p>
+          </div>
+
+          <details className="rounded-2xl border border-line bg-canvas p-4">
+            <summary className="text-sm font-semibold text-ink cursor-pointer">How it works</summary>
+            <ul className="mt-2 space-y-1 list-disc list-inside">
+              {open.rules.map((rule) => (
+                <li key={rule} className="text-xs text-ink-muted">
+                  {rule}
+                </li>
+              ))}
+            </ul>
+          </details>
+
+          <OpenComponent />
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Hero Section */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-wider mb-2">
-              <Gamepad2 className="w-3.5 h-3.5" />
-              <span>Couple Arcade • 100% Free</span>
-            </div>
-            <h1 className="font-display text-3xl sm:text-4xl font-bold text-ink tracking-tight">
-              Couple Games
-            </h1>
-            <p className="text-sm text-ink-muted mt-1 max-w-xl">
-              Playful mini-games to laugh, compete, spark conversation, and earn romantic stakes together.
-            </p>
-          </div>
-
-          <div className="inline-flex items-center gap-2 self-start sm:self-auto px-3.5 py-1.5 rounded-full bg-surface border border-line text-xs shadow-2xs">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-ink-muted">Challengers:</span>
-            <span className="font-bold text-ink">{data.couple.user1.name} & {data.couple.user2.name}</span>
-          </div>
+      <div className="max-w-5xl mx-auto space-y-10">
+        <header>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Couple games</p>
+          <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1 flex items-center gap-2">
+            <Gamepad2 className="w-7 h-7 text-primary" aria-hidden="true" />
+            {GAMES.length} ways to waste an evening
+          </h1>
+          <p className="text-sm text-ink-muted mt-2 max-w-2xl">
+            Pick one. The rules are on each card, so you can tell what you’re getting into before you commit.
+          </p>
         </header>
 
-        {/* Game Navigation Cards Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-          {GAME_TABS.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeGame === tab.id;
-
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveGame(tab.id)}
-                className={`p-3 rounded-2xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
-                  isActive
-                    ? 'border-primary bg-primary/10 shadow-sm scale-102 ring-2 ring-primary/20'
-                    : 'border-line bg-surface hover:bg-canvas hover:border-primary/40'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div
-                    className={`w-7 h-7 rounded-xl flex items-center justify-center text-white bg-gradient-to-br ${tab.accent} shadow-2xs`}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-canvas text-ink-muted border border-line">
-                    {tab.badge}
-                  </span>
-                </div>
-
-                <div>
-                  <p className="font-display text-xs font-bold text-ink leading-tight truncate">
-                    {tab.title}
-                  </p>
-                  <p className="text-[10px] text-ink-muted truncate mt-0.5">{tab.tagline}</p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Selected Game Card Showcase */}
-        <section
-          aria-label={selectedTab.title}
-          className="rounded-[1.5rem] border border-line bg-surface shadow-card p-5 sm:p-7 space-y-6"
-        >
-          {/* Header inside game box */}
-          <div className="flex items-center justify-between border-b border-line pb-4 flex-wrap gap-2">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-display text-xl sm:text-2xl font-bold text-ink">
-                  {selectedTab.title}
+        {CATEGORIES.map((category) => {
+          const games = gamesInCategory(category.id);
+          if (games.length === 0) return null;
+          return (
+            <section key={category.id} aria-labelledby={`cat-${category.id}`} className="space-y-4">
+              <div>
+                <h2 id={`cat-${category.id}`} className="text-2xl font-semibold text-ink">
+                  {category.title}
                 </h2>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
-                  {selectedTab.badge}
-                </span>
+                <p className="text-sm text-ink-muted mt-0.5 max-w-2xl">{category.blurb}</p>
               </div>
-              <p className="text-xs text-ink-muted mt-0.5">{selectedTab.tagline}</p>
-            </div>
 
-            <div className="flex items-center gap-2 text-xs text-ink-muted">
-              <span>Playing as: <strong className="text-ink">{activeProfile.name}</strong></span>
-            </div>
-          </div>
+              <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {games.map((gameMeta) => {
+                  const blocked = unmetRequirement(gameMeta, stats);
+                  return (
+                    <li key={gameMeta.id}>
+                      <button
+                        type="button"
+                        onClick={() => setOpenId(gameMeta.id)}
+                        disabled={Boolean(blocked)}
+                        className={`h-full w-full text-left rounded-[1.25rem] border p-5 shadow-sm transition-colors flex flex-col gap-3 ${
+                          blocked
+                            ? 'border-line bg-canvas opacity-70 cursor-not-allowed'
+                            : 'border-line bg-surface hover:border-primary hover:shadow-card'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-start justify-between gap-2">
+                            <h3 className="font-display text-lg font-semibold text-ink leading-tight">
+                              {gameMeta.title}
+                            </h3>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full flex-shrink-0">
+                              {gameMeta.players}
+                            </span>
+                          </div>
+                          <p className="text-xs text-ink-muted mt-0.5">{gameMeta.tagline}</p>
+                        </div>
 
-          {/* Active Game Component */}
-          <div className="pt-2">
-            {activeGame === 'tictactoe' && <TicTacToeGame />}
-            {activeGame === 'truthordare' && <TruthOrDareGame />}
-            {activeGame === 'wouldyourather' && <WouldYouRatherGame />}
-            {activeGame === 'memorymatch' && <MemoryMatchGame />}
-            {activeGame === 'wordle' && <LoveWordleGame />}
-            {activeGame === 'doodle' && <LoveDoodleGame />}
-          </div>
-        </section>
+                        <ul className="space-y-1 flex-1">
+                          {gameMeta.rules.map((rule) => (
+                            <li key={rule} className="text-xs text-ink-muted flex gap-1.5">
+                              <span className="text-primary flex-shrink-0" aria-hidden="true">
+                                ·
+                              </span>
+                              <span>{rule}</span>
+                            </li>
+                          ))}
+                        </ul>
+
+                        {blocked ? (
+                          <p className="text-[11px] font-semibold text-ink-muted flex items-center gap-1.5 pt-1 border-t border-line">
+                            <Lock className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+                            {blocked}
+                          </p>
+                        ) : (
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-primary pt-1 border-t border-line">
+                            Play →
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        })}
       </div>
     </AppShell>
   );
