@@ -2,12 +2,15 @@
 
 import React, { useMemo, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { Clapperboard, Globe2, Moon, Sun, Trash2 } from 'lucide-react';
+import { CalendarClock, Globe2, Loader2, MapPin, Moon, Sun, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
-import { useLocalState } from '@/lib/local-store';
-import { useNow } from '@/hooks/useNow';
+import { useLongDistance } from '@/hooks/useLongDistance';
 import { splitDuration } from '@/lib/features/countdowns';
+import { buildNominatimUrl, locationKey, parseNominatimResponse } from '@/lib/features/geocode-queue';
+import { DistanceCounter } from '@/components/widgets/DistanceCounter';
+import { MorningMail } from '@/components/widgets/MorningMail';
+import { WatchTogetherSync } from '@/components/widgets/WatchTogetherSync';
 import {
   filterTimeZones,
   formatMinutesInOffset,
@@ -20,12 +23,8 @@ import {
   zonedParts,
   zonedTimeToUtc,
 } from '@/lib/features/timezones';
-import type { DemoProfile, ProfileId } from '@/types';
-
-interface LongDistanceState {
-  zones: Partial<Record<ProfileId, string>>;
-  watch?: { title: string; startUtc: number; setBy: ProfileId };
-}
+import type { DistanceUnit, HomePlace } from '@/lib/features/distance';
+import type { DemoProfile } from '@/types';
 
 const FALLBACK_ZONES = [
   'UTC',
@@ -48,14 +47,6 @@ function allTimeZones(): string[] {
     // Older browsers.
   }
   return FALLBACK_ZONES;
-}
-
-function deviceZone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-  } catch {
-    return 'UTC';
-  }
 }
 
 function formatClock(ms: number, timeZone: string, withSeconds = true) {
@@ -127,6 +118,108 @@ function ZonePicker({
   );
 }
 
+/**
+ * Turns "Kolkata" into a coordinate so the distance counter has something to
+ * measure. One lookup per button press, through the same OpenStreetMap
+ * service the Memory Globe uses — a city, not a live position, because
+ * nothing here needs to know where anyone actually is.
+ */
+function HomeCityPicker({
+  home,
+  onSave,
+  onClear,
+}: {
+  home: HomePlace | null;
+  onSave: (place: HomePlace) => void;
+  onClear: () => void;
+}) {
+  const [query, setQuery] = useState('');
+  const [status, setStatus] = useState<'idle' | 'looking' | 'notfound' | 'error'>('idle');
+
+  const lookup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const key = locationKey(query);
+    if (!key) return;
+    setStatus('looking');
+    try {
+      const res = await fetch(buildNominatimUrl(key), { headers: { Accept: 'application/json' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const entry = parseNominatimResponse(await res.json());
+      if (entry.status !== 'found') {
+        setStatus('notfound');
+        return;
+      }
+      onSave({ query: query.trim(), lat: entry.lat, lng: entry.lng, label: entry.label });
+      setQuery('');
+      setStatus('idle');
+    } catch {
+      setStatus('error');
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      {home && (
+        <div className="rounded-2xl bg-hero border border-line p-3 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-ink flex items-center gap-1.5">
+              <MapPin className="w-4 h-4 text-primary flex-shrink-0" aria-hidden="true" />
+              {home.query}
+            </p>
+            {home.label && <p className="text-[11px] text-ink-muted mt-0.5 truncate">{home.label}</p>}
+          </div>
+          <button
+            type="button"
+            onClick={onClear}
+            aria-label="Remove your city"
+            className="p-2 rounded-full text-ink-muted hover:text-danger flex-shrink-0"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      <form onSubmit={lookup} className="flex gap-2 items-end">
+        <div className="flex-1">
+          <label htmlFor="home-city" className="block text-xs font-semibold text-ink-muted mb-1">
+            {home ? 'Moved? Set a new city' : 'Which city are you in?'}
+          </label>
+          <input
+            id="home-city"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            maxLength={80}
+            placeholder="Kolkata"
+            className="w-full px-4 py-2.5 rounded-2xl border border-line bg-surface text-ink text-sm focus:outline-none focus:ring-2 focus:ring-focus"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={status === 'looking' || !query.trim()}
+          className="px-4 py-2.5 rounded-full text-sm font-semibold bg-primary hover:bg-primary-hover text-on-primary shadow-cta disabled:opacity-40 flex items-center gap-1.5"
+        >
+          {status === 'looking' ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : null}
+          Save
+        </button>
+      </form>
+
+      {status === 'notfound' && (
+        <p role="alert" className="text-xs text-danger font-medium">
+          No city by that name came back. Try the nearest bigger one.
+        </p>
+      )}
+      {status === 'error' && (
+        <p role="alert" className="text-xs text-danger font-medium">
+          The lookup didn’t answer. Try again in a moment.
+        </p>
+      )}
+      <p className="text-[11px] text-ink-muted">
+        Only the city name is sent, to OpenStreetMap, and only when you press Save.
+      </p>
+    </div>
+  );
+}
+
 function PersonClock({
   profile,
   zone,
@@ -187,25 +280,29 @@ function PersonClock({
 }
 
 export default function LongDistancePage() {
-  const { data, activeProfile, partnerProfile, showToast } = useDiary();
+  const { activeProfile, partnerProfile, showToast } = useDiary();
   const reduceMotion = useReducedMotion() ?? false;
-  const now = useNow(1000);
-  const me = data.activeProfileId;
-  const partner: ProfileId = me === 'user_1' ? 'user_2' : 'user_1';
+  const ld = useLongDistance(1000);
+  const {
+    now,
+    me,
+    myZone,
+    partnerZone,
+    myZoneIsSet,
+    partnerZoneIsSet,
+    myHome,
+    deviceZone,
+    unit,
+    setZone,
+    setHome,
+    setUnit,
+    setWatch,
+  } = ld;
 
-  const [state, setState] = useLocalState<LongDistanceState>(`longDistance:${data.couple.id}`, { zones: {} });
   const zones = useMemo(() => allTimeZones(), []);
-  // Resolved after mount so the server render and first client render agree.
-  const device = now === null ? 'UTC' : deviceZone();
-
-  const myZone = state.zones[me] ?? device;
-  const partnerZone = state.zones[partner] ?? device;
 
   const [watchTitle, setWatchTitle] = useState('');
   const [watchAt, setWatchAt] = useState('');
-
-  const setZone = (who: ProfileId, zone: string) =>
-    setState((prev) => ({ ...prev, zones: { ...prev.zones, [who]: zone } }));
 
   const myOffset = now === null ? 0 : offsetMinutes(now, myZone);
   const partnerOffset = now === null ? 0 : offsetMinutes(now, partnerZone);
@@ -217,13 +314,13 @@ export default function LongDistancePage() {
     const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(watchAt);
     if (!m) return;
     const startUtc = zonedTimeToUtc(+m[1], +m[2], +m[3], +m[4], +m[5], myZone);
-    setState((prev) => ({ ...prev, watch: { title: watchTitle.trim() || 'Movie night', startUtc, setBy: me } }));
+    setWatch({ title: watchTitle.trim() || 'Movie night', startUtc, setBy: me });
     setWatchTitle('');
     setWatchAt('');
     showToast('Watch party scheduled for both of you', 'success');
   };
 
-  const watch = state.watch;
+  const watch = ld.state.watch;
   const watchParts = watch && now !== null ? splitDuration(watch.startUtc - now) : null;
   const watchLive = watchParts?.past && watchParts.totalMs > -3 * 3600 * 1000;
 
@@ -234,17 +331,19 @@ export default function LongDistancePage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Long-distance mode</p>
           <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1">Same love, different clocks</h1>
           <p className="text-sm text-ink-muted mt-2 max-w-2xl">
-            See each other's time at a glance, find the hours you're both awake, and start a show at exactly the same
-            moment.
+            See each other's time at a glance, find the hours you're both awake, write into their night, and
+            start a show at exactly the same moment.
           </p>
         </header>
 
+        <DistanceCounter />
+
         <section aria-label="Both local times" className="grid md:grid-cols-2 gap-4">
-          <PersonClock profile={activeProfile} zone={myZone} zoneIsSet={Boolean(state.zones[me])} now={now} isMe />
+          <PersonClock profile={activeProfile} zone={myZone} zoneIsSet={myZoneIsSet} now={now} isMe />
           <PersonClock
             profile={partnerProfile}
             zone={partnerZone}
-            zoneIsSet={Boolean(state.zones[partner])}
+            zoneIsSet={partnerZoneIsSet}
             now={now}
             isMe={false}
           />
@@ -284,24 +383,68 @@ export default function LongDistancePage() {
         </section>
 
         <section aria-labelledby="zones-heading" className="rounded-[1.25rem] bg-surface border border-line p-5 sm:p-6 shadow-card">
-          <h2 id="zones-heading" className="text-xl font-semibold text-ink">Your time zone, {activeProfile.name}</h2>
+          <h2 id="zones-heading" className="text-xl font-semibold text-ink">Where you are, {activeProfile.name}</h2>
           <p className="text-xs text-ink-muted mt-1">
-            Each of you sets your own. {partnerProfile.name} can pick theirs after switching to their profile.
-            {!state.zones[me] && ` We're using this device's zone (${prettyZone(device)}) until you choose.`}
+            Each of you sets your own, and it now reaches the other's device — everything that knows when
+            your morning starts is built on this.
+            {!myZoneIsSet && ` We're using this device's zone (${prettyZone(deviceZone)}) until you choose.`}
           </p>
-          <div className="mt-4 max-w-md">
+          <div className="mt-4 grid md:grid-cols-2 gap-5">
             <ZonePicker id="my-zone" zones={zones} value={myZone} onChange={(z) => setZone(me, z)} />
+            <div className="space-y-3">
+              <HomeCityPicker
+                home={myHome}
+                onSave={(place) => {
+                  setHome(me, place);
+                  showToast('City saved — the distance counter is live', 'success');
+                }}
+                onClear={() => setHome(me, null)}
+              />
+              <fieldset className="flex items-center gap-2">
+                <legend className="sr-only">Distance unit</legend>
+                {(['km', 'mi'] as DistanceUnit[]).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setUnit(option)}
+                    aria-pressed={unit === option}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+                      unit === option
+                        ? 'bg-primary text-on-primary border-transparent'
+                        : 'bg-surface text-ink-muted border-line hover:text-ink'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </fieldset>
+            </div>
           </div>
+          {!partnerZoneIsSet && (
+            <p className="text-[11px] text-ink-muted mt-4">
+              {partnerProfile.name} hasn’t set theirs yet, so the sleep-aware parts of this page stay quiet
+              rather than guessing.
+            </p>
+          )}
         </section>
+
+        <MorningMail
+          partnerName={partnerProfile.name}
+          partnerZone={partnerZone}
+          partnerAsleep={Boolean(ld.partnerSleep?.asleep)}
+          partnerNextWakeUtc={ld.partnerSleep?.nextWakeUtc ?? now ?? 0}
+        />
+
+        <WatchTogetherSync />
 
         <section aria-labelledby="watch-heading" className="rounded-[1.25rem] bg-surface border border-line p-5 sm:p-6 shadow-card space-y-5">
           <div>
             <h2 id="watch-heading" className="text-xl font-semibold text-ink flex items-center gap-2">
-              <Clapperboard className="w-5 h-5 text-primary" aria-hidden="true" /> Watch together
+              <CalendarClock className="w-5 h-5 text-primary" aria-hidden="true" /> Plan it for later
             </h2>
             <p className="text-xs text-ink-muted mt-1">
-              Pick a start time in your zone. You each see the countdown and start time on your own clock, then press play
-              at zero.
+              Pick a start time in your zone and you each see it on your own clock. When the night comes
+              round, use the countdown above to actually press play together.
             </p>
           </div>
 
@@ -309,7 +452,7 @@ export default function LongDistancePage() {
             <div className="rounded-[1.25rem] bg-hero border border-line p-5 text-center relative">
               <button
                 type="button"
-                onClick={() => setState((prev) => ({ ...prev, watch: undefined }))}
+                onClick={() => setWatch(undefined)}
                 aria-label="Cancel watch party"
                 className="absolute top-3 right-3 p-2 rounded-full text-ink-muted hover:text-ink"
               >

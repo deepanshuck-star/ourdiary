@@ -63,6 +63,30 @@ export async function fetchMessagesBeforeRemote(
   return (data || []).map(rowToMessage).reverse();
 }
 
+/**
+ * The most recent thing the other person sent, or null if they haven't.
+ *
+ * Filtered by "not me" rather than by the partner's id so it still works
+ * before the partner lookup has resolved — in a two-person space those are
+ * the same set.
+ */
+export async function fetchLastPartnerMessageRemote(
+  supabase: SupabaseClient,
+  coupleId: string,
+  myUserId: string
+): Promise<ChatMessageRow | null> {
+  const { data, error } = await supabase
+    .from('chat_messages')
+    .select('*')
+    .eq('couple_id', coupleId)
+    .neq('sender_id', myUserId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? rowToMessage(data) : null;
+}
+
 export async function sendMessageRemote(
   supabase: SupabaseClient,
   coupleId: string,

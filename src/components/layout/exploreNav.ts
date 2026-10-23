@@ -13,6 +13,9 @@ import {
   ShoppingBag,
   ThumbsDown,
   Gamepad2,
+  Camera,
+  Package,
+  Plane,
 } from 'lucide-react';
 
 // Newer features — synced to the shared couple space in Supabase (see
@@ -28,6 +31,9 @@ export const exploreItems = [
   { name: 'Date Ideas', href: '/date-ideas', icon: HeartHandshake },
   { name: 'Countdowns', href: '/countdowns', icon: Hourglass },
   { name: 'Long Distance', href: '/long-distance', icon: Clock3 },
+  { name: 'Next Visit', href: '/trips', icon: Plane },
+  { name: 'Care Packages', href: '/care-packages', icon: Package },
+  { name: 'Photo of My Day', href: '/photo-of-the-day', icon: Camera },
   { name: 'Date Budget', href: '/budget', icon: Wallet },
   { name: 'Surprise Notes', href: '/surprises', icon: MapPinned },
   { name: 'Year in Review', href: '/year-review', icon: Gift },

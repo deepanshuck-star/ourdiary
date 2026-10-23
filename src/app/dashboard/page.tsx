@@ -42,6 +42,8 @@ import { OnThisDayCard } from '@/components/widgets/OnThisDayCard';
 import { DailyQuestionCard } from '@/components/widgets/DailyQuestionCard';
 import { CassettePlayerWidget } from '@/components/widgets/CassettePlayerWidget';
 import { CoupleStreakChip } from '@/components/widgets/CoupleStreakChip';
+import { GoodMorningHandoff } from '@/components/widgets/GoodMorningHandoff';
+import { DistanceCounter } from '@/components/widgets/DistanceCounter';
 import { MoodHistoryRecorder } from '@/components/widgets/MoodHistoryRecorder';
 
 type Ritual = {
@@ -291,6 +293,11 @@ export default function DashboardPage() {
             </div>
           </div>
         </header>
+
+        {/* Only appears when one of you is awake into the other's night. */}
+        <GoodMorningHandoff />
+
+        <DistanceCounter />
 
         {/* Today — the dominant card */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6" aria-labelledby="today-heading">

@@ -9,6 +9,8 @@ import {
   formatMinutesInOffset,
   filterTimeZones,
   formatOffset,
+  nextLocalTimeUtc,
+  sleepStateFor,
 } from '../src/lib/features/timezones.ts';
 
 test('offsetMinutes for fixed and DST zones', () => {
@@ -61,4 +63,43 @@ test('filterTimeZones searches case-insensitively with spaces', () => {
   const zones = ['America/New_York', 'Asia/Kolkata', 'Europe/London'];
   assert.deepEqual(filterTimeZones(zones, 'new york'), ['America/New_York']);
   assert.deepEqual(filterTimeZones(zones, ''), zones);
+});
+
+test('nextLocalTimeUtc finds their next 7am, never today’s if it has gone', () => {
+  // 06:00 in London: today's 07:00 is still ahead.
+  const morning = Date.UTC(2026, 0, 15, 6, 0);
+  assert.equal(nextLocalTimeUtc(morning, 'Europe/London', 7), Date.UTC(2026, 0, 15, 7, 0));
+  // 08:00 in London: today's has gone, so it rolls to tomorrow.
+  const later = Date.UTC(2026, 0, 15, 8, 0);
+  assert.equal(nextLocalTimeUtc(later, 'Europe/London', 7), Date.UTC(2026, 0, 16, 7, 0));
+  // Asia/Kolkata is +5:30, so their 07:00 is 01:30 UTC.
+  assert.equal(nextLocalTimeUtc(morning, 'Asia/Kolkata', 7), Date.UTC(2026, 0, 16, 1, 30));
+});
+
+test('nextLocalTimeUtc lands on the right morning across a DST jump', () => {
+  // UK clocks go forward 01:00 -> 02:00 on 29 March 2026. The morning after
+  // is 07:00 BST = 06:00 UTC, not 07:00 UTC.
+  const beforeChange = Date.UTC(2026, 2, 28, 12, 0);
+  assert.equal(nextLocalTimeUtc(beforeChange, 'Europe/London', 7), Date.UTC(2026, 2, 29, 6, 0));
+});
+
+test('sleepStateFor answers both halves of the long-distance question', () => {
+  // 19:30 UTC: 01:00 in Kolkata (asleep), 19:30 in London (up).
+  const at = Date.UTC(2026, 0, 15, 19, 30);
+  const kolkata = sleepStateFor(at, 'Asia/Kolkata');
+  assert.equal(kolkata.hour, 1);
+  assert.equal(kolkata.asleep, true);
+  assert.equal(kolkata.nextWakeUtc, Date.UTC(2026, 0, 16, 1, 30));
+
+  const london = sleepStateFor(at, 'Europe/London');
+  assert.equal(london.hour, 19);
+  assert.equal(london.asleep, false);
+  assert.equal(london.nextBedtimeUtc, Date.UTC(2026, 0, 15, 23, 0));
+});
+
+test('sleepStateFor agrees with isProbablyAsleep at the boundaries', () => {
+  for (const hour of [0, 6, 7, 12, 22, 23]) {
+    const at = Date.UTC(2026, 0, 15, hour);
+    assert.equal(sleepStateFor(at, 'UTC').asleep, isProbablyAsleep(hour));
+  }
 });

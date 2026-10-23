@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { DiaryProvider } from '@/store/DiaryContext';
+import { PresenceProvider } from './PresenceProvider';
 import { registerServiceWorker } from '@/lib/notifications';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -9,5 +10,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     registerServiceWorker();
   }, []);
 
-  return <DiaryProvider>{children}</DiaryProvider>;
+  return (
+    <DiaryProvider>
+      <PresenceProvider>{children}</PresenceProvider>
+    </DiaryProvider>
+  );
 }

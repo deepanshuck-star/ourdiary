@@ -70,6 +70,51 @@ export function isDaytime(hour: number): boolean {
   return hour >= 6 && hour < 18;
 }
 
+/**
+ * The next instant at which `timeZone`'s wall clock reads hour:minute.
+ * Always strictly in the future, so "their next 7am" is never today's 7am
+ * once it has already passed.
+ *
+ * Going through zonedTimeToUtc rather than adding a fixed number of hours
+ * means a day that is 23 or 25 hours long still lands on the right morning.
+ */
+export function nextLocalTimeUtc(nowMs: number, timeZone: string, hour: number, minute = 0): number {
+  const today = zonedParts(nowMs, timeZone);
+  const at = zonedTimeToUtc(today.year, today.month, today.day, hour, minute, timeZone);
+  if (at > nowMs) return at;
+  const tomorrow = zonedParts(nowMs + DAY_MIN * 60000, timeZone);
+  return zonedTimeToUtc(tomorrow.year, tomorrow.month, tomorrow.day, hour, minute, timeZone);
+}
+
+export interface SleepState {
+  /** Their local hour, 0-23. */
+  hour: number;
+  asleep: boolean;
+  /** When their next morning starts. */
+  nextWakeUtc: number;
+  /** When they next turn in. */
+  nextBedtimeUtc: number;
+}
+
+/**
+ * Everything the sleep-aware features need about one person at one instant:
+ * whether they're probably asleep, and when that changes either way.
+ */
+export function sleepStateFor(
+  nowMs: number,
+  timeZone: string,
+  wakeHour = WAKE_START_MIN / 60,
+  bedHour = WAKE_END_MIN / 60
+): SleepState {
+  const { hour } = zonedParts(nowMs, timeZone);
+  return {
+    hour,
+    asleep: hour >= bedHour || hour < wakeHour,
+    nextWakeUtc: nextLocalTimeUtc(nowMs, timeZone, wakeHour),
+    nextBedtimeUtc: nextLocalTimeUtc(nowMs, timeZone, bedHour),
+  };
+}
+
 export type Interval = [number, number]; // [start, end) in minutes of the UTC day
 
 function normalize(m: number): number {

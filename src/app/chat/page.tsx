@@ -4,6 +4,8 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 import { CheckCheck, Clock, Loader2, MessagesSquare, Send, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { usePresence } from '@/components/providers/PresenceProvider';
+import { PresenceDot } from '@/components/widgets/PartnerPresence';
 import { newId, useNow } from '@/hooks/useNow';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useLocalState } from '@/lib/local-store';
@@ -51,6 +53,7 @@ interface ViewMessage {
 
 export default function ChatPage() {
   const { data, activeProfile, partnerProfile, isLiveUser, currentUserId, showToast } = useDiary();
+  const presence = usePresence();
   const coupleId = data.couple.id;
   const supabase = isLiveUser && currentUserId ? getSupabaseBrowserClient() : null;
   const isRemote = Boolean(supabase && coupleId);
@@ -67,6 +70,11 @@ export default function ChatPage() {
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
+
+  // Leaving the page mid-sentence would otherwise leave "typing…" on their
+  // screen until the TTL ran out.
+  const { setTyping } = presence;
+  useEffect(() => () => setTyping(false), [setTyping]);
 
   const messages: ViewMessage[] = useMemo(() => {
     const myProfile = data.activeProfileId;
@@ -182,6 +190,16 @@ export default function ChatPage() {
     }
   }, [messages.length]);
 
+  // The typing bubble adds height below the last message; follow it down only
+  // if they were already reading at the bottom.
+  useEffect(() => {
+    if (!presence.partnerTyping) return;
+    const container = scrollRef.current;
+    if (!container) return;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    if (distanceFromBottom < 200) endRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+  }, [presence.partnerTyping]);
+
   // --------------------------------------------------------------- send ---
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,6 +212,7 @@ export default function ChatPage() {
     const myProfile = data.activeProfileId;
     setError('');
     setDraft('');
+    setTyping(false);
     setSending(true);
 
     if (!isRemote) {
@@ -298,10 +317,7 @@ export default function ChatPage() {
                   alt={partnerProfile.name}
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover ring-2 ring-primary/20 shadow-xs"
                 />
-                <span
-                  className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-surface rounded-full"
-                  title="Online in space"
-                />
+                <PresenceDot className="absolute bottom-0 right-0 w-2.5 h-2.5" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
@@ -309,8 +325,16 @@ export default function ChatPage() {
                     {partnerProfile.name}
                   </h3>
                 </div>
-                <p className="text-[11px] text-ink-muted truncate">
-                  Incoming on left • Yours on right
+                <p
+                  className={`text-[11px] truncate ${
+                    presence.partnerTyping ? 'text-primary font-semibold' : 'text-ink-muted'
+                  }`}
+                >
+                  {presence.partnerTyping
+                    ? 'typing…'
+                    : presence.available
+                      ? presence.label.text
+                      : 'Incoming on left • Yours on right'}
                 </p>
               </div>
             </div>
@@ -441,6 +465,27 @@ export default function ChatPage() {
                 </div>
               ))
             )}
+            {presence.partnerTyping && (
+              <div className="flex items-end gap-2 justify-start" aria-live="polite">
+                <img
+                  src={partnerProfile.avatar}
+                  alt=""
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover ring-2 ring-line shadow-2xs flex-shrink-0 mb-0.5"
+                />
+                <div className="rounded-2xl rounded-bl-md bg-surface border border-line px-4 py-3">
+                  <span className="sr-only">{partnerProfile.name} is typing</span>
+                  <span className="flex items-center gap-1" aria-hidden="true">
+                    {[0, 1, 2].map((i) => (
+                      <span
+                        key={i}
+                        className="w-1.5 h-1.5 rounded-full bg-ink-muted/70 motion-safe:animate-bounce"
+                        style={{ animationDelay: `${i * 140}ms` }}
+                      />
+                    ))}
+                  </span>
+                </div>
+              </div>
+            )}
             <div ref={endRef} />
           </div>
 
@@ -452,7 +497,13 @@ export default function ChatPage() {
             <textarea
               id="chat-draft"
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) => {
+                setDraft(e.target.value);
+                // An empty box is not "typing" — clearing the draft should
+                // take the indicator down on their side straight away.
+                setTyping(e.target.value.trim().length > 0);
+              }}
+              onBlur={() => setTyping(false)}
               onKeyDown={onKeyDown}
               rows={1}
               maxLength={MAX_MESSAGE_LENGTH}

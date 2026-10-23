@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useDiary } from '@/store/DiaryContext';
+import { PartnerPresenceChip } from '@/components/widgets/PartnerPresence';
 import { calculateDaysTogether } from '@/lib/date-utils';
 import {
   Heart,
@@ -83,6 +84,9 @@ export function AppNavbar() {
 
         {/* Right Actions & Profile Switcher */}
         <div className="flex items-center gap-3">
+          {/* Is the other person here right now? */}
+          <PartnerPresenceChip />
+
           {/* Add Memory Button */}
           <Link
             href="/memories/new"

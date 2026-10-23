@@ -62,6 +62,15 @@ const SYNCED_SHARED_PREFIXES = [
   'budget:',
   'surprises:',
   'games:',
+  // Long-distance: each partner's time zone and home city. These have to
+  // cross devices or none of the sleep-aware features can work — "deliver
+  // when they wake" needs to know when their morning is, and that lives on
+  // their phone, not mine.
+  'longDistance:',
+  'carePackages:',
+  'trips:',
+  'photoOfDay:',
+  'morningMail:',
 ];
 const SYNCED_OWNED_PREFIX = 'quiz:';
 
