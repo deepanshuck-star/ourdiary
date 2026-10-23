@@ -5,6 +5,7 @@ import { Camera, Flame, ImagePlus, Loader2, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
 import { useCoupleMembers } from '@/hooks/useCoupleMembers';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { newId, useNow } from '@/hooks/useNow';
 import { useLocalState } from '@/lib/local-store';
 import { destroyCloudinaryAsset, uploadImageToCloudinary } from '@/lib/cloudinary/upload';
@@ -27,6 +28,8 @@ const inputClass =
 export default function PhotoOfTheDayPage() {
   const { data, activeProfile, partnerProfile, showToast } = useDiary();
   const { myId, partnerId } = useCoupleMembers();
+  const { isPersonal, note: spaceNote, title } = useSpaceMode();
+  const note = spaceNote('/photo-of-the-day');
   const coupleId = data.couple.id;
 
   const now = useNow(60_000);
@@ -95,12 +98,17 @@ export default function PhotoOfTheDayPage() {
       <div className="max-w-5xl mx-auto space-y-8">
         <header>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Photo of the day</p>
-          <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1">One photo each, every day</h1>
-          <p className="text-sm text-ink-muted mt-2 max-w-2xl">
-            Not the highlights — whatever today actually looked like. One frame each, side by side, kept as a strip
-            you can scroll back through.
-          </p>
-          {streak > 0 && (
+          <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1">
+            {title('/photo-of-the-day', 'One photo each, every day')}
+          </h1>
+          {!isPersonal && (
+            <p className="text-sm text-ink-muted mt-2 max-w-2xl">
+              Not the highlights — whatever today actually looked like. One frame each, side by side, kept as a strip
+              you can scroll back through.
+            </p>
+          )}
+          {note && <p className="text-sm text-ink-muted mt-2 max-w-2xl">{note}</p>}
+          {!isPersonal && streak > 0 && (
             <p className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-full bg-secondary text-ink text-xs font-semibold">
               <Flame className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
               {streak} {streak === 1 ? 'day' : 'days'} you both posted
@@ -121,7 +129,8 @@ export default function PhotoOfTheDayPage() {
             </div>
           ) : (
             <div className="rounded-[1.25rem] bg-hero border border-line shadow-card p-5 sm:p-6 space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
+              {/* One frame alone shouldn't stretch to the full width of the card. */}
+              <div className={`grid gap-4 ${isPersonal ? 'max-w-sm' : 'sm:grid-cols-2'}`}>
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
                     {activeProfile.name}
@@ -140,24 +149,26 @@ export default function PhotoOfTheDayPage() {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
-                    {partnerProfile.name}
-                  </p>
-                  {theirsToday ? (
-                    <PhotoFrame
-                      photo={theirsToday}
-                      alt={theirsToday.caption || `${partnerProfile.name}’s photo for today`}
-                    />
-                  ) : (
-                    <div className="aspect-square rounded-2xl border border-dashed border-line bg-surface flex flex-col items-center justify-center gap-2 p-5 text-center">
-                      <Camera className="w-6 h-6 text-ink-muted" aria-hidden="true" />
-                      <p className="text-xs text-ink-muted">
-                        {partnerProfile.name}’s photo will land here whenever their day gets round to it.
-                      </p>
-                    </div>
-                  )}
-                </div>
+                {!isPersonal && (
+                  <div className="space-y-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+                      {partnerProfile.name}
+                    </p>
+                    {theirsToday ? (
+                      <PhotoFrame
+                        photo={theirsToday}
+                        alt={theirsToday.caption || `${partnerProfile.name}’s photo for today`}
+                      />
+                    ) : (
+                      <div className="aspect-square rounded-2xl border border-dashed border-line bg-surface flex flex-col items-center justify-center gap-2 p-5 text-center">
+                        <Camera className="w-6 h-6 text-ink-muted" aria-hidden="true" />
+                        <p className="text-xs text-ink-muted">
+                          {partnerProfile.name}’s photo will land here whenever their day gets round to it.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4 pt-1">
@@ -227,17 +238,17 @@ export default function PhotoOfTheDayPage() {
                 >
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <p className="text-xs font-semibold text-ink">{todayKey ? dayHeading(day, todayKey) : day}</p>
-                    {complete && (
+                    {!isPersonal && complete && (
                       <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Both of you</span>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className={`grid gap-3 sm:gap-4 ${isPersonal ? 'max-w-[13rem]' : 'grid-cols-2'}`}>
                     <StripFrame
                       photo={mine}
                       name={activeProfile.name}
                       onRemove={mine ? () => remove(mine) : undefined}
                     />
-                    <StripFrame photo={theirs} name={partnerProfile.name} />
+                    {!isPersonal && <StripFrame photo={theirs} name={partnerProfile.name} />}
                   </div>
                 </li>
               ))}

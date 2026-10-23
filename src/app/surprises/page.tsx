@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Clock, Gift, Loader2, Lock, MapPin, Navigation, Send, Trash2, Unlock } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { useLocalState } from '@/lib/local-store';
 import { newId, useNow } from '@/hooks/useNow';
 import { splitDuration } from '@/lib/features/countdowns';
@@ -155,6 +156,8 @@ function ReceivedNote({
 
 export default function SurprisesPage() {
   const { data, activeProfile, partnerProfile, showToast } = useDiary();
+  const { isPersonal, note: spaceNote, title } = useSpaceMode();
+  const note = spaceNote('/surprises');
   const now = useNow(30_000);
   const me = data.activeProfileId;
   const partner: ProfileId = me === 'user_1' ? 'user_2' : 'user_1';
@@ -220,10 +223,11 @@ export default function SurprisesPage() {
       }
       place = { lat: la, lng: ln, label: placeLabel.trim() || undefined };
     }
-    const note: SurpriseNote = {
+    const surprise: SurpriseNote = {
       id: newId('surprise'),
       fromId: me,
-      toId: partner,
+      // Nobody else to hide it from: the note waits for you.
+      toId: isPersonal ? me : partner,
       teaser: teaser.trim(),
       message: message.trim(),
       createdAt: new Date().toISOString(),
@@ -232,14 +236,14 @@ export default function SurprisesPage() {
       radiusM: place ? radius : undefined,
       rule,
     };
-    setNotes((prev) => [note, ...prev]);
+    setNotes((prev) => [surprise, ...prev]);
     setTeaser('');
     setMessage('');
     setUnlockAt('');
     setLat('');
     setLng('');
     setPlaceLabel('');
-    showToast(`Sealed for ${partnerProfile.name}`, 'heart');
+    showToast(isPersonal ? 'Sealed for later' : `Sealed for ${partnerProfile.name}`, 'heart');
   };
 
   return (
@@ -247,20 +251,24 @@ export default function SurprisesPage() {
       <div className="max-w-5xl mx-auto space-y-8">
         <header>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Surprise notes</p>
-          <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1">Little secrets, perfectly timed</h1>
+          <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1">
+            {title('/surprises', 'Little secrets, perfectly timed')}
+          </h1>
           <p className="text-sm text-ink-muted mt-2 max-w-2xl">
             Leave a note that opens at the right moment, or at the right place. Location is only checked when someone taps
             “Check if I'm there” — never in the background.
           </p>
+          {note && <p className="text-sm text-ink-muted mt-2 max-w-2xl">{note}</p>}
         </header>
 
         <section aria-labelledby="for-you" className="space-y-3">
           <h2 id="for-you" className="text-2xl font-semibold text-ink flex items-center gap-2">
-            <Gift className="w-5 h-5 text-primary" aria-hidden="true" /> For you, {activeProfile.name}
+            <Gift className="w-5 h-5 text-primary" aria-hidden="true" />{' '}
+            {isPersonal ? 'Waiting for you' : `For you, ${activeProfile.name}`}
           </h2>
           {received.length === 0 ? (
             <p className="text-sm text-ink-muted rounded-[1.25rem] border border-dashed border-line p-5">
-              Nothing waiting yet. Maybe drop a hint to {partnerProfile.name}.
+              {isPersonal ? 'Nothing sealed yet.' : `Nothing waiting yet. Maybe drop a hint to ${partnerProfile.name}.`}
             </p>
           ) : (
             <ul className="grid md:grid-cols-2 gap-4">
@@ -269,7 +277,7 @@ export default function SurprisesPage() {
                   key={n.id}
                   note={n}
                   now={now}
-                  fromName={names[n.fromId]}
+                  fromName={isPersonal ? 'your past self' : names[n.fromId]}
                   onUpdate={(patch) => updateNote(n.id, patch)}
                 />
               ))}
@@ -278,11 +286,13 @@ export default function SurprisesPage() {
         </section>
 
         <section aria-labelledby="write-heading" className="rounded-[1.25rem] bg-surface border border-line p-5 sm:p-6 shadow-card">
-          <h2 id="write-heading" className="text-xl font-semibold text-ink">Write one for {partnerProfile.name}</h2>
+          <h2 id="write-heading" className="text-xl font-semibold text-ink">
+            {isPersonal ? 'Hide one for later' : `Write one for ${partnerProfile.name}`}
+          </h2>
           <form onSubmit={handleSubmit} className="mt-4 space-y-5" noValidate>
             <div>
               <label htmlFor="s-teaser" className="block text-xs font-semibold text-ink-muted mb-1">
-                Teaser (what {partnerProfile.name} sees while it's locked)
+                Teaser (what {isPersonal ? 'you see' : `${partnerProfile.name} sees`} while it's locked)
               </label>
               <input id="s-teaser" maxLength={80} value={teaser} onChange={(e) => setTeaser(e.target.value)} placeholder="Open me where we first met" className={inputClass} />
             </div>
@@ -305,7 +315,7 @@ export default function SurprisesPage() {
               )}
               <label className="flex items-center gap-2 text-sm text-ink">
                 <input type="checkbox" checked={usePlace} onChange={(e) => setUsePlace(e.target.checked)} className="w-4 h-4 accent-primary" />
-                {partnerProfile.name} is at a special place
+                {isPersonal ? "You're at a special place" : `${partnerProfile.name} is at a special place`}
               </label>
               {usePlace && (
                 <div className="pl-6 grid sm:grid-cols-2 gap-3">
@@ -366,7 +376,9 @@ export default function SurprisesPage() {
         </section>
 
         <section aria-labelledby="sent-heading" className="space-y-3">
-          <h2 id="sent-heading" className="text-2xl font-semibold text-ink">Notes you've sent</h2>
+          <h2 id="sent-heading" className="text-2xl font-semibold text-ink">
+            {isPersonal ? "Notes you've hidden" : "Notes you've sent"}
+          </h2>
           {sent.length === 0 ? (
             <p className="text-sm text-ink-muted">None yet.</p>
           ) : (

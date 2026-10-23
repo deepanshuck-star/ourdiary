@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { useLocalState } from '@/lib/local-store';
 import { newId, useNow } from '@/hooks/useNow';
 import {
@@ -122,6 +123,8 @@ function useInstallPrompt() {
 
 export default function CountdownsPage() {
   const { data, showToast } = useDiary();
+  const { isPersonal, note: spaceNote, title: spaceTitle } = useSpaceMode();
+  const note = spaceNote('/countdowns');
   const reduceMotion = useReducedMotion() ?? false;
   const now = useNow(1000);
   const { canInstall, installed, install } = useInstallPrompt();
@@ -134,7 +137,10 @@ export default function CountdownsPage() {
 
   const items = useMemo(() => {
     if (now === null) return [];
-    const auto = buildAutoCountdowns(data.couple, data.events, new Date(now));
+    const built = buildAutoCountdowns(data.couple, data.events, new Date(now));
+    // Anniversary and "days together" are counted from a relationship; alone
+    // they count nothing. Calendar events stay.
+    const auto = isPersonal ? built.filter((i) => i.kind !== 'anniversary' && i.kind !== 'milestone') : built;
     const mine: CountdownItem[] = custom.map((c) => ({
       id: c.id,
       title: c.title,
@@ -149,7 +155,7 @@ export default function CountdownsPage() {
       if (aPast !== bPast) return aPast ? 1 : -1;
       return aPast ? b.target - a.target : a.target - b.target;
     });
-  }, [now, data.couple, data.events, custom]);
+  }, [now, data.couple, data.events, custom, isPersonal]);
 
   const hero = items.find((i) => now !== null && i.target >= now);
   const rest = items.filter((i) => i !== hero);
@@ -173,10 +179,15 @@ export default function CountdownsPage() {
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Countdowns</p>
-            <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1">Something to look forward to</h1>
-            <p className="text-sm text-ink-muted mt-2 max-w-2xl">
-              Your anniversary, the next milestone and everything on the calendar — counting down together.
-            </p>
+            <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1">
+              {spaceTitle('/countdowns', 'Something to look forward to')}
+            </h1>
+            {!isPersonal && (
+              <p className="text-sm text-ink-muted mt-2 max-w-2xl">
+                Your anniversary, the next milestone and everything on the calendar — counting down together.
+              </p>
+            )}
+            {note && <p className="text-sm text-ink-muted mt-2 max-w-2xl">{note}</p>}
           </div>
         </header>
 

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Compass,
@@ -18,9 +18,11 @@ import {
   Sparkles,
   Dices,
   Ticket,
+  Lock,
   LogOut,
 } from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { exploreItems } from './exploreNav';
 
 const mainMobileItems = [
@@ -32,8 +34,10 @@ const mainMobileItems = [
 
 export function MobileNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const { isLiveUser, logout } = useDiary();
+  const { access, reason, title, isPersonal } = useSpaceMode();
 
   const moreItems = [
     { name: 'Daily Spark', href: '/daily-spark', icon: Sparkles },
@@ -45,7 +49,7 @@ export function MobileNav() {
     { name: 'Love Stats', href: '/our-stats', icon: BarChart3 },
     ...exploreItems,
     { name: 'Settings', href: '/settings', icon: SlidersHorizontal },
-  ];
+  ].filter((item) => access(item.href) !== 'hidden');
 
   return (
     <>
@@ -58,7 +62,9 @@ export function MobileNav() {
           />
           <div className="fixed bottom-0 inset-x-0 bg-surface rounded-t-[2rem] p-6 shadow-card z-50 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
-              <h3 className="font-display font-semibold text-lg text-ink">More for the two of you</h3>
+              <h3 className="font-display font-semibold text-lg text-ink">
+                {isPersonal ? 'More in your diary' : 'More for the two of you'}
+              </h3>
               <button
                 onClick={() => setDrawerOpen(false)}
                 aria-label="Close menu"
@@ -71,6 +77,31 @@ export function MobileNav() {
               {moreItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname.startsWith(item.href);
+                const label = title(item.href, item.name);
+
+                // Waiting on a second person: shown so it is clearly coming,
+                // inert, and it lands on the dashboard where the invite code
+                // is — a tap that goes nowhere reads as a broken tile.
+                if (access(item.href) === 'waiting') {
+                  return (
+                    <button
+                      key={item.href}
+                      type="button"
+                      aria-disabled="true"
+                      title={reason(item.href) ?? undefined}
+                      onClick={() => {
+                        setDrawerOpen(false);
+                        router.push('/dashboard');
+                      }}
+                      className="flex items-center gap-3 p-3 rounded-2xl border border-line text-slate-700 opacity-50 text-left cursor-default"
+                    >
+                      <Icon className="w-5 h-5 text-primary" />
+                      <span className="text-sm flex-1 min-w-0 truncate">{label}</span>
+                      <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" aria-hidden="true" />
+                    </button>
+                  );
+                }
+
                 return (
                   <Link
                     key={item.href}
@@ -83,7 +114,7 @@ export function MobileNav() {
                     }`}
                   >
                     <Icon className="w-5 h-5 text-primary" />
-                    <span className="text-sm">{item.name}</span>
+                    <span className="text-sm">{label}</span>
                   </Link>
                 );
               })}

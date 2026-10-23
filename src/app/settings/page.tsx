@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { leaveSpaceRemote, type SpaceKind } from '@/lib/supabase/couple';
 import {
   SlidersHorizontal,
   Heart,
@@ -17,6 +20,14 @@ import {
   Smartphone,
   Send,
   LogOut,
+  BookHeart,
+  ArrowRightLeft,
+  DoorOpen,
+  UserPlus,
+  Copy,
+  Check,
+  User,
+  Users,
 } from 'lucide-react';
 import {
   getNotificationPermission,
@@ -39,7 +50,14 @@ export default function SettingsPage() {
     showToast,
     isLiveUser,
     logout,
+    spaces,
+    spacesLoading,
+    refreshSpaces,
+    switchSpace,
+    createSpace,
   } = useDiary();
+
+  const { isPersonal } = useSpaceMode();
 
   const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
   const [appearance, setAppearanceState] = useState<Appearance>('light');
@@ -134,6 +152,130 @@ export default function SettingsPage() {
       showToast(err?.message || 'Could not upload that photo. Please try again.', 'warn');
     } finally {
       setUploading(false);
+    }
+  };
+
+  // Your diaries — one account can hold a personal diary and couple spaces
+  const [newSpaceName, setNewSpaceName] = useState('');
+  const [newSpaceStart, setNewSpaceStart] = useState('');
+  const [creatingKind, setCreatingKind] = useState<SpaceKind | null>(null);
+  const [openingSpaceId, setOpeningSpaceId] = useState<string | null>(null);
+  const [leaveTargetId, setLeaveTargetId] = useState<string | null>(null);
+  const [leavingSpace, setLeavingSpace] = useState(false);
+  const [spaceError, setSpaceError] = useState<string | null>(null);
+  const [spaceNotice, setSpaceNotice] = useState<string | null>(null);
+  const [copiedInvite, setCopiedInvite] = useState(false);
+
+  useEffect(() => {
+    refreshSpaces();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Switching diaries swaps out everything these forms were seeded from, so
+  // re-seed them rather than letting one diary's name sit over another's.
+  useEffect(() => {
+    setCoupleName(data.couple.name);
+    setStartDate(data.couple.startDate);
+    setAnniversaryDate(data.couple.anniversaryDate);
+    setTheme(data.couple.theme);
+    setAnimationsEnabled(data.couple.animationsEnabled);
+    setUser1Name(data.couple.user1.name);
+    setUser1Nickname(data.couple.user1.nickname || '');
+    setUser1Avatar(data.couple.user1.avatar);
+    setUser1Bio(data.couple.user1.bio || '');
+    setUser2Name(data.couple.user2.name);
+    setUser2Nickname(data.couple.user2.nickname || '');
+    setUser2Avatar(data.couple.user2.avatar);
+    setUser2Bio(data.couple.user2.bio || '');
+    setCouplePhoto(data.couple.photoUrl || '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.couple.id]);
+
+  const existingPersonal = spaces.find((space) => space.kind === 'personal') || null;
+
+  const handleOpenSpace = async (coupleId: string) => {
+    setSpaceError(null);
+    setSpaceNotice(null);
+    setOpeningSpaceId(coupleId);
+    try {
+      await switchSpace(coupleId);
+    } catch (err: any) {
+      setSpaceError(err?.message || 'Could not open that diary. Please try again.');
+    } finally {
+      setOpeningSpaceId(null);
+    }
+  };
+
+  const handleCreateSpace = async (kind: SpaceKind) => {
+    setSpaceError(null);
+    setSpaceNotice(null);
+    setCreatingKind(kind);
+    // An account keeps at most one personal diary: the server hands back the
+    // existing one, which would otherwise look like the button did nothing.
+    const personalBefore = existingPersonal?.id ?? null;
+    try {
+      const createdId = await createSpace(
+        newSpaceName.trim() || (kind === 'personal' ? 'My diary' : 'Our diary'),
+        newSpaceStart || new Date().toISOString().slice(0, 10),
+        kind
+      );
+      if (kind === 'personal' && createdId && createdId === personalBefore) {
+        setSpaceNotice(
+          'You already keep a personal diary, so we opened that one instead of starting a second — an account only ever has one.'
+        );
+      } else {
+        setNewSpaceName('');
+        setNewSpaceStart('');
+        setSpaceNotice(
+          kind === 'personal' ? 'Your personal diary is open.' : 'Your new couple space is open.'
+        );
+      }
+    } catch (err: any) {
+      setSpaceError(err?.message || 'Could not start that diary. Please try again.');
+    } finally {
+      setCreatingKind(null);
+    }
+  };
+
+  const handleCopyInviteCode = async () => {
+    const code = data.couple.inviteCode;
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedInvite(true);
+      window.setTimeout(() => setCopiedInvite(false), 2000);
+      showToast('Invite code copied 💌', 'heart');
+    } catch {
+      setSpaceError('Could not reach the clipboard — the code above can be copied by hand.');
+    }
+  };
+
+  const handleConfirmLeave = async () => {
+    const target = spaces.find((space) => space.id === leaveTargetId);
+    if (!target) return;
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setSpaceError('Leaving a diary only works in a signed-in space.');
+      setLeaveTargetId(null);
+      return;
+    }
+    setLeavingSpace(true);
+    setSpaceError(null);
+    setSpaceNotice(null);
+    try {
+      await leaveSpaceRemote(supabase, target.id);
+      const remaining = await refreshSpaces();
+      setLeaveTargetId(null);
+      showToast(`You have left ${target.name}.`, 'info');
+      // Leaving the diary that is open would leave the app showing a space
+      // this account no longer belongs to.
+      if (target.id === data.couple.id && remaining.length > 0) {
+        await switchSpace(remaining[0].id);
+      }
+    } catch (err: any) {
+      setSpaceError(err?.message || 'Could not leave that diary. Please try again.');
+    } finally {
+      setLeavingSpace(false);
     }
   };
 
@@ -278,6 +420,226 @@ export default function SettingsPage() {
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* Your diaries — every space this account belongs to, and the switch between them */}
+        <div className="rounded-3xl bg-white border border-line p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+            <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <BookHeart className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-extrabold text-lg text-slate-900">Your diaries</h2>
+              <p className="text-xs text-slate-500">
+                A diary of your own and the spaces you share — open whichever one you want to write in
+              </p>
+            </div>
+          </div>
+
+          {spaceError && (
+            <p
+              role="alert"
+              className="text-xs font-semibold text-rose-800 bg-rose-50 border border-rose-100 rounded-2xl px-3.5 py-2.5"
+            >
+              {spaceError}
+            </p>
+          )}
+
+          {spaceNotice && (
+            <p className="text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-100 rounded-2xl px-3.5 py-2.5">
+              {spaceNotice}
+            </p>
+          )}
+
+          {/* 1. The list */}
+          <div className="space-y-3">
+            {spacesLoading && spaces.length === 0 && (
+              <p className="text-xs text-slate-500">Loading your diaries…</p>
+            )}
+
+            {!spacesLoading && spaces.length === 0 && (
+              <p className="text-xs text-slate-500">
+                Nothing to list yet. Diaries live in the cloud, so sign in to see and switch between them.
+              </p>
+            )}
+
+            {spaces.map((space) => {
+              const isCurrent = space.id === data.couple.id;
+              return (
+                <div
+                  key={space.id}
+                  className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                    isCurrent ? 'border-primary bg-purple-50/70' : 'border-slate-100 bg-slate-50/70'
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-extrabold text-slate-900 truncate">{space.name}</p>
+                      <span
+                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                          space.kind === 'personal'
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-rose-100 text-rose-800'
+                        }`}
+                      >
+                        {space.kind === 'personal' ? 'Personal' : 'Couple'}
+                      </span>
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-slate-200 text-slate-700">
+                        {space.role === 'creator' ? 'Creator' : 'Partner'}
+                      </span>
+                      {isCurrent && (
+                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-purple-100 text-purple-800">
+                          Open now
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      {space.role === 'creator' ? 'You started this diary' : 'You joined this diary'}
+                      {space.startDate ? ` · since ${space.startDate}` : ''}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenSpace(space.id)}
+                      disabled={isCurrent || openingSpaceId !== null}
+                      className="px-4 py-2 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-bold text-xs shadow-cta flex items-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ArrowRightLeft className="w-3.5 h-3.5" />
+                      <span>
+                        {isCurrent ? 'Currently open' : openingSpaceId === space.id ? 'Opening…' : 'Open'}
+                      </span>
+                    </button>
+
+                    {/* Only a partner can leave; the creator removes the partner instead */}
+                    {space.role === 'partner' && (
+                      <button
+                        type="button"
+                        onClick={() => setLeaveTargetId(space.id)}
+                        className="px-4 py-2 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-xs hover:bg-rose-50 shadow-xs flex items-center gap-1.5"
+                      >
+                        <DoorOpen className="w-3.5 h-3.5" />
+                        <span>Leave</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 2. Start another */}
+          <div className="p-4 rounded-2xl border border-slate-100 bg-white space-y-4">
+            <div>
+              <h3 className="font-bold text-sm text-slate-900">Start another diary</h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                A personal diary is yours alone. A couple space starts empty and waits for a partner to join by code.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="new-space-name"
+                  className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1"
+                >
+                  Diary name
+                </label>
+                <input
+                  id="new-space-name"
+                  type="text"
+                  value={newSpaceName}
+                  onChange={(e) => setNewSpaceName(e.target.value)}
+                  placeholder="Dear Diary"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-focus"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="new-space-start"
+                  className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1"
+                >
+                  Start date
+                </label>
+                <input
+                  id="new-space-start"
+                  type="date"
+                  value={newSpaceStart}
+                  onChange={(e) => setNewSpaceStart(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-focus"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleCreateSpace('personal')}
+                disabled={creatingKind !== null}
+                className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-sm flex items-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>{creatingKind === 'personal' ? 'Opening…' : 'Create a personal diary'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleCreateSpace('couple')}
+                disabled={creatingKind !== null}
+                className="px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-xs flex items-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>{creatingKind === 'couple' ? 'Creating…' : 'Start a couple space'}</span>
+              </button>
+            </div>
+
+            {existingPersonal && (
+              <p className="text-[11px] text-slate-500">
+                You already keep a personal diary ({existingPersonal.name}). One is the limit, so that button opens
+                the one you have rather than making another.
+              </p>
+            )}
+          </div>
+
+          {/* 3. Invite a partner — turns this personal diary into a shared one */}
+          {data.couple.kind === 'personal' && (
+            <div className="p-5 sm:p-6 rounded-2xl bg-purple-50/70 border border-purple-100 space-y-4">
+              <div className="flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-purple-600" />
+                <h3 className="font-extrabold text-base text-purple-950">Invite a partner into this diary</h3>
+              </div>
+
+              <p className="text-xs text-purple-800/80 leading-relaxed">
+                Give this code to your partner. The moment they use it,{' '}
+                <strong className="font-bold">{data.couple.name}</strong> stops being a diary for one and becomes a
+                shared one — and everything already in it comes along. Every memory, letter, note and photo you have
+                written stays exactly where it is, now visible to both of you. Nothing is copied, and nothing starts over.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="font-mono text-lg font-extrabold tracking-[0.3em] text-purple-700 bg-white border border-purple-200 rounded-xl px-4 py-2.5">
+                  {data.couple.inviteCode || '——————'}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopyInviteCode}
+                  disabled={!data.couple.inviteCode}
+                  className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-bold text-xs shadow-cta flex items-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {copiedInvite ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedInvite ? 'Copied' : 'Copy invite code'}</span>
+                </button>
+              </div>
+
+              <p className="text-[11px] text-purple-900 bg-white/70 p-3 rounded-xl border border-purple-200/60 leading-relaxed">
+                ⚠️ This cannot be undone. Once someone joins, this diary is a shared one for good — even if they later
+                leave, it does not turn back into a diary for one. Start a separate personal diary above if you want to
+                keep writing somewhere only you can read.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Couple & Relationship Settings Card */}
@@ -475,8 +837,8 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Profiles Customization (2 cols) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Profiles Customization — one column in a personal diary, which has no partner */}
+        <div className={`grid grid-cols-1 gap-6 ${isPersonal ? '' : 'md:grid-cols-2'}`}>
           {/* User 1 Profile Form */}
           <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-4">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
@@ -563,91 +925,93 @@ export default function SettingsPage() {
             </form>
           </div>
 
-          {/* User 2 Profile Form */}
-          <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-4">
-            <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-              <img
-                src={user2Avatar}
-                alt={user2Name}
-                className="w-10 h-10 rounded-full object-cover ring-2 ring-secondary"
-              />
-              <div>
-                <h3 className="font-extrabold text-base text-slate-900">User 2 (Partner)</h3>
-                <span className="text-xs text-slate-400">Default: Maya</span>
+          {/* User 2 Profile Form — hidden in a personal diary, which has no partner */}
+          {!isPersonal && (
+            <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <img
+                  src={user2Avatar}
+                  alt={user2Name}
+                  className="w-10 h-10 rounded-full object-cover ring-2 ring-secondary"
+                />
+                <div>
+                  <h3 className="font-extrabold text-base text-slate-900">User 2 (Partner)</h3>
+                  <span className="text-xs text-slate-400">Default: Maya</span>
+                </div>
               </div>
+
+              <form onSubmit={handleSaveUser2} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Display Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={user2Name}
+                    onChange={(e) => setUser2Name(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Nickname</label>
+                  <input
+                    type="text"
+                    value={user2Nickname}
+                    onChange={(e) => setUser2Nickname(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Photo</label>
+                  {isLiveUser && activeProfile.id !== 'user_2' ? (
+                    <p className="text-[11px] text-slate-400 mb-1.5">
+                      Only {data.couple.user2.name} can upload their own photo.
+                    </p>
+                  ) : (
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 cursor-pointer">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{uploadingUser2Photo ? 'Uploading…' : 'Upload Photo'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingUser2Photo}
+                        onChange={(e) => handleUploadProfilePhoto('user_2', e)}
+                      />
+                    </label>
+                  )}
+                  <input
+                    type="url"
+                    required
+                    value={user2Avatar}
+                    onChange={(e) => setUser2Avatar(e.target.value)}
+                    placeholder="Or paste an image URL"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Bio / Status</label>
+                  <input
+                    type="text"
+                    value={user2Bio}
+                    onChange={(e) => setUser2Bio(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
+                  />
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="submit"
+                    className="px-4 py-2 font-bold text-xs bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
+                  >
+                    Update User 2
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <form onSubmit={handleSaveUser2} className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Display Name</label>
-                <input
-                  type="text"
-                  required
-                  value={user2Name}
-                  onChange={(e) => setUser2Name(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Nickname</label>
-                <input
-                  type="text"
-                  value={user2Nickname}
-                  onChange={(e) => setUser2Nickname(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Photo</label>
-                {isLiveUser && activeProfile.id !== 'user_2' ? (
-                  <p className="text-[11px] text-slate-400 mb-1.5">
-                    Only {data.couple.user2.name} can upload their own photo.
-                  </p>
-                ) : (
-                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 cursor-pointer">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>{uploadingUser2Photo ? 'Uploading…' : 'Upload Photo'}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      disabled={uploadingUser2Photo}
-                      onChange={(e) => handleUploadProfilePhoto('user_2', e)}
-                    />
-                  </label>
-                )}
-                <input
-                  type="url"
-                  required
-                  value={user2Avatar}
-                  onChange={(e) => setUser2Avatar(e.target.value)}
-                  placeholder="Or paste an image URL"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Bio / Status</label>
-                <input
-                  type="text"
-                  value={user2Bio}
-                  onChange={(e) => setUser2Bio(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
-                />
-              </div>
-
-              <div className="pt-2 flex justify-end">
-                <button
-                  type="submit"
-                  className="px-4 py-2 font-bold text-xs bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
-                >
-                  Update User 2
-                </button>
-              </div>
-            </form>
-          </div>
+          )}
         </div>
 
         {/* Free Web Push Notifications & Progressive Web App (PWA) Card */}
@@ -793,6 +1157,44 @@ export default function SettingsPage() {
             </button>
           </div>
         </div>
+
+        {/* Leave Diary Confirmation Modal */}
+        {leaveTargetId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-rose-100 space-y-4 animate-in fade-in zoom-in-95">
+              <div className="flex items-center gap-3 text-rose-600">
+                <DoorOpen className="w-6 h-6" />
+                <h3 className="font-extrabold text-lg text-slate-900">Leave this diary?</h3>
+              </div>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                You will no longer see{' '}
+                <strong className="font-bold text-slate-800">
+                  {spaces.find((space) => space.id === leaveTargetId)?.name}
+                </strong>{' '}
+                or anything written in it. What you wrote there stays with the diary, and you can only come back if
+                its creator shares the invite code with you again.
+              </p>
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setLeaveTargetId(null)}
+                  disabled={leavingSpace}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmLeave}
+                  disabled={leavingSpace}
+                  className="px-5 py-2 rounded-xl bg-rose-600 text-white font-bold text-xs hover:bg-rose-700 shadow-sm disabled:opacity-50"
+                >
+                  {leavingSpace ? 'Leaving…' : 'Yes, leave this diary'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Reset Confirmation Modal */}
         {showResetConfirm && (

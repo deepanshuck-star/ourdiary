@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { formatDate, getDaysUntil, isPastOrToday } from '@/lib/date-utils';
 import { Letter } from '@/types';
 import confetti from 'canvas-confetti';
@@ -22,6 +23,8 @@ import {
 
 export default function LettersPage() {
   const { data, activeProfile, partnerProfile, addLetter, deleteLetter } = useDiary();
+  const { isPersonal, note: spaceNote, title } = useSpaceMode();
+  const note = spaceNote('/letters');
 
   const [activeTab, setActiveTab] = useState<'received' | 'sent' | 'drafts'>('received');
   const [readingLetter, setReadingLetter] = useState<Letter | null>(null);
@@ -87,7 +90,8 @@ export default function LettersPage() {
     addLetter({
       title: letterTitle.trim(),
       fromId: activeProfile.id,
-      toId: partnerProfile.id,
+      // Alone, a sealed letter is one you write to yourself.
+      toId: isPersonal ? activeProfile.id : partnerProfile.id,
       content: letterContent.trim(),
       unlockDate,
       isDraft: draftMode,
@@ -109,10 +113,15 @@ export default function LettersPage() {
               <MailCheck className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900">Time Capsule Letters</h1>
-              <p className="text-xs text-slate-500">
-                Sealed love letters with future unlock dates, sent between {data.couple.name}
-              </p>
+              <h1 className="text-2xl font-extrabold text-slate-900">
+                {title('/letters', 'Time Capsule Letters')}
+              </h1>
+              {!isPersonal && (
+                <p className="text-xs text-slate-500">
+                  Sealed love letters with future unlock dates, sent between {data.couple.name}
+                </p>
+              )}
+              {note && <p className="text-sm text-ink-muted mt-2 max-w-2xl">{note}</p>}
             </div>
           </div>
 
@@ -124,7 +133,7 @@ export default function LettersPage() {
             className="px-5 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-bold text-xs sm:text-sm shadow-cta hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            <span>Write Letter to {partnerProfile.name}</span>
+            <span>{isPersonal ? 'Write Letter to Future You' : `Write Letter to ${partnerProfile.name}`}</span>
           </button>
         </div>
 
@@ -138,18 +147,21 @@ export default function LettersPage() {
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Received ({receivedLetters.length})
+            {isPersonal ? 'Sealed' : 'Received'} ({receivedLetters.length})
           </button>
-          <button
-            onClick={() => setActiveTab('sent')}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'sent'
-                ? 'shadow-xs bg-primary text-on-primary'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Sent by You ({sentLetters.length})
-          </button>
+          {/* Sent and received are the same pile when you're both ends of it. */}
+          {!isPersonal && (
+            <button
+              onClick={() => setActiveTab('sent')}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'sent'
+                  ? 'shadow-xs bg-primary text-on-primary'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Sent by You ({sentLetters.length})
+            </button>
+          )}
           <button
             onClick={() => setActiveTab('drafts')}
             className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
@@ -267,7 +279,9 @@ export default function LettersPage() {
             <div className="text-5xl">💌</div>
             <h3 className="font-bold text-slate-800 text-lg">No letters in this folder</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Write a letter to your partner with a secret unlock date for an upcoming anniversary or rainy day.
+              {isPersonal
+                ? 'Write a letter to your future self with an unlock date — a birthday, a year from now, a rainy day.'
+                : 'Write a letter to your partner with a secret unlock date for an upcoming anniversary or rainy day.'}
             </p>
           </div>
         )}
@@ -336,10 +350,12 @@ export default function LettersPage() {
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div>
                   <h3 className="font-extrabold text-xl text-slate-900">
-                    Write to {partnerProfile.name}
+                    {isPersonal ? 'Write to your future self' : `Write to ${partnerProfile.name}`}
                   </h3>
                   <p className="text-xs text-slate-400">
-                    Author: {activeProfile.name} • Recipient: {partnerProfile.name}
+                    {isPersonal
+                      ? `Author: ${activeProfile.name} • Sealed until the date you pick`
+                      : `Author: ${activeProfile.name} • Recipient: ${partnerProfile.name}`}
                   </p>
                 </div>
                 <button
@@ -406,7 +422,11 @@ export default function LettersPage() {
                   <textarea
                     rows={6}
                     required
-                    placeholder="Dear love, by the time you open this letter..."
+                    placeholder={
+                      isPersonal
+                        ? 'Dear me, by the time you open this letter...'
+                        : 'Dear love, by the time you open this letter...'
+                    }
                     value={letterContent}
                     onChange={(e) => setLetterContent(e.target.value)}
                     className="w-full p-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-focus font-serif leading-relaxed"

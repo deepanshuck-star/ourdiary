@@ -25,7 +25,15 @@ import {
   validateAndImportDiaryData,
 } from '@/lib/storage';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { regenerateInviteCodeRemote, removePartnerRemote } from '@/lib/supabase/couple';
+import {
+  regenerateInviteCodeRemote,
+  removePartnerRemote,
+  fetchMySpacesRemote,
+  createSpaceRemote,
+  type CoupleRole,
+  type RemoteCouple,
+  type SpaceKind,
+} from '@/lib/supabase/couple';
 import { fetchMemoriesRemote, createMemoryRemote, updateMemoryRemote, deleteMemoryRemote } from '@/lib/supabase/memories';
 import { fetchCoupleProfilesRemote, updateMyAvatarRemote, updateCouplePhotoRemote } from '@/lib/supabase/profiles';
 import { setSyncContext, setSyncErrorHandler } from '@/lib/local-store';
@@ -41,6 +49,15 @@ import {
 } from '@/lib/supabase/sync';
 import { sendPushNotification } from '@/lib/notifications';
 import { destroyCloudinaryAsset } from '@/lib/cloudinary/upload';
+
+export interface SpaceSummary {
+  id: string;
+  name: string;
+  kind: SpaceKind;
+  role: CoupleRole;
+  inviteCode: string;
+  startDate: string | null;
+}
 
 export interface ToastInfo {
   id: string;
@@ -100,6 +117,14 @@ interface DiaryContextValue {
   addLoveCoupon: (title: string, description: string, category: string) => void;
   redeemLoveCoupon: (id: string) => void;
   loadExistingCoupleSpace: (userId: string, remoteCouple: any, role?: 'creator' | 'partner') => void;
+  /** Every diary this account belongs to. Empty until a live space loads. */
+  spaces: SpaceSummary[];
+  spacesLoading: boolean;
+  refreshSpaces: () => Promise<SpaceSummary[]>;
+  /** Opens another of this account's diaries. */
+  switchSpace: (coupleId: string) => Promise<void>;
+  /** Starts a new diary of either kind and opens it. */
+  createSpace: (name: string, startDate: string, kind: SpaceKind) => Promise<string | null>;
   logout: (redirectToLogin?: boolean) => Promise<void>;
   toasts: ToastInfo[];
   showToast: (message: string, type?: ToastInfo['type']) => void;
@@ -193,6 +218,23 @@ function buildCleanCoupleData(couple: Couple): OurDiaryData {
     ],
   };
   return freshCleanData;
+}
+
+/** Which diary this account had open last, so sign-in reopens it. */
+export function rememberActiveSpace(userId: string, coupleId: string) {
+  try {
+    window.localStorage.setItem(`ourdiary_active_space_${userId}`, coupleId);
+  } catch {
+    // Private mode / blocked storage: the oldest diary is a fine fallback.
+  }
+}
+
+export function readActiveSpace(userId: string): string | null {
+  try {
+    return window.localStorage.getItem(`ourdiary_active_space_${userId}`);
+  } catch {
+    return null;
+  }
 }
 
 export function DiaryProvider({ children }: { children: React.ReactNode }) {
@@ -567,6 +609,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       inviteCode: remoteCouple.invite_code,
       photoUrl: remoteCouple.photo_url || undefined,
       myRole: role,
+      kind: remoteCouple.kind === 'personal' ? ('personal' as const) : ('couple' as const),
     };
 
     let cached: OurDiaryData | null = null;
@@ -804,7 +847,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       return newCode;
     }
 
-    const couple = await regenerateInviteCodeRemote(supabase);
+    const couple = await regenerateInviteCodeRemote(supabase, data.couple.id);
     applyNewInviteCode(couple.invite_code);
     showToast(`New code: ${couple.invite_code}. The old one no longer works 🔒`, 'success');
     return couple.invite_code;
@@ -823,7 +866,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     if (!supabase || !isLiveUser || !data.couple.id) {
       throw new Error('This only works in a signed-in couple space.');
     }
-    const couple = await removePartnerRemote(supabase, rotateCode);
+    const couple = await removePartnerRemote(supabase, data.couple.id, rotateCode);
     if (couple.invite_code) applyNewInviteCode(couple.invite_code);
     showToast(
       rotateCode
@@ -831,6 +874,72 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         : 'Partner removed.',
       'info'
     );
+  };
+
+  // --------------------------------------------------------------- spaces ---
+  // An account may hold a personal diary and a couple space at once
+  // (migration 20). Which one is open is remembered per user, so signing
+  // back in reopens the diary you were last in rather than the oldest one.
+  const [spaces, setSpaces] = useState<SpaceSummary[]>([]);
+  const [spacesLoading, setSpacesLoading] = useState(false);
+
+  const refreshSpaces = async (): Promise<SpaceSummary[]> => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase || !isLiveUser) {
+      setSpaces([]);
+      return [];
+    }
+    setSpacesLoading(true);
+    try {
+      const rows = await fetchMySpacesRemote(supabase);
+      const summaries: SpaceSummary[] = rows.map(({ couple, role }) => ({
+        id: couple.id,
+        name: couple.name,
+        kind: couple.kind === 'personal' ? 'personal' : 'couple',
+        role,
+        inviteCode: couple.invite_code,
+        startDate: couple.relationship_start_date,
+      }));
+      setSpaces(summaries);
+      return summaries;
+    } catch (err) {
+      console.error('[OurDiary] Failed to list your diaries:', err);
+      showToast('Couldn’t load your diaries just now.', 'warn');
+      return [];
+    } finally {
+      setSpacesLoading(false);
+    }
+  };
+
+  const switchSpace = async (coupleId: string): Promise<void> => {
+    const supabase = getSupabaseBrowserClient();
+    const userId = currentUserId;
+    if (!supabase || !userId) throw new Error('This only works in a signed-in space.');
+    if (coupleId === data.couple.id) return;
+
+    const rows = await fetchMySpacesRemote(supabase);
+    const match = rows.find((r) => r.couple.id === coupleId);
+    if (!match) throw new Error('That diary is not yours.');
+
+    rememberActiveSpace(userId, coupleId);
+    await loadExistingCoupleSpace(userId, match.couple, match.role);
+    showToast(`Opened ${match.couple.name}`, 'heart');
+  };
+
+  const createSpace = async (
+    name: string,
+    startDate: string,
+    kind: SpaceKind
+  ): Promise<string | null> => {
+    const supabase = getSupabaseBrowserClient();
+    const userId = currentUserId;
+    if (!supabase || !userId) throw new Error('This only works in a signed-in space.');
+
+    const created: RemoteCouple = await createSpaceRemote(supabase, name, startDate, 'candy', kind);
+    rememberActiveSpace(userId, created.id);
+    await loadExistingCoupleSpace(userId, created, 'creator');
+    await refreshSpaces();
+    return created.id;
   };
 
   const addNote = (memoryId: string, content: string, visibility: 'shared' | 'private') => {
@@ -1546,6 +1655,11 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         addLoveCoupon,
         redeemLoveCoupon,
         loadExistingCoupleSpace,
+        spaces,
+        spacesLoading,
+        refreshSpaces,
+        switchSpace,
+        createSpace,
         logout,
         toasts,
         showToast,

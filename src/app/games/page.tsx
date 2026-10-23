@@ -5,6 +5,7 @@ import { ArrowLeft, Gamepad2, Lock } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
 import { useCoupleMembers } from '@/hooks/useCoupleMembers';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { useLocalState } from '@/lib/local-store';
 import { locationKey, type GeocodeCache } from '@/lib/features/geocode-queue';
 import {
@@ -36,6 +37,7 @@ import { TwoTruthsGame } from '@/components/games/TwoTruthsGame';
 import { RoseBudThornGame } from '@/components/games/RoseBudThornGame';
 import { StoryTennisGame } from '@/components/games/StoryTennisGame';
 import { RelationshipBingoGame } from '@/components/games/RelationshipBingoGame';
+import { ScribbleGame } from '@/components/games/ScribbleGame';
 
 /** Registry id -> component. Kept here so the registry stays pure data. */
 const COMPONENTS: Record<string, React.ComponentType> = {
@@ -58,12 +60,14 @@ const COMPONENTS: Record<string, React.ComponentType> = {
   wouldyourather: WouldYouRatherGame,
   storytennis: StoryTennisGame,
   bingo: RelationshipBingoGame,
+  scribble: ScribbleGame,
   doodle: LoveDoodleGame,
 };
 
 export default function GamesPage() {
   const { data } = useDiary();
   const { partnerId } = useCoupleMembers();
+  const space = useSpaceMode();
   const coupleId = data.couple.id || 'demo';
 
   // Selection is local state rather than a query param: ?game= would need a
@@ -92,6 +96,10 @@ export default function GamesPage() {
       gifts: Math.max(localGifts.length, 2),
     };
   }, [data.memories, partnerId, geocache, localGifts.length]);
+
+  // A personal diary has no two-player games, so the count in the heading
+  // has to match what is actually on the page.
+  const playable = GAMES.filter((g) => space.allowsGame(g.requires));
 
   const open = gameById(openId);
   const OpenComponent = openId ? COMPONENTS[openId] : null;
@@ -136,7 +144,7 @@ export default function GamesPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Couple games</p>
           <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1 flex items-center gap-2">
             <Gamepad2 className="w-7 h-7 text-primary" aria-hidden="true" />
-            {GAMES.length} ways to waste an evening
+            {playable.length} ways to waste an evening
           </h1>
           <p className="text-sm text-ink-muted mt-2 max-w-2xl">
             Pick one. The rules are on each card, so you can tell what you’re getting into before you commit.
@@ -144,7 +152,7 @@ export default function GamesPage() {
         </header>
 
         {CATEGORIES.map((category) => {
-          const games = gamesInCategory(category.id);
+          const games = gamesInCategory(category.id).filter((g) => space.allowsGame(g.requires));
           if (games.length === 0) return null;
           return (
             <section key={category.id} aria-labelledby={`cat-${category.id}`} className="space-y-4">

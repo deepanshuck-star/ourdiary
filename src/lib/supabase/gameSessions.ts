@@ -1,7 +1,12 @@
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 
 // ============================================================================
-// Turn-safe game state. Backed by migration 19.
+// Turn-safe game state. Backed by migrations 19 and 20.
+//
+// Every call names its space. The RPCs used to infer it from the caller's
+// oldest membership, which was correct only while an account could hold one
+// diary — with a personal diary alongside a couple one it would have put
+// moves in whichever was created first.
 //
 // Every write goes through an RPC that checks the version and the turn, so a
 // move computed from a stale board is refused instead of overwriting the
@@ -73,11 +78,13 @@ export async function fetchGameSessionRemote(
 
 export async function startGameSessionRemote(
   supabase: SupabaseClient,
+  coupleId: string,
   gameKey: string,
   state: Record<string, unknown>,
   turnUserId: string | null = null
 ): Promise<GameSessionRow> {
   const { data, error } = await supabase.rpc('start_game_session', {
+    p_couple_id: coupleId,
     p_game_key: gameKey,
     p_state: state,
     p_turn_user_id: turnUserId,
@@ -93,6 +100,7 @@ export async function startGameSessionRemote(
  */
 export async function applyGameMoveRemote(
   supabase: SupabaseClient,
+  coupleId: string,
   gameKey: string,
   state: Record<string, unknown>,
   expectedVersion: number,
@@ -100,6 +108,7 @@ export async function applyGameMoveRemote(
   status: 'active' | 'finished' = 'active'
 ): Promise<GameSessionRow> {
   const { data, error } = await supabase.rpc('apply_game_move', {
+    p_couple_id: coupleId,
     p_game_key: gameKey,
     p_state: state,
     p_expected_version: expectedVersion,
@@ -110,8 +119,15 @@ export async function applyGameMoveRemote(
   return rowToSession(data);
 }
 
-export async function endGameSessionRemote(supabase: SupabaseClient, gameKey: string): Promise<void> {
-  const { error } = await supabase.rpc('end_game_session', { p_game_key: gameKey });
+export async function endGameSessionRemote(
+  supabase: SupabaseClient,
+  coupleId: string,
+  gameKey: string
+): Promise<void> {
+  const { error } = await supabase.rpc('end_game_session', {
+    p_couple_id: coupleId,
+    p_game_key: gameKey,
+  });
   if (error) throw translate(error.message);
 }
 

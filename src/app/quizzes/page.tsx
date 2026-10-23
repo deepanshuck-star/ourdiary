@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { ArrowLeft, HeartHandshake, HelpCircle, Lock, MessageCircleHeart, RotateCcw, Sparkles, Users } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
+import { SpaceGate } from '@/components/widgets/SpaceGate';
 import { useDiary } from '@/store/DiaryContext';
 import { useLocalState } from '@/lib/local-store';
 import {
@@ -452,7 +453,7 @@ const TABS: { id: QuizId; label: string; icon: typeof HelpCircle }[] = [
   { id: 'love-language', label: 'Love languages', icon: HeartHandshake },
 ];
 
-export default function QuizzesPage() {
+function QuizzesPageInner() {
   const { data, isHydrated, activeProfile } = useDiary();
   const [tab, setTab] = useLocalState<QuizId>(`quiz-tab:${data.couple.id}`, 'you-or-me');
 
@@ -501,5 +502,17 @@ export default function QuizzesPage() {
         </section>
       </div>
     </AppShell>
+  );
+}
+
+/**
+ * Needs two people, so a personal diary never reaches the body below and a
+ * couple space with one member sees it waiting rather than empty.
+ */
+export default function QuizzesPage() {
+  return (
+    <SpaceGate href="/quizzes" title="Couple quizzes">
+      <QuizzesPageInner />
+    </SpaceGate>
   );
 }

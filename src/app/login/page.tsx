@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Heart, Sparkles, Lock, Mail, ArrowRight, ShieldCheck, UserCheck, AlertCircle, CheckCircle2, User } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { fetchMyCouple } from '@/lib/supabase/couple';
+import { fetchMySpacesRemote } from '@/lib/supabase/couple';
 import { friendlyAuthError } from '@/lib/friendlyError';
-import { useDiary } from '@/store/DiaryContext';
+import { useDiary, rememberActiveSpace, readActiveSpace } from '@/store/DiaryContext';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -88,25 +88,44 @@ export default function LoginPage() {
             localStorage.setItem('ourdiary_current_user_id', data.session.user.id);
           }
 
-          // Restore the existing couple space (never route established users to onboarding)
-          let existing = null;
+          // An account can hold several diaries now, so sign-in has three
+          // outcomes rather than two: nothing yet, one obvious diary to open,
+          // or a choice to make.
+          const userId = data.session.user.id;
+          let mySpaces: Awaited<ReturnType<typeof fetchMySpacesRemote>> = [];
           let lookupFailed = false;
           try {
-            existing = await fetchMyCouple(supabase);
+            mySpaces = await fetchMySpacesRemote(supabase);
           } catch (lookupErr: any) {
             lookupFailed = true;
-            console.error('[OurDiary] couple lookup failed on login:', lookupErr?.message);
+            console.error('[OurDiary] diary lookup failed on login:', lookupErr?.message);
           }
 
-          if (existing) {
-            loadExistingCoupleSpace(data.session.user.id, existing.couple, existing.role);
-            showToast(`Welcome back to ${existing.couple.name}! 💕`, 'heart');
+          const openSpace = (entry: { couple: any; role: 'creator' | 'partner' }) => {
+            rememberActiveSpace(userId, entry.couple.id);
+            loadExistingCoupleSpace(userId, entry.couple, entry.role);
+            showToast(`Welcome back to ${entry.couple.name}! 💕`, 'heart');
             router.push('/dashboard');
+          };
+
+          if (mySpaces.length === 1) {
+            openSpace(mySpaces[0]);
+          } else if (mySpaces.length > 1) {
+            // Reopen whichever diary this account was last in; only fall back
+            // to the picker when that one is gone (or was never recorded).
+            const lastId = readActiveSpace(userId);
+            const last = lastId ? mySpaces.find((s) => s.couple.id === lastId) : undefined;
+            if (last) {
+              openSpace(last);
+            } else {
+              showToast('Signed in! Which diary would you like to open?', 'success');
+              router.push('/spaces');
+            }
           } else {
             if (lookupFailed) {
-              showToast("Signed in! We couldn't check for an existing space — create or join one below.", 'warn');
+              showToast("Signed in! We couldn't check for an existing diary — create or join one below.", 'warn');
             } else {
-              showToast('Signed in! Set up your couple space to get started 💕', 'success');
+              showToast('Signed in! Set up your diary to get started 💕', 'success');
             }
             router.push('/onboarding');
           }

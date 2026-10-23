@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { BookOpen, Printer, Heart } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { formatDate } from '@/lib/date-utils';
 import { availableYears } from '@/lib/features/yearReview';
 import type { Couple, Memory } from '@/types';
@@ -128,6 +129,8 @@ function Book({ couple, memories, label }: { couple: Couple; memories: Memory[];
 
 export default function MemoryBookPage() {
   const { data, isHydrated } = useDiary();
+  const { note: spaceNote, title } = useSpaceMode();
+  const note = spaceNote('/memory-book');
   const years = useMemo(() => availableYears(data.memories), [data.memories]);
   const [choice, setChoice] = useState<YearChoice>('all');
 
@@ -152,10 +155,13 @@ export default function MemoryBookPage() {
             <header className="rounded-[1.5rem] bg-hero px-6 py-8 sm:px-10 flex flex-wrap items-end justify-between gap-5">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-purple-800">Memory book</p>
-                <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink">Your story, in print</h1>
+                <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink">
+                  {title('/memory-book', 'Your story, in print')}
+                </h1>
                 <p className="text-sm text-slate-700 mt-2 max-w-md">
                   A cover, then one page per memory. Save it as a PDF or print it to keep on the shelf.
                 </p>
+                {note && <p className="text-sm text-ink-muted mt-2 max-w-md">{note}</p>}
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <label className="flex items-center gap-2 text-sm text-ink-muted">

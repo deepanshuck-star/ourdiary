@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { CalendarClock, Globe2, Loader2, MapPin, Moon, Sun, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
+import { SpaceGate } from '@/components/widgets/SpaceGate';
 import { useDiary } from '@/store/DiaryContext';
 import { useLongDistance } from '@/hooks/useLongDistance';
 import { splitDuration } from '@/lib/features/countdowns';
@@ -279,7 +280,7 @@ function PersonClock({
   );
 }
 
-export default function LongDistancePage() {
+function LongDistancePageInner() {
   const { activeProfile, partnerProfile, showToast } = useDiary();
   const reduceMotion = useReducedMotion() ?? false;
   const ld = useLongDistance(1000);
@@ -522,5 +523,17 @@ export default function LongDistancePage() {
         </section>
       </div>
     </AppShell>
+  );
+}
+
+/**
+ * Needs two people, so a personal diary never reaches the body below and a
+ * couple space with one member sees it waiting rather than empty.
+ */
+export default function LongDistancePage() {
+  return (
+    <SpaceGate href="/long-distance" title="Same love, different clocks">
+      <LongDistancePageInner />
+    </SpaceGate>
   );
 }

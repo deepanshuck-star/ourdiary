@@ -11,6 +11,7 @@ import {
 } from 'motion/react';
 import { CalendarPlus, Check, Heart, ListPlus, Plus, RotateCcw, Sparkles, X } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
+import { SpaceGate } from '@/components/widgets/SpaceGate';
 import { useDiary } from '@/store/DiaryContext';
 import { useLocalState } from '@/lib/local-store';
 import { newId } from '@/hooks/useNow';
@@ -190,7 +191,7 @@ function MatchRow({
   );
 }
 
-export default function DateIdeasPage() {
+function DateIdeasPageInner() {
   const { data, activeProfile, partnerProfile, addBucketItem, addEvent, showToast } = useDiary();
   const reduceMotion = useReducedMotion() ?? false;
   const coupleId = data.couple.id;
@@ -465,5 +466,17 @@ export default function DateIdeasPage() {
         </section>
       </div>
     </AppShell>
+  );
+}
+
+/**
+ * Needs two people, so a personal diary never reaches the body below and a
+ * couple space with one member sees it waiting rather than empty.
+ */
+export default function DateIdeasPage() {
+  return (
+    <SpaceGate href="/date-ideas" title="Date ideas">
+      <DateIdeasPageInner />
+    </SpaceGate>
   );
 }

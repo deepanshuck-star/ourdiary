@@ -9,21 +9,28 @@ import {
   Key,
   Calendar,
   ArrowRight,
+  ArrowLeft,
   CheckCircle2,
   Copy,
   ShieldCheck,
   AlertCircle,
   Loader2,
+  BookHeart,
+  Users,
 } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { fetchMyCouple, createCoupleSpaceRemote, joinCoupleByCodeRemote } from '@/lib/supabase/couple';
+import { fetchMyCouple, createSpaceRemote, joinCoupleByCodeRemote, type SpaceKind } from '@/lib/supabase/couple';
 import { friendlyAuthError } from '@/lib/friendlyError';
-import { useDiary } from '@/store/DiaryContext';
+import { useDiary, rememberActiveSpace } from '@/store/DiaryContext';
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { initCleanCoupleSpace, switchProfile, showToast, loadExistingCoupleSpace } = useDiary();
   const [activeTab, setActiveTab] = useState<'create' | 'join'>('create');
+  // Two doors first: a diary of one, or a diary of two. Everything below is
+  // the couple door — a personal diary is created the moment it is picked.
+  const [step, setStep] = useState<'pick' | 'forms'>('pick');
+  const [spaceKind, setSpaceKind] = useState<SpaceKind>('couple');
 
   const supabase = getSupabaseBrowserClient();
   const [authLoading, setAuthLoading] = useState(true);
@@ -134,6 +141,57 @@ export default function OnboardingPage() {
     return () => clearInterval(timer);
   }, [generatedCode, router]);
 
+  // A diary of one needs nothing from the visitor: no partner, no invite
+  // code, no start date other than today.
+  const handleCreatePersonal = async () => {
+    if (supabase && !authenticatedUser) {
+      showToast('Please sign in first — your diary is tied to your account.', 'warn');
+      router.replace('/login');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const today = new Date().toISOString().split('T')[0];
+    const myName = partner1Name.trim() || 'You';
+    let diaryId =
+      typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'c_' + Date.now();
+    let diaryName = `${myName}'s Diary`;
+    let code = 'LOCAL1';
+    let finalStart = today;
+
+    if (supabase && authenticatedUser) {
+      try {
+        const remote = await createSpaceRemote(supabase, diaryName, today, 'candy', 'personal');
+        diaryId = remote.id;
+        diaryName = remote.name;
+        code = remote.invite_code;
+        finalStart = remote.relationship_start_date || today;
+        rememberActiveSpace(authenticatedUser.id, remote.id);
+      } catch (err: any) {
+        showToast(`Could not start your diary: ${friendlyAuthError(err, 'couple')}`, 'warn');
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    initCleanCoupleSpace({
+      id: diaryId,
+      name: diaryName,
+      startDate: finalStart,
+      anniversaryDate: finalStart,
+      theme: 'candy',
+      animationsEnabled: true,
+      inviteCode: code,
+      isLocked: false,
+      user1: { id: 'user_1', name: myName, avatar: avatar1 },
+      // The second seat stays empty until someone actually joins.
+      user2: { id: 'user_2', name: 'Partner', avatar: avatar2 },
+    });
+
+    showToast('Your diary is ready — it’s all yours ✨', 'heart');
+    router.push('/dashboard');
+  };
+
   const handleCreateCouple = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -157,11 +215,12 @@ export default function OnboardingPage() {
     // The RPC is idempotent: it returns the user's existing space instead of creating a duplicate.
     if (supabase && authenticatedUser) {
       try {
-        const remote = await createCoupleSpaceRemote(supabase, finalName, startDate);
+        const remote = await createSpaceRemote(supabase, finalName, startDate, 'candy', spaceKind);
         coupleId = remote.id;
         code = remote.invite_code;
         finalName = remote.name;
         finalStart = remote.relationship_start_date || startDate;
+        rememberActiveSpace(authenticatedUser.id, remote.id);
       } catch (err: any) {
         showToast(`Could not create your couple space: ${friendlyAuthError(err, 'couple')}`, 'warn');
         setIsSubmitting(false);
@@ -279,14 +338,70 @@ export default function OnboardingPage() {
           </span>
         </Link>
         <h2 className="text-2xl font-extrabold text-slate-900">
-          Set Up Your Clean Couple Space 💕
+          {step === 'pick' ? 'Who is this diary for? 💕' : 'Set Up Your Clean Couple Space 💕'}
         </h2>
         <p className="mt-2 text-xs text-slate-500">
-          Strictly invite-only for exactly two people. Logged in as{' '}
+          {step === 'pick'
+            ? 'Pick a door — you can keep both kinds of diary on one account.'
+            : 'Strictly invite-only for exactly two people.'}{' '}
+          Logged in as{' '}
           <strong className="text-slate-700">{authenticatedUser?.email || 'Authenticated User'}</strong>.
         </p>
       </div>
 
+      {step === 'pick' ? (
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
+          <div className="bg-surface py-8 px-6 shadow-card rounded-[1.25rem] border border-line sm:px-10 space-y-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Two doors</p>
+
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={handleCreatePersonal}
+              className="w-full text-left rounded-[1.25rem] border border-line bg-hero p-5 shadow-card transition-transform hover:-translate-y-0.5 disabled:opacity-50 flex items-start gap-4"
+            >
+              <span className="w-11 h-11 rounded-full bg-surface text-primary flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <BookHeart className="w-5 h-5" />}
+              </span>
+              <span className="min-w-0">
+                <span className="font-display text-lg font-semibold text-ink block">A diary for me</span>
+                <span className="text-xs text-ink-muted block mt-1">
+                  Just you, your days and your own thoughts. Nothing to fill in — it opens straight away.
+                </span>
+                <span className="text-xs text-ink-muted block mt-1.5">
+                  You can invite a partner into this same diary later from Settings, and every entry comes with them.
+                </span>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => {
+                setSpaceKind('couple');
+                setStep('forms');
+              }}
+              className="w-full text-left rounded-[1.25rem] border border-line bg-surface p-5 shadow-card transition-transform hover:-translate-y-0.5 disabled:opacity-50 flex items-start gap-4"
+            >
+              <span className="w-11 h-11 rounded-full bg-purple-50 text-primary flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                <Users className="w-5 h-5" />
+              </span>
+              <span className="min-w-0">
+                <span className="font-display text-lg font-semibold text-ink block">A diary for us</span>
+                <span className="text-xs text-ink-muted block mt-1">
+                  A shared space for two, with an invite code for your partner — or join theirs with a code you already have.
+                </span>
+              </span>
+            </button>
+
+            <div className="pt-3 border-t border-line text-center">
+              <Link href="/login" className="text-xs text-ink-muted hover:text-ink font-semibold">
+                ← Back to Sign In
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : (
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
         <div className="bg-white py-8 px-6 shadow-xl rounded-3xl border border-line sm:px-10 space-y-6">
           {/* Tabs */}
@@ -412,14 +527,13 @@ export default function OnboardingPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Partner&apos;s Name
+                      Partner&apos;s Name <span className="text-slate-400 normal-case">(optional)</span>
                     </label>
                     <input
                       type="text"
-                      required
                       value={partner2Name}
                       onChange={(e) => setPartner2Name(e.target.value)}
-                      placeholder="e.g. Partner"
+                      placeholder="Leave blank if it&apos;s just you for now"
                       className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
                     />
                   </div>
@@ -466,7 +580,7 @@ export default function OnboardingPage() {
                     Couple Space Created!
                   </h3>
                   <p className="text-xs text-slate-500 mt-1">
-                    Send this private 6-character code to {partner2Name} to join your space.
+                    Send this private 6-character code to {partner2Name.trim() || 'your partner'} to join your space.
                   </p>
                 </div>
 
@@ -549,13 +663,26 @@ export default function OnboardingPage() {
             </form>
           )}
 
-          <div className="pt-3 border-t border-slate-100 text-center">
-            <Link href="/login" className="text-xs text-slate-500 hover:text-slate-700 font-semibold">
-              ← Back to Sign In
-            </Link>
+          <div className="pt-3 border-t border-slate-100 text-center space-y-2">
+            {!generatedCode && (
+              <button
+                type="button"
+                onClick={() => setStep('pick')}
+                className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 font-semibold"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Pick a different kind of diary
+              </button>
+            )}
+            <div>
+              <Link href="/login" className="text-xs text-slate-500 hover:text-slate-700 font-semibold">
+                ← Back to Sign In
+              </Link>
+            </div>
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

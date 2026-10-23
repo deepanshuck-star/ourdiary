@@ -9,9 +9,17 @@ export interface DemoProfile {
   favoriteColor?: string;
 }
 
+/** 'personal' = a diary for one, on purpose. 'couple' = a shared space. */
+export type SpaceKind = 'personal' | 'couple';
+
 export interface Couple {
   id: string;
   name: string;
+  /**
+   * What this diary is. Absent on spaces created before migration 20, which
+   * read as 'couple' — the same default the column carries.
+   */
+  kind?: SpaceKind;
   user1: DemoProfile;
   user2: DemoProfile;
   startDate: string; // YYYY-MM-DD

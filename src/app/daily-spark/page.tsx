@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import {
   Lock,
   Unlock,
@@ -16,6 +17,9 @@ import { DailyQuestionCard } from '@/components/widgets/DailyQuestionCard';
 
 export default function DailySparkPage() {
   const { data } = useDiary();
+  const { isPersonal, note: spaceNote, title } = useSpaceMode();
+  const note = spaceNote('/daily-spark');
+  const me = data.activeProfileId;
 
   const history = data.dailySparkAnswers || [];
 
@@ -39,10 +43,15 @@ export default function DailySparkPage() {
               ✨
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900">Daily Sparks & Questions</h1>
-              <p className="text-xs sm:text-sm text-slate-700 font-medium">
-                Deepen your intimacy one honest question a day. Blind answers unlock when both submit!
-              </p>
+              <h1 className="text-2xl font-extrabold text-slate-900">
+                {title('/daily-spark', 'Daily Sparks & Questions')}
+              </h1>
+              {!isPersonal && (
+                <p className="text-xs sm:text-sm text-slate-700 font-medium">
+                  Deepen your intimacy one honest question a day. Blind answers unlock when both submit!
+                </p>
+              )}
+              {note && <p className="text-sm text-ink-muted mt-2 max-w-2xl">{note}</p>}
             </div>
           </div>
         </div>
@@ -67,7 +76,9 @@ export default function DailySparkPage() {
               {history.map((entry) => {
                 const user1Ans = entry.answers?.user_1;
                 const user2Ans = entry.answers?.user_2;
-                const isBoth = !!(user1Ans && user2Ans);
+                const myAns = entry.answers?.[me];
+                // Alone there is nobody to unlock against: your own answer is the entry.
+                const isBoth = isPersonal ? !!myAns : !!(user1Ans && user2Ans);
 
                 return (
                   <div
@@ -83,13 +94,15 @@ export default function DailySparkPage() {
                       {isBoth ? (
                         <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md flex items-center gap-1">
                           <Unlock className="w-3 h-3" />
-                          Unlocked
+                          {isPersonal ? 'Answered' : 'Unlocked'}
                         </span>
                       ) : (
-                        <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md flex items-center gap-1">
-                          <Lock className="w-3 h-3" />
-                          Waiting on Partner
-                        </span>
+                        !isPersonal && (
+                          <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                            <Lock className="w-3 h-3" />
+                            Waiting on Partner
+                          </span>
+                        )
                       )}
                     </div>
 
@@ -97,7 +110,20 @@ export default function DailySparkPage() {
                       "{entry.question}"
                     </h4>
 
-                    {isBoth ? (
+                    {isPersonal ? (
+                      myAns ? (
+                        <div className="p-3 rounded-xl bg-white border border-purple-100 space-y-1">
+                          <span className="text-[10px] font-black uppercase text-purple-700 tracking-wider">
+                            Your answer
+                          </span>
+                          <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                            "{myAns.content}"
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-500 italic">You haven't answered this one.</p>
+                      )
+                    ) : isBoth ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                         <div className="p-3 rounded-xl bg-white border border-purple-100 space-y-1">
                           <span className="text-[10px] font-black uppercase text-purple-700 tracking-wider">

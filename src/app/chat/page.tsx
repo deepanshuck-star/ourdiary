@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CheckCheck, Clock, Loader2, MessagesSquare, Send, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
+import { SpaceGate } from '@/components/widgets/SpaceGate';
 import { useDiary } from '@/store/DiaryContext';
 import { usePresence } from '@/components/providers/PresenceProvider';
 import { PresenceDot } from '@/components/widgets/PartnerPresence';
@@ -51,7 +52,7 @@ interface ViewMessage {
   pending?: boolean;
 }
 
-export default function ChatPage() {
+function ChatPageInner() {
   const { data, activeProfile, partnerProfile, isLiveUser, currentUserId, showToast } = useDiary();
   const presence = usePresence();
   const coupleId = data.couple.id;
@@ -537,5 +538,17 @@ export default function ChatPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+/**
+ * Needs two people, so a personal diary never reaches the body below and a
+ * couple space with one member sees it waiting rather than empty.
+ */
+export default function ChatPage() {
+  return (
+    <SpaceGate href="/chat" title="Chat">
+      <ChatPageInner />
+    </SpaceGate>
   );
 }

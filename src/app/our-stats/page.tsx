@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { MoodHistorySection } from '@/components/widgets/MoodHistorySection';
 import {
   calculateDaysTogether,
@@ -23,6 +24,8 @@ import { TiltCard } from '@/components/fx/TiltCard';
 
 export default function OurStatsPage() {
   const { data } = useDiary();
+  const { isPersonal, note: spaceNote, title } = useSpaceMode();
+  const note = spaceNote('/our-stats');
 
   const daysTogether = calculateDaysTogether(data.couple.startDate);
   const totalMemories = data.memories.length;
@@ -77,24 +80,30 @@ export default function OurStatsPage() {
                 <BarChart3 className="w-5 h-5" />
               </span>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                Our Relationship Analytics
+                {title('/our-stats', 'Our Relationship Analytics')}
               </h1>
             </div>
-            <p className="text-sm text-slate-700 font-medium">
-              Data, milestones & love metrics for {data.couple.name}
-            </p>
+            {!isPersonal && (
+              <p className="text-sm text-slate-700 font-medium">
+                Data, milestones & love metrics for {data.couple.name}
+              </p>
+            )}
+            {note && <p className="text-sm text-ink-muted mt-2 max-w-2xl">{note}</p>}
           </div>
         </div>
 
         {/* Big Key Metric Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-5 rounded-3xl bg-white border border-line shadow-xs text-center space-y-1">
-            <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-500 mx-auto flex items-center justify-center">
-              <Flame className="w-5 h-5 fill-rose-500" />
+        <div className={`grid grid-cols-2 ${isPersonal ? 'md:grid-cols-3' : 'md:grid-cols-4'} gap-4`}>
+          {/* Days together counts a relationship — there isn't one to count here. */}
+          {!isPersonal && (
+            <div className="p-5 rounded-3xl bg-white border border-line shadow-xs text-center space-y-1">
+              <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-500 mx-auto flex items-center justify-center">
+                <Flame className="w-5 h-5 fill-rose-500" />
+              </div>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900">{daysTogether}</p>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Days Together</p>
             </div>
-            <p className="text-2xl sm:text-3xl font-black text-slate-900">{daysTogether}</p>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Days Together</p>
-          </div>
+          )}
 
           <div className="p-5 rounded-3xl bg-white border border-line shadow-xs text-center space-y-1">
             <div className="w-10 h-10 rounded-2xl bg-purple-100 text-purple-600 mx-auto flex items-center justify-center">
@@ -216,49 +225,55 @@ export default function OurStatsPage() {
           </div>
         </div>
 
-        {/* Full Milestone Timeline */}
-        <div className="rounded-3xl bg-white border border-line p-6 sm:p-8 shadow-sm space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-amber-500" />
-              <h3 className="font-extrabold text-lg text-slate-900">Relationship Milestone Roadmap</h3>
-            </div>
-            <span className="text-xs text-slate-400">
-              Anniversary: {formatDate(data.couple.anniversaryDate)}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {milestones.map((m) => (
-              <TiltCard key={m.days} className="rounded-2xl" maxTilt={6} gyro>
-              <div
-                className={`h-full p-4 rounded-2xl border transition-all ${
-                  m.reached
-                    ? 'bg-emerald-50/80 border-emerald-200'
-                    : 'bg-slate-50 border-slate-200'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-sm text-slate-800">{m.label}</span>
-                  {m.reached ? (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-800">
-                      Reached 🎉
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-semibold text-slate-500">
-                      In {m.daysLeft} days
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-slate-500">Target: {formatDate(m.targetDate)}</p>
+        {/* Both of these read a relationship: milestones counted from the start
+            date, and a mood chart with a series per partner. */}
+        {!isPersonal && (
+          <>
+          {/* Full Milestone Timeline */}
+          <div className="rounded-3xl bg-white border border-line p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-amber-500" />
+                <h3 className="font-extrabold text-lg text-slate-900">Relationship Milestone Roadmap</h3>
               </div>
-              </TiltCard>
-            ))}
-          </div>
-        </div>
+              <span className="text-xs text-slate-400">
+                Anniversary: {formatDate(data.couple.anniversaryDate)}
+              </span>
+            </div>
 
-        {/* Mood history for both partners */}
-        <MoodHistorySection />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {milestones.map((m) => (
+                <TiltCard key={m.days} className="rounded-2xl" maxTilt={6} gyro>
+                <div
+                  className={`h-full p-4 rounded-2xl border transition-all ${
+                    m.reached
+                      ? 'bg-emerald-50/80 border-emerald-200'
+                      : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-sm text-slate-800">{m.label}</span>
+                    {m.reached ? (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-800">
+                        Reached 🎉
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold text-slate-500">
+                        In {m.daysLeft} days
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500">Target: {formatDate(m.targetDate)}</p>
+                </div>
+                </TiltCard>
+              ))}
+            </div>
+          </div>
+
+          {/* Mood history for both partners */}
+          <MoodHistorySection />
+          </>
+        )}
       </div>
     </AppShell>
   );

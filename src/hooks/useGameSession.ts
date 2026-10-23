@@ -113,12 +113,12 @@ export function useGameSession<S extends Record<string, unknown>>(gameKey: strin
         return;
       }
       try {
-        setRow(await startGameSessionRemote(supabase, gameKey, initial, turnUserId));
+        setRow(await startGameSessionRemote(supabase, coupleId, gameKey, initial, turnUserId));
       } catch (err: any) {
         setNotice(err?.message || 'Could not start that game.');
       }
     },
-    [isRemote, supabase, gameKey, setLocalBoard]
+    [isRemote, supabase, coupleId, gameKey, setLocalBoard]
   );
 
   const move = useCallback(
@@ -134,6 +134,7 @@ export function useGameSession<S extends Record<string, unknown>>(gameKey: strin
       try {
         const saved = await applyGameMoveRemote(
           supabase,
+          coupleId,
           gameKey,
           next,
           versionRef.current,
@@ -160,7 +161,7 @@ export function useGameSession<S extends Record<string, unknown>>(gameKey: strin
         return false;
       }
     },
-    [isRemote, supabase, gameKey, reload, setLocalBoard]
+    [isRemote, supabase, coupleId, gameKey, reload, setLocalBoard]
   );
 
   const end = useCallback(async () => {
@@ -170,12 +171,12 @@ export function useGameSession<S extends Record<string, unknown>>(gameKey: strin
       return;
     }
     try {
-      await endGameSessionRemote(supabase, gameKey);
+      await endGameSessionRemote(supabase, coupleId, gameKey);
       setRow(null);
     } catch (err: any) {
       setNotice(err?.message || 'Could not clear that game.');
     }
-  }, [isRemote, supabase, gameKey, setLocalBoard]);
+  }, [isRemote, supabase, coupleId, gameKey, setLocalBoard]);
 
   const state = (isRemote ? ((row?.state as S) ?? null) : localBoard.state) as S | null;
   const status = isRemote ? (row?.status ?? 'active') : localBoard.status;

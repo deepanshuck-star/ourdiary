@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useDiary } from '@/store/DiaryContext';
 import { PartnerPresenceChip } from '@/components/widgets/PartnerPresence';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { calculateDaysTogether } from '@/lib/date-utils';
 import {
   Heart,
@@ -13,6 +14,7 @@ import {
   ChevronDown,
   UserCheck,
   Settings,
+  BookCopy,
   Lock,
   LogOut,
 } from 'lucide-react';
@@ -20,6 +22,7 @@ import {
 export function AppNavbar() {
   const { data, activeProfile, partnerProfile, switchProfile, logout, isLiveUser, isHydrated } = useDiary();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const space = useSpaceMode();
 
   const daysTogether = calculateDaysTogether(data.couple.startDate);
 
@@ -135,10 +138,12 @@ export function AppNavbar() {
                 <div className="absolute right-0 mt-2 w-72 bg-surface rounded-[1.25rem] shadow-card border border-line p-3 z-50 animate-in fade-in zoom-in-95 duration-150">
                   <div className="px-2 py-1.5 border-b border-slate-100 mb-2">
                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                      Simulated Profile Mode
+                      {space.isPersonal ? 'Your diary' : 'Simulated Profile Mode'}
                     </p>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      Switch between couple viewpoints to write notes, letters, and view private thoughts.
+                      {space.isPersonal
+                        ? 'A diary of your own. Start or open another from Your diaries.'
+                        : 'Switch between couple viewpoints to write notes, letters, and view private thoughts.'}
                     </p>
                   </div>
 
@@ -158,7 +163,8 @@ export function AppNavbar() {
                     </div>
                   </div>
 
-                  {/* Switch to Partner */}
+                  {/* Switch to Partner — nobody to switch to in a personal diary. */}
+                  {!space.isPersonal && (
                   <button
                     onClick={() => {
                       switchProfile(partnerProfile.id);
@@ -181,16 +187,29 @@ export function AppNavbar() {
                       <p className="text-xs text-slate-400">View as your partner</p>
                     </div>
                   </button>
+                  )}
 
                   <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between px-1">
-                    <Link
-                      href="/settings"
-                      onClick={() => setShowProfileMenu(false)}
-                      className="text-xs text-slate-500 hover:text-purple-600 flex items-center gap-1 font-medium"
-                    >
-                      <Settings className="w-3.5 h-3.5" />
-                      Settings
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href="/settings"
+                        onClick={() => setShowProfileMenu(false)}
+                        className="text-xs text-slate-500 hover:text-purple-600 flex items-center gap-1 font-medium"
+                      >
+                        <Settings className="w-3.5 h-3.5" />
+                        Settings
+                      </Link>
+                      {isLiveUser && (
+                        <Link
+                          href="/spaces"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="text-xs text-slate-500 hover:text-purple-600 flex items-center gap-1 font-medium"
+                        >
+                          <BookCopy className="w-3.5 h-3.5" />
+                          Your diaries
+                        </Link>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2">
                       {!isLiveUser && (
                         <Link

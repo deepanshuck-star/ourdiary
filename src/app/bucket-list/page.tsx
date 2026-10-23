@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { formatDate } from '@/lib/date-utils';
 import { BucketCategory, BucketItem } from '@/types';
 import confetti from 'canvas-confetti';
@@ -40,6 +41,8 @@ export default function BucketListPage() {
     deleteBucketItem,
     convertBucketToMemory,
   } = useDiary();
+  const { isPersonal, note: spaceNote, title: spaceTitle } = useSpaceMode();
+  const note = spaceNote('/bucket-list');
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
@@ -136,12 +139,15 @@ export default function BucketListPage() {
                 <CheckSquare className="w-5 h-5" />
               </span>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                Couple Bucket List
+                {spaceTitle('/bucket-list', 'Couple Bucket List')}
               </h1>
             </div>
-            <p className="text-sm text-slate-700 font-medium">
-              Dreams, adventures & goals for {data.couple.name} to conquer together
-            </p>
+            {!isPersonal && (
+              <p className="text-sm text-slate-700 font-medium">
+                Dreams, adventures & goals for {data.couple.name} to conquer together
+              </p>
+            )}
+            {note && <p className="text-sm text-ink-muted mt-2 max-w-2xl">{note}</p>}
           </div>
 
           <div className="w-full md:w-64 bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-white/60 shadow-xs space-y-2">

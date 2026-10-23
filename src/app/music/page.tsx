@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Disc3, Loader2, Music4, Pause, Pencil, Play, RefreshCw, Trash2, Upload, X } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useCoupleSongs } from '@/hooks/useCoupleSongs';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { ACCEPTED_AUDIO_EXTENSIONS, formatDuration, parseSongMetaFromFilename } from '@/lib/features/music';
 
 const inputClass =
@@ -13,6 +14,8 @@ const ACCEPT_ATTR = ['audio/*', ...ACCEPTED_AUDIO_EXTENSIONS.map((e) => `.${e}`)
 
 export default function MusicPage() {
   const { song, loading, uploading, error, isRemote, replace, remove, rename } = useCoupleSongs();
+  const { isPersonal, note: spaceNote, title } = useSpaceMode();
+  const note = spaceNote('/music');
 
   const fileRef = useRef<HTMLInputElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -67,14 +70,28 @@ export default function MusicPage() {
     <AppShell>
       <div className="max-w-3xl mx-auto space-y-8">
         <header>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Our song</p>
-          <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1">The one that's yours</h1>
-          <p className="text-sm text-ink-muted mt-2 max-w-2xl">
-            One song, the two of you. It plays on your dashboard.{' '}
-            {isRemote
-              ? 'Your partner hears the same one. Setting a new song replaces it — the old file is deleted, not kept.'
-              : 'In demo mode it stays on this device only, in your browser.'}
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+            {isPersonal ? 'Your song' : 'Our song'}
           </p>
+          <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1">
+            {title('/music', "The one that's yours")}
+          </h1>
+          {isPersonal ? (
+            <p className="text-sm text-ink-muted mt-2 max-w-2xl">
+              One song, yours. It plays on your dashboard.{' '}
+              {isRemote
+                ? 'Setting a new song replaces it — the old file is deleted, not kept.'
+                : 'In demo mode it stays on this device only, in your browser.'}
+            </p>
+          ) : (
+            <p className="text-sm text-ink-muted mt-2 max-w-2xl">
+              One song, the two of you. It plays on your dashboard.{' '}
+              {isRemote
+                ? 'Your partner hears the same one. Setting a new song replaces it — the old file is deleted, not kept.'
+                : 'In demo mode it stays on this device only, in your browser.'}
+            </p>
+          )}
+          {note && <p className="text-sm text-ink-muted mt-2 max-w-2xl">{note}</p>}
         </header>
 
         {/* ---------------------------------------------------------- Player */}
@@ -175,7 +192,9 @@ export default function MusicPage() {
               </>
             )
           ) : (
-            <p className="text-sm text-ink-muted">Pick the song that belongs to the two of you.</p>
+            <p className="text-sm text-ink-muted">
+              {isPersonal ? 'Pick the song that belongs to you.' : 'Pick the song that belongs to the two of you.'}
+            </p>
           )}
         </section>
 
@@ -236,7 +255,15 @@ export default function MusicPage() {
                   ) : (
                     <Upload className="w-3.5 h-3.5" />
                   )}
-                  {uploading ? 'Uploading…' : song ? 'Replace our song' : 'Set as our song'}
+                  {uploading
+                    ? 'Uploading…'
+                    : song
+                    ? isPersonal
+                      ? 'Replace my song'
+                      : 'Replace our song'
+                    : isPersonal
+                    ? 'Set as my song'
+                    : 'Set as our song'}
                 </button>
                 <button
                   type="button"
@@ -302,7 +329,7 @@ export default function MusicPage() {
                 onClick={() => setConfirmingDelete(true)}
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-muted hover:text-danger"
               >
-                <Trash2 className="w-3.5 h-3.5" /> Remove our song
+                <Trash2 className="w-3.5 h-3.5" /> {isPersonal ? 'Remove my song' : 'Remove our song'}
               </button>
             )}
           </section>

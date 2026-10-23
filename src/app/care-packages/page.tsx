@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import { Camera, Loader2, Package, PackageCheck, Trash2, X } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
+import { SpaceGate } from '@/components/widgets/SpaceGate';
 import { useDiary } from '@/store/DiaryContext';
 import { useCoupleMembers } from '@/hooks/useCoupleMembers';
 import { useLocalState } from '@/lib/local-store';
@@ -31,7 +32,7 @@ const STATUS_PILL: Record<PackageStatus, { label: string; className: string }> =
   overdue: { label: 'Overdue', className: 'bg-rose-50 text-rose-700 border-rose-100' },
 };
 
-export default function CarePackagesPage() {
+function CarePackagesPageInner() {
   const { data, activeProfile, partnerProfile, showToast } = useDiary();
   const { myId, partnerId } = useCoupleMembers();
   const coupleId = data.couple.id;
@@ -402,5 +403,17 @@ export default function CarePackagesPage() {
         </section>
       </div>
     </AppShell>
+  );
+}
+
+/**
+ * Needs two people, so a personal diary never reaches the body below and a
+ * couple space with one member sees it waiting rather than empty.
+ */
+export default function CarePackagesPage() {
+  return (
+    <SpaceGate href="/care-packages" title="Care packages">
+      <CarePackagesPageInner />
+    </SpaceGate>
   );
 }

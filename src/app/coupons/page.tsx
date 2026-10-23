@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
+import { SpaceGate } from '@/components/widgets/SpaceGate';
 import { useDiary } from '@/store/DiaryContext';
 import {
   Sparkles,
@@ -17,7 +18,7 @@ import { ScratchLayer } from '@/components/fx/ScratchLayer';
 
 const NO_REVEALED: string[] = [];
 
-export default function CouponsPage() {
+function CouponsPageInner() {
   const { data, partnerProfile, addLoveCoupon, redeemLoveCoupon } = useDiary();
 
   const [filter, setFilter] = useState<'all' | 'active' | 'redeemed'>('all');
@@ -276,5 +277,17 @@ export default function CouponsPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+/**
+ * Needs two people, so a personal diary never reaches the body below and a
+ * couple space with one member sees it waiting rather than empty.
+ */
+export default function CouponsPage() {
+  return (
+    <SpaceGate href="/coupons" title="Love coupons">
+      <CouponsPageInner />
+    </SpaceGate>
   );
 }

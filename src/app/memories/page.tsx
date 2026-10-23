@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { formatDate } from '@/lib/date-utils';
 import { MemoryCategory, Mood } from '@/types';
 import {
@@ -44,6 +45,8 @@ const MOODS: { mood: Mood; label: string; emoji: string }[] = [
 
 export default function MemoriesPage() {
   const { data, activeProfile, deleteMemory } = useDiary();
+  const { isPersonal, note: spaceNote, title } = useSpaceMode();
+  const note = spaceNote('/memories');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedMood, setSelectedMood] = useState<string>('all');
@@ -93,10 +96,13 @@ export default function MemoriesPage() {
                 <BookHeart className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-2xl font-extrabold text-slate-900">Our Shared Memories</h1>
+                <h1 className="text-2xl font-extrabold text-slate-900">
+                  {title('/memories', 'Our Shared Memories')}
+                </h1>
                 <p className="text-xs text-slate-500">
-                  {data.memories.length} timeless chapters in our journey together
+                  {data.memories.length} timeless chapters in {isPersonal ? 'your story' : 'our journey together'}
                 </p>
+                {note && <p className="text-sm text-ink-muted mt-2 max-w-2xl">{note}</p>}
               </div>
             </div>
           </div>

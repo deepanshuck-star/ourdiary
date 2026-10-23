@@ -32,8 +32,12 @@ test('joining refuses to fall through to the offline branch when Supabase is con
 test('creating a space is guarded the same way', () => {
   const src = read('src', 'app', 'onboarding', 'page.tsx');
   const guards = src.split('if (supabase && !authenticatedUser)').length - 1;
-  // One in the join handler, one in the create handler.
-  assert.equal(guards, 2);
+  // Counted against the handlers rather than a fixed number: onboarding now
+  // has a personal-diary path as well as create and join, and a new path
+  // arriving without the guard is exactly what this is here to catch.
+  const mutations = (src.match(/createSpaceRemote\(|joinCoupleByCodeRemote\(/g) || []).length;
+  assert.ok(mutations >= 2, 'expected onboarding to create and to join');
+  assert.ok(guards >= mutations, 'every create/join path needs the signed-out guard');
 });
 
 // ---------------------------------------------------------------------------
@@ -52,8 +56,54 @@ test('regenerating the code goes through the server and adopts what it returns',
 test('the invite-code call surfaces the server error rather than swallowing it', () => {
   const src = read('src', 'lib', 'supabase', 'couple.ts');
   assert.ok(src.includes('export async function regenerateInviteCodeRemote'));
-  assert.ok(src.includes("supabase.rpc('regenerate_invite_code')"));
+  assert.ok(src.includes("supabase.rpc('regenerate_invite_code'"));
   assert.ok(src.includes('if (error) throw new Error(error.message)'));
+});
+
+test('Migration 20: no RPC infers which diary the caller meant', () => {
+  const sql = fs.readFileSync(
+    path.join(process.cwd(), 'supabase', 'migrations', '20261014000020_personal_and_multi_space.sql'),
+    'utf8'
+  );
+  // An account can now hold a personal diary and a couple space at once, so
+  // "the caller's oldest membership" silently targets the wrong one. Every
+  // rewritten function must take the space and check it.
+  for (const fn of [
+    'regenerate_invite_code(p_couple_id UUID)',
+    'start_game_session(',
+    'apply_game_move(',
+    'end_game_session(p_couple_id UUID, p_game_key TEXT)',
+    'leave_space(p_couple_id UUID)',
+  ]) {
+    assert.ok(sql.includes(fn), `${fn} should take the space explicitly`);
+  }
+  // The exact idiom migrations 6, 18 and 19 used to mean "whichever space
+  // you joined first". Ordering by created_at is still fine where it is only
+  // sort order (get_my_spaces) or is kind-filtered (the personal-diary
+  // dedupe) — it is resolving a mutation's target this way that is the bug.
+  assert.ok(
+    !sql.includes('SELECT cm.couple_id INTO my_couple'),
+    'no function may infer its target space from the caller'
+  );
+  // The old signatures are dropped, not left as overloads an ambiguous call
+  // could resolve to.
+  for (const dropped of [
+    'DROP FUNCTION IF EXISTS public.regenerate_invite_code();',
+    'DROP FUNCTION IF EXISTS public.remove_partner(BOOLEAN);',
+    'DROP FUNCTION IF EXISTS public.start_game_session(TEXT, JSONB, UUID);',
+    'DROP FUNCTION IF EXISTS public.apply_game_move(TEXT, JSONB, INTEGER, UUID, TEXT);',
+    'DROP FUNCTION IF EXISTS public.end_game_session(TEXT);',
+  ]) {
+    assert.ok(sql.includes(dropped), `missing ${dropped}`);
+  }
+  // Membership is still proven before anything is touched.
+  assert.ok(sql.includes('FUNCTION public.assert_space_member'));
+  assert.ok((sql.match(/PERFORM public\.assert_space_member/g) || []).length >= 5);
+});
+
+test('Migration 20: the client names the space on every game call', () => {
+  const src = read('src', 'lib', 'supabase', 'gameSessions.ts');
+  assert.equal((src.match(/p_couple_id: coupleId/g) || []).length, 3);
 });
 
 test('the dashboard reports why a regeneration failed', () => {

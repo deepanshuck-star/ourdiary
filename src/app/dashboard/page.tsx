@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import {
   calculateDaysTogether,
   calculateNextAnniversary,
@@ -104,6 +105,7 @@ export default function DashboardPage() {
     isCoupleCreator,
     showToast,
   } = useDiary();
+  const { access, isPersonal, showWidget } = useSpaceMode();
   const [randomMemoryIndex, setRandomMemoryIndex] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showRegenModal, setShowRegenModal] = useState(false);
@@ -199,11 +201,22 @@ export default function DashboardPage() {
   const myMood = data.moodBeacons?.[data.activeProfileId];
   const sharedMoodToday = !!myMood && myMood.updatedAt?.startsWith(todayStr);
 
+  // The mood beacon is a signal to someone; without the widget there is
+  // nothing for its row to point at, so the row goes with it.
+  const showMoodBeacon = showWidget('MoodBeaconBanner');
+  // The ping and its two triggers stand or fall together — a button that
+  // opens nothing is worse than no button.
+  const showLovePing = showWidget('HeartbeatLovePingModal');
+
   const rituals: Ritual[] = [
     {
       key: 'spark',
       title: 'Answer today’s question',
-      status: iAnswered && partnerAnswered
+      status: isPersonal
+        ? iAnswered
+          ? 'Answered — it is in your diary'
+          : 'A two-minute question for today'
+        : iAnswered && partnerAnswered
         ? 'You both answered — read them together'
         : iAnswered
         ? `Sealed. It opens when ${partnerProfile.name} answers`
@@ -214,14 +227,16 @@ export default function DashboardPage() {
       href: '#todays-question',
       action: iAnswered ? 'View' : 'Answer',
     },
-    {
-      key: 'mood',
-      title: 'Share how you feel',
-      status: myMood ? `${MOOD_CONFIG[myMood.mood].label}${sharedMoodToday ? '' : ' · from earlier'}` : `Let ${partnerProfile.name} know where you are today`,
-      done: sharedMoodToday,
-      href: '#mood',
-      action: sharedMoodToday ? 'Update' : 'Check in',
-    },
+    ...(showMoodBeacon
+      ? [{
+          key: 'mood',
+          title: 'Share how you feel',
+          status: myMood ? `${MOOD_CONFIG[myMood.mood].label}${sharedMoodToday ? '' : ' · from earlier'}` : `Let ${partnerProfile.name} know where you are today`,
+          done: sharedMoodToday,
+          href: '#mood',
+          action: sharedMoodToday ? 'Update' : 'Check in',
+        }]
+      : []),
     {
       key: 'milestone',
       title: nextMilestone ? nextMilestone.label : 'Every milestone reached',
@@ -237,7 +252,7 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <IncomingHeartbeatAlert />
+      {showWidget('IncomingHeartbeatAlert') && <IncomingHeartbeatAlert />}
       <MoodHistoryRecorder />
       <div className="space-y-10 animate-in fade-in duration-300">
         {/* Couple header — pillow-shaped section break */}
@@ -250,14 +265,19 @@ export default function DashboardPage() {
                   alt={data.couple.user1.name}
                   className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover ring-4 ring-surface shadow-cta z-10"
                 />
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-30 bg-surface rounded-full p-1.5 shadow-sm">
-                  <Heart className="w-4 h-4 text-primary fill-primary" />
-                </div>
-                <img
-                  src={data.couple.user2.avatar}
-                  alt={data.couple.user2.name}
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover ring-4 ring-surface shadow-cta -ml-4 z-20"
-                />
+                {/* No second face in a diary of one. */}
+                {!isPersonal && (
+                  <>
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-30 bg-surface rounded-full p-1.5 shadow-sm">
+                      <Heart className="w-4 h-4 text-primary fill-primary" />
+                    </div>
+                    <img
+                      src={data.couple.user2.avatar}
+                      alt={data.couple.user2.name}
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover ring-4 ring-surface shadow-cta -ml-4 z-20"
+                    />
+                  </>
+                )}
               </div>
 
               <div>
@@ -265,7 +285,7 @@ export default function DashboardPage() {
                   {data.couple.name}
                 </p>
                 <h1 className="text-3xl sm:text-5xl font-semibold text-ink leading-tight">
-                  Day {daysTogether} together
+                  Day {daysTogether} {isPersonal ? 'of your diary' : 'together'}
                 </h1>
                 <p className="text-sm text-slate-700 mt-1.5">
                   Viewing as <strong className="font-semibold text-ink">{activeProfile.name}</strong>
@@ -288,16 +308,16 @@ export default function DashboardPage() {
                 className="flex-1 md:flex-none whitespace-nowrap px-5 py-2.5 rounded-full bg-surface/90 hover:bg-surface text-ink font-semibold text-sm border border-line transition-colors flex items-center justify-center gap-2"
               >
                 <Compass className="w-4 h-4 text-primary" />
-                <span>Our journey</span>
+                <span>{isPersonal ? 'My journey' : 'Our journey'}</span>
               </Link>
             </div>
           </div>
         </header>
 
         {/* Only appears when one of you is awake into the other's night. */}
-        <GoodMorningHandoff />
+        {showWidget('GoodMorningHandoff') && <GoodMorningHandoff />}
 
-        <DistanceCounter />
+        {showWidget('DistanceCounter') && <DistanceCounter />}
 
         {/* Today — the dominant card */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6" aria-labelledby="today-heading">
@@ -336,14 +356,16 @@ export default function DashboardPage() {
                 days until year {anniversaryInfo.yearsCount + 1}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowHeartbeatModal(true)}
-              className="w-full px-4 py-2.5 rounded-full bg-surface border border-purple-200 text-purple-800 hover:bg-purple-100 font-semibold text-sm transition-colors flex items-center justify-center gap-2"
-            >
-              <Heart className="w-4 h-4" />
-              <span>Send a love ping</span>
-            </button>
+            {showLovePing && (
+              <button
+                type="button"
+                onClick={() => setShowHeartbeatModal(true)}
+                className="w-full px-4 py-2.5 rounded-full bg-surface border border-purple-200 text-purple-800 hover:bg-purple-100 font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                <Heart className="w-4 h-4" />
+                <span>Send a love ping</span>
+              </button>
+            )}
           </div>
         </section>
 
@@ -375,11 +397,16 @@ export default function DashboardPage() {
 
         {/* Stay close — colour-blocked section */}
         <section className="rounded-[2rem] bg-purple-100/60 p-5 sm:p-8">
-          <SectionHeading eyebrow="Stay close" title="Check in with each other" />
+          <SectionHeading
+            eyebrow={isPersonal ? 'Every day' : 'Stay close'}
+            title={isPersonal ? 'A question for today' : 'Check in with each other'}
+          />
           <div className="space-y-5">
-            <div id="mood" className="scroll-mt-24">
-              <MoodBeaconBanner />
-            </div>
+            {showMoodBeacon && (
+              <div id="mood" className="scroll-mt-24">
+                <MoodBeaconBanner />
+              </div>
+            )}
             <div id="todays-question" className="scroll-mt-24">
               <DailyQuestionCard />
             </div>
@@ -475,7 +502,9 @@ export default function DashboardPage() {
                       <div>
                         <h4 className="font-display text-lg font-semibold text-ink">Your diary is ready</h4>
                         <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto leading-relaxed">
-                          A fresh, private space for the two of you. Start with a first date, a trip or a quiet evening in.
+                          {isPersonal
+                            ? 'A fresh, private space that is yours alone. Start with a trip, a good day or a quiet evening in.'
+                            : 'A fresh, private space for the two of you. Start with a first date, a trip or a quiet evening in.'}
                         </p>
                       </div>
                       <Link
@@ -581,21 +610,25 @@ export default function DashboardPage() {
                   <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
                 </Link>
 
-                <Link
-                  href="/coupons"
-                  className="p-5 rounded-[1.25rem] bg-surface border border-line hover:border-purple-300 transition-colors group flex items-center gap-4"
-                >
-                  <span className="w-11 h-11 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
-                    <Ticket className="w-5 h-5" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-sm text-ink">Love coupons</h4>
-                    <p className="text-xs text-ink-muted mt-0.5">
-                      {data.loveCoupons?.filter((c) => !c.redeemed).length || 0} ready to redeem
-                    </p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
-                </Link>
+                {/* Coupons are hidden outright in a personal diary, so the
+                    shortcut to them goes too rather than leading nowhere. */}
+                {access('/coupons') !== 'hidden' && (
+                  <Link
+                    href="/coupons"
+                    className="p-5 rounded-[1.25rem] bg-surface border border-line hover:border-purple-300 transition-colors group flex items-center gap-4"
+                  >
+                    <span className="w-11 h-11 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
+                      <Ticket className="w-5 h-5" />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm text-ink">Love coupons</h4>
+                      <p className="text-xs text-ink-muted mt-0.5">
+                        {data.loveCoupons?.filter((c) => !c.redeemed).length || 0} ready to redeem
+                      </p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
+                  </Link>
+                )}
               </div>
 
               {/* Upcoming Calendar Events */}
@@ -638,7 +671,9 @@ export default function DashboardPage() {
                     ))
                   ) : (
                     <p className="text-center py-6 text-ink-muted text-sm">
-                      Nothing planned yet. Pick a date together.
+                      {isPersonal
+                        ? 'Nothing planned yet. Put something in to look forward to.'
+                        : 'Nothing planned yet. Pick a date together.'}
                     </p>
                   )}
                 </div>
@@ -690,8 +725,10 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Your space — invite code (live couples only) */}
-        {isLiveUser && (
+        {/* Your space — invite code (live couples only). A personal diary has
+            a code too, but it belongs in Settings, phrased as inviting someone
+            in, not as a couple feature sitting on the dashboard. */}
+        {isLiveUser && !isPersonal && (
           <section className="p-5 sm:p-6 rounded-[1.5rem] bg-surface border border-line flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
               <div className="w-11 h-11 rounded-full bg-purple-50 text-primary flex items-center justify-center flex-shrink-0">
@@ -826,26 +863,30 @@ export default function DashboardPage() {
       )}
 
       {/* Floating love ping */}
-      <div className="fixed bottom-20 sm:bottom-8 right-5 sm:right-8 z-40">
-        <button
-          type="button"
-          onClick={() => setShowHeartbeatModal(true)}
-          className="px-4 py-3 sm:px-5 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-semibold text-xs sm:text-sm shadow-cta hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,transform] duration-200 flex items-center gap-2.5 ring-4 ring-canvas"
-          title="Send a thinking-of-you love ping"
-        >
-          <Heart className="w-4 h-4 fill-current" />
-          <span className="hidden xs:inline">Send love</span>
-          <span className="px-2 py-0.5 rounded-full bg-on-primary/15 text-[11px] font-semibold tracking-wide flex items-center gap-1">
-            <Flame className="w-3 h-3" />
-            {data.heartbeatStreak || 1}d
-          </span>
-        </button>
-      </div>
+      {showLovePing && (
+        <>
+          <div className="fixed bottom-20 sm:bottom-8 right-5 sm:right-8 z-40">
+            <button
+              type="button"
+              onClick={() => setShowHeartbeatModal(true)}
+              className="px-4 py-3 sm:px-5 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-semibold text-xs sm:text-sm shadow-cta hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,transform] duration-200 flex items-center gap-2.5 ring-4 ring-canvas"
+              title="Send a thinking-of-you love ping"
+            >
+              <Heart className="w-4 h-4 fill-current" />
+              <span className="hidden xs:inline">Send love</span>
+              <span className="px-2 py-0.5 rounded-full bg-on-primary/15 text-[11px] font-semibold tracking-wide flex items-center gap-1">
+                <Flame className="w-3 h-3" />
+                {data.heartbeatStreak || 1}d
+              </span>
+            </button>
+          </div>
 
-      <HeartbeatLovePingModal
-        isOpen={showHeartbeatModal}
-        onClose={() => setShowHeartbeatModal(false)}
-      />
+          <HeartbeatLovePingModal
+            isOpen={showHeartbeatModal}
+            onClose={() => setShowHeartbeatModal(false)}
+          />
+        </>
+      )}
     </AppShell>
   );
 }

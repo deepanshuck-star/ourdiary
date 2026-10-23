@@ -276,6 +276,19 @@ export const GAMES: GameMeta[] = [
     players: 'Take turns',
   },
   {
+    id: 'scribble',
+    title: 'Scribble',
+    tagline: 'Draw it, before the clock runs out',
+    rules: [
+      'One of you gets a word and ninety seconds to draw it.',
+      'The other types guesses — letters appear as the time goes.',
+      'You both score, so an unreadable drawing costs the artist too.',
+    ],
+    category: 'together',
+    players: 'Two players',
+    requires: ['partner'],
+  },
+  {
     id: 'doodle',
     title: 'Doodle Canvas',
     tagline: 'Draw something for them',

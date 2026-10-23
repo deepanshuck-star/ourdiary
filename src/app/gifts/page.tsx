@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Gift, ImagePlus, Loader2, Trash2, X } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
+import { SpaceGate } from '@/components/widgets/SpaceGate';
 import { useDiary } from '@/store/DiaryContext';
 import { useCoupleMembers } from '@/hooks/useCoupleMembers';
 import { newId } from '@/hooks/useNow';
@@ -32,7 +33,7 @@ interface LocalGift {
 
 type Tab = 'received' | 'given';
 
-export default function GiftsPage() {
+function GiftsPageInner() {
   const { data, activeProfile, partnerProfile, isLiveUser, currentUserId, showToast } = useDiary();
   const { myId, partnerId, isRemote } = useCoupleMembers();
   const coupleId = data.couple.id;
@@ -442,4 +443,16 @@ function readAsDataUrl(file: File): Promise<string> {
     reader.onerror = () => reject(reader.error ?? new Error('Could not read that image.'));
     reader.readAsDataURL(file);
   });
+}
+
+/**
+ * Needs two people, so a personal diary never reaches the body below and a
+ * couple space with one member sees it waiting rather than empty.
+ */
+export default function GiftsPage() {
+  return (
+    <SpaceGate href="/gifts" title="Gifts wardrobe">
+      <GiftsPageInner />
+    </SpaceGate>
+  );
 }

@@ -242,10 +242,13 @@ test('Couple RLS: couples are no longer readable by every authenticated user', (
 test('Client: onboarding/login use the shared helpers and never silently swallow errors', () => {
   const login = read('src', 'app', 'login', 'page.tsx');
   const onboarding = read('src', 'app', 'onboarding', 'page.tsx');
-  assert.ok(login.includes('fetchMyCouple'));
+  // An account may hold several diaries now, so login lists them rather than
+  // fetching "the" one — but it still goes through the shared helper.
+  assert.ok(login.includes('fetchMySpacesRemote') || login.includes('fetchMyCouple'));
   assert.ok(!login.includes('.maybeSingle()'), 'login must not use maybeSingle (fails on >1 rows)');
+  assert.ok(!login.includes(".from('couples')"), 'login must not query couples directly');
   assert.ok(onboarding.includes('joinCoupleByCodeRemote'));
-  assert.ok(onboarding.includes('createCoupleSpaceRemote'));
+  assert.ok(onboarding.includes('createSpaceRemote'));
   assert.ok(!onboarding.includes(".from('couples')"), 'onboarding must not query couples directly');
   assert.ok(onboarding.includes("loadExistingCoupleSpace(authenticatedUser.id, foundCouple, 'partner')"));
 });

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { CalendarHeart, Loader2, MapPin, Plane, Plus, Trash2, Wallet } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { useTrips } from '@/hooks/useTrips';
 import { useLocalState } from '@/lib/local-store';
 import { formatDate } from '@/lib/date-utils';
@@ -41,6 +42,8 @@ interface TripCardProps {
   onRemoveTrip: () => void;
   onNotes: (notes: string) => void;
   quiet?: boolean;
+  /** One traveller, one wallet: no payer to choose and nothing to settle. */
+  personal?: boolean;
 }
 
 function TripCard({
@@ -55,6 +58,7 @@ function TripCard({
   onRemoveTrip,
   onNotes,
   quiet,
+  personal,
 }: TripCardProps) {
   const [label, setLabel] = useState('');
   const [amount, setAmount] = useState('');
@@ -75,9 +79,9 @@ function TripCard({
       return;
     }
     if (!label.trim()) return;
-    const paidBy = payer === 'me' ? myId : partnerId;
+    const paidBy = personal || payer === 'me' ? myId : partnerId;
     if (!paidBy) {
-      setCostError('Your partner hasn’t joined this space yet.');
+      setCostError(personal ? 'Still setting up your diary — try again in a moment.' : 'Your partner hasn’t joined this space yet.');
       return;
     }
     setCostError('');
@@ -110,7 +114,7 @@ function TripCard({
             )}
             <span className="tabular-nums">{dateSpan(trip)}</span>
             <span className="tabular-nums">{nightsLabel(trip)}</span>
-            {trip.travellerId && <span>{nameFor(trip.travellerId)} travels</span>}
+            {!personal && trip.travellerId && <span>{nameFor(trip.travellerId)} travels</span>}
           </p>
         </div>
         <button
@@ -135,7 +139,7 @@ function TripCard({
               <li key={cost.id} className="flex items-center gap-3 py-2">
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-ink truncate">{cost.label}</p>
-                  <p className="text-xs text-ink-muted">paid by {nameFor(cost.paidBy)}</p>
+                  {!personal && <p className="text-xs text-ink-muted">paid by {nameFor(cost.paidBy)}</p>}
                 </div>
                 <p className="text-sm font-semibold text-ink tabular-nums">{money(cost.amount)}</p>
                 <button
@@ -182,7 +186,7 @@ function TripCard({
               className={inputClass}
             />
           </div>
-          <fieldset className="sm:col-span-2">
+          <fieldset className={`sm:col-span-2 ${personal ? 'hidden' : ''}`} aria-hidden={personal}>
             <legend className="block text-xs font-semibold text-ink-muted mb-1">Who paid?</legend>
             <div className="flex gap-2">
               {(['me', 'partner'] as const).map((who) => (
