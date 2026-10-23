@@ -596,3 +596,36 @@ test('Fix: a photo-save failure during memory creation is surfaced, not silently
   assert.ok(ctx.includes('expectedPhotoCount'));
   assert.ok(ctx.includes("couldn't be saved to the server"));
 });
+
+test('Security: the auth session is refreshed server-side on every request', () => {
+  const proxy = read('src', 'proxy.ts');
+  // Next 16 renamed the `middleware` convention to `proxy`.
+  assert.ok(proxy.includes('export async function proxy'));
+  assert.ok(proxy.includes('createServerClient'));
+  // getUser() is what performs the refresh; without it the file does nothing.
+  assert.ok(proxy.includes('supabase.auth.getUser()'));
+});
+
+test('Security: the proxy returns the response carrying the refreshed cookies', () => {
+  const proxy = read('src', 'proxy.ts');
+  // Returning a freshly built NextResponse would drop the Set-Cookie headers
+  // and the session would quietly stop refreshing.
+  const lastReturn = proxy.lastIndexOf('return response;');
+  const setAll = proxy.indexOf('setAll(cookiesToSet)');
+  assert.ok(setAll > -1 && lastReturn > setAll);
+  assert.ok(proxy.includes('response.cookies.set(name, value, options)'));
+});
+
+test('Security: the proxy skips static assets rather than hitting Supabase per image', () => {
+  const proxy = read('src', 'proxy.ts');
+  assert.ok(proxy.includes('export const config'));
+  assert.ok(proxy.includes('matcher'));
+  assert.ok(proxy.includes('_next/static'));
+});
+
+test('Security: the proxy is inert in demo mode', () => {
+  const proxy = read('src', 'proxy.ts');
+  // No Supabase configured means no session to refresh — and no credentials
+  // to build a client with.
+  assert.ok(proxy.includes('isSupabaseConfigured'));
+});

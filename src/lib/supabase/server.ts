@@ -21,7 +21,9 @@ export async function getSupabaseServerClient() {
             cookieStore.set(name, value, options)
           );
         } catch {
-          // Handled in middleware
+          // A Server Component can't set cookies. src/proxy.ts refreshes the
+          // session on every request, so the token this throws on has
+          // already been renewed there.
         }
       },
     },
