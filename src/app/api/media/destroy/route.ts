@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { deleteCloudinaryAsset } from '@/lib/cloudinary/server';
 import { getAppEnvironment } from '@/lib/env';
-import { isOwnedByCouple } from '@/lib/cloudinary/publicId';
+import { coupleIdFromPublicId, isOwnedByCouple } from '@/lib/cloudinary/publicId';
 
 const destroySchema = z.object({
   publicId: z.string().min(1),
@@ -18,9 +18,9 @@ const destroySchema = z.object({
  * grow without bound.
  *
  * Authorization is the folder: /api/media/sign-upload only ever signs uploads
- * into `ourdiary/<coupleId>/`, so an id under the caller's own couple folder
- * is one they uploaded. Anything else is refused, which stops a caller from
- * passing an arbitrary id and wiping another couple's media.
+ * into `ourdiary/<coupleId>/`, so an id under a couple folder the caller
+ * belongs to is one they uploaded. Anything else is refused, which stops a
+ * caller from passing an arbitrary id and wiping another couple's media.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -48,22 +48,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: member, error: memberError } = await supabase
-      .from('couple_members')
-      .select('couple_id')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle();
-
-    if (memberError || !member) {
-      return NextResponse.json({ error: 'Forbidden: you are not in a couple space' }, { status: 403 });
-    }
-
     const body = await req.json().catch(() => ({}));
     const parsed = destroySchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+
+    // The folder names the owning diary, so read it out of the id and prove
+    // membership of THAT one. The previous check used the caller's oldest
+    // membership, which — now an account can hold several diaries — refused
+    // deletes in every diary but the first, quietly leaving the replaced
+    // files behind. Deriving the owner is also stricter than trusting a
+    // client-supplied id: it can only ever name a diary the caller is in.
+    const owner = coupleIdFromPublicId(parsed.data.publicId);
+    if (!owner) {
+      return NextResponse.json({ error: 'Forbidden: that file is not yours' }, { status: 403 });
+    }
+
+    const { data: member, error: memberError } = await supabase
+      .from('couple_members')
+      .select('couple_id')
+      .eq('user_id', user.id)
+      .eq('couple_id', owner)
+      .maybeSingle();
+
+    if (memberError || !member) {
+      return NextResponse.json({ error: 'Forbidden: that file is not yours' }, { status: 403 });
     }
 
     if (!isOwnedByCouple(parsed.data.publicId, member.couple_id)) {

@@ -2,6 +2,7 @@
 
 import { MAX_SONG_BYTES, validateSongFile } from '@/lib/features/music';
 import { publicIdFromCloudinaryUrl } from '@/lib/cloudinary/publicId';
+import { getActiveCoupleId } from '@/lib/coupleMembership';
 
 /**
  * Deletes a Cloudinary asset the couple is replacing (their song, a profile
@@ -64,7 +65,7 @@ export async function uploadImageToCloudinary(
   const signRes = await fetch('/api/media/sign-upload', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ resourceType: 'image' }),
+    body: JSON.stringify({ resourceType: 'image', coupleId: getActiveCoupleId() }),
   });
   const signData = await signRes.json().catch(() => ({}));
   if (!signRes.ok || !signData.configured) {
@@ -107,7 +108,7 @@ export async function uploadAudioToCloudinary(
   const signRes = await fetch('/api/media/sign-upload', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ resourceType: 'video' }),
+    body: JSON.stringify({ resourceType: 'video', coupleId: getActiveCoupleId() }),
   });
   const signData = await signRes.json().catch(() => ({}));
   if (!signRes.ok || !signData.configured) {
@@ -155,7 +156,7 @@ export async function uploadSongToCloudinary(
   const signRes = await fetch('/api/media/sign-upload', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ resourceType: 'video' }),
+    body: JSON.stringify({ resourceType: 'video', coupleId: getActiveCoupleId() }),
   });
   const signData = await signRes.json().catch(() => ({}));
   if (!signRes.ok || !signData.configured) {

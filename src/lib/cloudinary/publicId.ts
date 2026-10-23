@@ -66,3 +66,20 @@ export function isOwnedByCouple(publicId: string, coupleId: string): boolean {
   if (publicId.includes('..')) return false;
   return publicId.startsWith(`ourdiary/${coupleId}/`);
 }
+
+/**
+ * The couple id a public_id belongs to, from the folder the signer put it in.
+ *
+ * Deleting used to authorize against "the caller's oldest couple", which was
+ * the same single-space assumption migration 20 removed from the SQL: with a
+ * personal diary alongside a couple one, a file in the newer diary belonged
+ * to a couple the check never looked at. Reading the owner out of the id and
+ * then proving membership of THAT couple is both correct for several spaces
+ * and stricter — the id cannot name a couple the caller isn't in.
+ */
+export function coupleIdFromPublicId(publicId: string | null | undefined): string | null {
+  if (!publicId || publicId.includes('..')) return null;
+  const segments = publicId.split('/');
+  if (segments.length < 3 || segments[0] !== 'ourdiary') return null;
+  return segments[1] || null;
+}

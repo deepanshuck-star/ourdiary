@@ -37,6 +37,7 @@ import {
 import { fetchMemoriesRemote, createMemoryRemote, updateMemoryRemote, deleteMemoryRemote } from '@/lib/supabase/memories';
 import { fetchCoupleProfilesRemote, updateMyAvatarRemote, updateCouplePhotoRemote } from '@/lib/supabase/profiles';
 import { setSyncContext, setSyncErrorHandler } from '@/lib/local-store';
+import { setActiveCoupleId } from '@/lib/coupleMembership';
 import {
   fetchEventsRemote, createEventRemote, updateEventRemote, deleteEventRemote,
   fetchLettersRemote, createLetterRemote, updateLetterRemote, deleteLetterRemote,
@@ -574,6 +575,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     setIsLiveUser(true);
     if (userId) {
       setSyncContext({ coupleId: couple.id, userId, mySlot: 'user_1' });
+      setActiveCoupleId(couple.id);
     }
     if (typeof window !== 'undefined') {
       localStorage.setItem('ourdiary_is_live_user', 'true');
@@ -595,6 +597,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     setCurrentUserId(userId);
     const activeProfileId: ProfileId = role === 'partner' ? 'user_2' : 'user_1';
     setSyncContext({ coupleId: remoteCouple.id, userId, mySlot: activeProfileId });
+    setActiveCoupleId(remoteCouple.id);
 
     const defaultAvatar1 = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80';
     const defaultAvatar2 = 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80';
@@ -780,6 +783,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     setIsLiveUser(false);
     setCurrentUserId(null);
     setSyncContext(null);
+    setActiveCoupleId(null);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('ourdiary_is_live_user');
       localStorage.removeItem('ourdiary_current_user_id');

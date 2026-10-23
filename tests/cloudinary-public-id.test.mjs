@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { isOwnedByCouple, publicIdFromCloudinaryUrl } from '../src/lib/cloudinary/publicId.ts';
+import { coupleIdFromPublicId, isOwnedByCouple, publicIdFromCloudinaryUrl } from '../src/lib/cloudinary/publicId.ts';
 
 const COUPLE = '2f1c9a4e-0000-4000-8000-abcdefabcdef';
 
@@ -78,4 +78,25 @@ test('isOwnedByCouple accepts only this couple’s own folder', () => {
 
 test('isOwnedByCouple rejects path traversal out of the couple folder', () => {
   assert.equal(isOwnedByCouple(`ourdiary/${COUPLE}/../other/abc`, COUPLE), false);
+});
+
+test('coupleIdFromPublicId reads the owning couple out of the folder', () => {
+  assert.equal(coupleIdFromPublicId('ourdiary/abc-123/photo'), 'abc-123');
+  assert.equal(coupleIdFromPublicId('ourdiary/abc-123/nested/photo'), 'abc-123');
+});
+
+test('coupleIdFromPublicId refuses anything it cannot vouch for', () => {
+  // Traversal, a foreign root, and ids with no file under the couple folder.
+  assert.equal(coupleIdFromPublicId('ourdiary/abc/../other/photo'), null);
+  assert.equal(coupleIdFromPublicId('elsewhere/abc/photo'), null);
+  assert.equal(coupleIdFromPublicId('ourdiary/abc'), null);
+  assert.equal(coupleIdFromPublicId(''), null);
+  assert.equal(coupleIdFromPublicId(null), null);
+});
+
+test('the id it returns is the one isOwnedByCouple then accepts', () => {
+  const publicId = 'ourdiary/couple-9/song';
+  const owner = coupleIdFromPublicId(publicId);
+  assert.equal(isOwnedByCouple(publicId, owner), true);
+  assert.equal(isOwnedByCouple(publicId, 'couple-8'), false);
 });

@@ -19,6 +19,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const body = await req.json().catch(() => ({}));
+    const requestedCoupleId = typeof body.coupleId === 'string' ? body.coupleId : null;
+
     // Authenticate session if Supabase is connected
     let userId: string | null = null;
     let coupleId: string = 'demo_couple';
@@ -40,24 +43,49 @@ export async function POST(req: NextRequest) {
 
       userId = user.id;
 
-      // Verify user's couple membership
-      const { data: memberData, error: memberError } = await supabase
+      // An account can hold a personal diary and a couple space at once
+      // (migration 20), so the caller names the one they are uploading for
+      // and we prove they belong to it. This used to be a .single() over the
+      // caller's memberships, which errors outright on a second row — every
+      // upload would have failed the moment someone had two diaries.
+      const memberships = await supabase
         .from('couple_members')
         .select('couple_id')
-        .eq('user_id', userId)
-        .single();
+        .eq('user_id', userId);
 
-      if (memberError || !memberData) {
+      if (memberships.error) {
+        return NextResponse.json({ error: 'Could not verify your diary membership' }, { status: 500 });
+      }
+
+      const mine = (memberships.data || []).map((row: { couple_id: string }) => row.couple_id);
+
+      if (requestedCoupleId) {
+        if (!mine.includes(requestedCoupleId)) {
+          return NextResponse.json(
+            { error: 'Forbidden: that diary is not yours' },
+            { status: 403 }
+          );
+        }
+        coupleId = requestedCoupleId;
+      } else if (mine.length === 1) {
+        // An older client that doesn't name the space, with nothing ambiguous
+        // about which one it meant.
+        coupleId = mine[0];
+      } else if (mine.length === 0) {
         return NextResponse.json(
           { error: 'Forbidden: You must be an approved member of a couple space' },
           { status: 403 }
         );
+      } else {
+        // Guessing here is what put files in the wrong diary; make the client
+        // say which one instead.
+        return NextResponse.json(
+          { error: 'Which diary is this for? Reopen the diary and try again.' },
+          { status: 400 }
+        );
       }
-
-      coupleId = memberData.couple_id;
     }
 
-    const body = await req.json().catch(() => ({}));
     const resourceType = body.resourceType === 'video' ? 'video' : 'image';
     const timestamp = Math.round(new Date().getTime() / 1000);
     const folder = `ourdiary/${coupleId}`;
