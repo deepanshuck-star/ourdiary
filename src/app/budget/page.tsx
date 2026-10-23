@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { ArrowRight, Plus, Scale, Trash2, Wallet } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { useLocalState } from '@/lib/local-store';
 import { newId, useNow } from '@/hooks/useNow';
 import { toISODate } from '@/lib/features/countdowns';
@@ -37,6 +38,8 @@ function formatMonthLabel(month: string) {
 
 export default function BudgetPage() {
   const { data, showToast } = useDiary();
+  const { isPersonal, note: spaceNote, title: spaceTitle } = useSpaceMode();
+  const note = spaceNote('/budget');
   const now = useNow(60_000);
   const names: Record<Payer, string> = { user_1: data.couple.user1.name, user_2: data.couple.user2.name };
 
@@ -111,10 +114,15 @@ export default function BudgetPage() {
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Date budget</p>
-            <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1">Love, on a budget</h1>
-            <p className="text-sm text-ink-muted mt-2 max-w-2xl">
-              Keep date nights, trips and gifts in check — and keep things even between you.
-            </p>
+            <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1">
+              {spaceTitle('/budget', 'Love, on a budget')}
+            </h1>
+            {!isPersonal && (
+              <p className="text-sm text-ink-muted mt-2 max-w-2xl">
+                Keep date nights, trips and gifts in check — and keep things even between you.
+              </p>
+            )}
+            {note && <p className="text-sm text-ink-muted mt-2 max-w-2xl">{note}</p>}
           </div>
           <div className="flex flex-wrap gap-3">
             <div>
@@ -185,7 +193,7 @@ export default function BudgetPage() {
           </div>
         )}
 
-        <div className="grid lg:grid-cols-2 gap-6 items-start">
+        <div className={`grid gap-6 items-start ${isPersonal ? '' : 'lg:grid-cols-2'}`}>
           <section aria-labelledby="by-category" className="rounded-[1.25rem] bg-surface border border-line p-5 sm:p-6 shadow-card">
             <h2 id="by-category" className="text-xl font-semibold text-ink">Where it went</h2>
             <ul className="mt-4 space-y-4">
@@ -212,34 +220,37 @@ export default function BudgetPage() {
             </ul>
           </section>
 
-          <section aria-labelledby="split-heading" className="rounded-[1.25rem] bg-hero border border-line p-5 sm:p-6 shadow-card">
-            <h2 id="split-heading" className="text-xl font-semibold text-ink flex items-center gap-2">
-              <Scale className="w-5 h-5 text-primary" aria-hidden="true" /> Keeping it even
-            </h2>
-            <p className="text-xs text-ink-muted mt-1">Everything is split 50/50.</p>
-            <dl className="grid grid-cols-2 gap-3 mt-4">
-              {(['user_1', 'user_2'] as Payer[]).map((p) => (
-                <div key={p} className="rounded-2xl bg-surface border border-line p-3">
-                  <dt className="text-xs text-ink-muted">{names[p]} paid</dt>
-                  <dd className="font-semibold text-ink mt-0.5">{money(settlement.paid[p])}</dd>
-                </div>
-              ))}
-            </dl>
-            <p className="mt-4 text-sm text-ink flex flex-wrap items-center gap-2">
-              {settlement.owes ? (
-                <>
-                  <span className="font-semibold">{names[settlement.owes.from]}</span>
-                  <ArrowRight className="w-4 h-4 text-primary" aria-hidden="true" />
-                  <span className="font-semibold">{names[settlement.owes.to]}</span>
-                  <span>
-                    owes <span className="font-display text-2xl font-semibold">{money(settlement.owes.amount)}</span>
-                  </span>
-                </>
-              ) : (
-                <span>You're perfectly even this month.</span>
-              )}
-            </p>
-          </section>
+          {/* Nothing to settle with yourself. */}
+          {!isPersonal && (
+            <section aria-labelledby="split-heading" className="rounded-[1.25rem] bg-hero border border-line p-5 sm:p-6 shadow-card">
+              <h2 id="split-heading" className="text-xl font-semibold text-ink flex items-center gap-2">
+                <Scale className="w-5 h-5 text-primary" aria-hidden="true" /> Keeping it even
+              </h2>
+              <p className="text-xs text-ink-muted mt-1">Everything is split 50/50.</p>
+              <dl className="grid grid-cols-2 gap-3 mt-4">
+                {(['user_1', 'user_2'] as Payer[]).map((p) => (
+                  <div key={p} className="rounded-2xl bg-surface border border-line p-3">
+                    <dt className="text-xs text-ink-muted">{names[p]} paid</dt>
+                    <dd className="font-semibold text-ink mt-0.5">{money(settlement.paid[p])}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-4 text-sm text-ink flex flex-wrap items-center gap-2">
+                {settlement.owes ? (
+                  <>
+                    <span className="font-semibold">{names[settlement.owes.from]}</span>
+                    <ArrowRight className="w-4 h-4 text-primary" aria-hidden="true" />
+                    <span className="font-semibold">{names[settlement.owes.to]}</span>
+                    <span>
+                      owes <span className="font-display text-2xl font-semibold">{money(settlement.owes.amount)}</span>
+                    </span>
+                  </>
+                ) : (
+                  <span>You're perfectly even this month.</span>
+                )}
+              </p>
+            </section>
+          )}
         </div>
 
         <div className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-6 items-start">
@@ -275,22 +286,24 @@ export default function BudgetPage() {
                   ))}
                 </select>
               </div>
-              <fieldset>
-                <legend className="block text-xs font-semibold text-ink-muted mb-1">Who paid?</legend>
-                <div className="flex gap-2">
-                  {(['user_1', 'user_2'] as Payer[]).map((p) => (
-                    <label
-                      key={p}
-                      className={`flex-1 text-center px-3 py-2.5 rounded-full border text-sm font-semibold cursor-pointer focus-within:ring-2 focus-within:ring-focus ${
-                        paidBy === p ? 'bg-primary text-on-primary border-primary' : 'bg-surface text-ink border-line'
-                      }`}
-                    >
-                      <input type="radio" name="paid-by" value={p} checked={paidBy === p} onChange={() => setPaidBy(p)} className="sr-only" />
-                      {names[p]}
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
+              {!isPersonal && (
+                <fieldset>
+                  <legend className="block text-xs font-semibold text-ink-muted mb-1">Who paid?</legend>
+                  <div className="flex gap-2">
+                    {(['user_1', 'user_2'] as Payer[]).map((p) => (
+                      <label
+                        key={p}
+                        className={`flex-1 text-center px-3 py-2.5 rounded-full border text-sm font-semibold cursor-pointer focus-within:ring-2 focus-within:ring-focus ${
+                          paidBy === p ? 'bg-primary text-on-primary border-primary' : 'bg-surface text-ink border-line'
+                        }`}
+                      >
+                        <input type="radio" name="paid-by" value={p} checked={paidBy === p} onChange={() => setPaidBy(p)} className="sr-only" />
+                        {names[p]}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
               <div>
                 <label htmlFor="exp-date" className="block text-xs font-semibold text-ink-muted mb-1">Date</label>
                 <input id="exp-date" type="date" value={datePick || today} onChange={(e) => setDatePick(e.target.value)} className={inputClass} />
@@ -341,7 +354,8 @@ export default function BudgetPage() {
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-ink truncate">{x.title}</p>
                     <p className="text-xs text-ink-muted">
-                      {EXPENSE_CATEGORIES.find((c) => c.id === x.category)?.label} · paid by {names[x.paidBy]} · {x.date}
+                      {EXPENSE_CATEGORIES.find((c) => c.id === x.category)?.label}
+                      {!isPersonal && ` · paid by ${names[x.paidBy]}`} · {x.date}
                     </p>
                   </div>
                   <p className="font-semibold text-ink tabular-nums">{money(x.amount)}</p>

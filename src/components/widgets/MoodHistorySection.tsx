@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Activity } from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
+import { useSpaceMode } from '@/hooks/useSpaceMode';
 import { getNow } from '@/lib/date-utils';
 import { MOOD_CONFIG } from '@/components/widgets/MoodBeaconBanner';
 import { MoodHistoryRecorder, useMoodHistory } from '@/components/widgets/MoodHistoryRecorder';
@@ -30,13 +31,21 @@ function shortDate(key: string) {
 
 export function MoodHistorySection() {
   const { data, isHydrated } = useDiary();
+  // A personal diary has one person in it, so the chart is one series. The
+  // alternative was hiding the whole section, which would have taken away
+  // the one place a solo user can see their own mood over time.
+  const { isPersonal } = useSpaceMode();
   const history = useMoodHistory();
   const [range, setRange] = useState<7 | 30>(7);
   const [showTable, setShowTable] = useState(false);
   const today = dateToDayKey(getNow());
   const series = useMemo(() => moodSeries(history, today, range), [history, today, range]);
   const names: Record<PartnerKey, string> = { user_1: data.couple.user1.name, user_2: data.couple.user2.name };
-  const hasData = series.some((d) => d.user_1 || d.user_2);
+  const tracked = useMemo<PartnerKey[]>(
+    () => (isPersonal ? ['user_1'] : ['user_1', 'user_2']),
+    [isPersonal]
+  );
+  const hasData = series.some((d) => tracked.some((who) => d[who]));
 
   const xPct = (i: number) => (series.length === 1 ? 50 : 3 + (i / (series.length - 1)) * 94);
   const yPx = (mood: string, who: PartnerKey) =>
@@ -93,12 +102,14 @@ export function MoodHistorySection() {
           </svg>
           {names.user_1} (filled dot)
         </span>
-        <span className="inline-flex items-center gap-1.5">
-          <svg width="14" height="14" aria-hidden="true">
-            <circle cx="7" cy="7" r="4.5" fill="var(--color-surface)" stroke="var(--mood-s2)" strokeWidth="3" />
-          </svg>
-          {names.user_2} (ring)
-        </span>
+        {!isPersonal && (
+          <span className="inline-flex items-center gap-1.5">
+            <svg width="14" height="14" aria-hidden="true">
+              <circle cx="7" cy="7" r="4.5" fill="var(--color-surface)" stroke="var(--mood-s2)" strokeWidth="3" />
+            </svg>
+            {names.user_2} (ring)
+          </span>
+        )}
       </div>
 
       {!isHydrated ? (
@@ -140,7 +151,7 @@ export function MoodHistorySection() {
                   strokeWidth="1"
                 />
               ))}
-              {(['user_1', 'user_2'] as PartnerKey[]).map((who) =>
+              {tracked.map((who) =>
                 segments(who).map((s, i) => (
                   <line
                     key={`${who}-l-${i}`}
@@ -155,7 +166,7 @@ export function MoodHistorySection() {
                 ))
               )}
               {series.map((d, i) =>
-                (['user_1', 'user_2'] as PartnerKey[]).map((who) => {
+                tracked.map((who) => {
                   const mood = d[who];
                   if (!mood || !MOOD_ORDER.includes(mood)) return null;
                   const filled = who === 'user_1';
@@ -198,7 +209,7 @@ export function MoodHistorySection() {
 
       {isHydrated && hasData && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {(['user_1', 'user_2'] as PartnerKey[]).map((who) => {
+          {tracked.map((who) => {
             const top = moodTally(series, who)[0];
             return (
               <p key={who} className="p-3 rounded-2xl bg-purple-50 text-xs text-ink">

@@ -225,8 +225,9 @@ export default function OurStatsPage() {
           </div>
         </div>
 
-        {/* Both of these read a relationship: milestones counted from the start
-            date, and a mood chart with a series per partner. */}
+        {/* The roadmap counts from a relationship start date, so it only means
+            something for two people. The mood chart below is kept either way —
+            it drops to one series in a personal diary. */}
         {!isPersonal && (
           <>
           {/* Full Milestone Timeline */}
@@ -270,10 +271,10 @@ export default function OurStatsPage() {
             </div>
           </div>
 
-          {/* Mood history for both partners */}
-          <MoodHistorySection />
           </>
         )}
+
+        <MoodHistorySection />
       </div>
     </AppShell>
   );

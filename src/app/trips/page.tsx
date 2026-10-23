@@ -186,29 +186,31 @@ function TripCard({
               className={inputClass}
             />
           </div>
-          <fieldset className={`sm:col-span-2 ${personal ? 'hidden' : ''}`} aria-hidden={personal}>
-            <legend className="block text-xs font-semibold text-ink-muted mb-1">Who paid?</legend>
-            <div className="flex gap-2">
-              {(['me', 'partner'] as const).map((who) => (
-                <label
-                  key={who}
-                  className={`flex-1 text-center px-3 py-2.5 rounded-full border text-sm font-semibold cursor-pointer focus-within:ring-2 focus-within:ring-focus ${
-                    payer === who ? 'bg-primary text-on-primary border-primary' : 'bg-surface text-ink border-line'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name={`cost-payer-${trip.id}`}
-                    value={who}
-                    checked={payer === who}
-                    onChange={() => setPayer(who)}
-                    className="sr-only"
-                  />
-                  {who === 'me' ? (myId ? nameFor(myId) : 'Me') : partnerId ? nameFor(partnerId) : 'Partner'}
-                </label>
-              ))}
-            </div>
-          </fieldset>
+          {!personal && (
+            <fieldset className="sm:col-span-2">
+              <legend className="block text-xs font-semibold text-ink-muted mb-1">Who paid?</legend>
+              <div className="flex gap-2">
+                {(['me', 'partner'] as const).map((who) => (
+                  <label
+                    key={who}
+                    className={`flex-1 text-center px-3 py-2.5 rounded-full border text-sm font-semibold cursor-pointer focus-within:ring-2 focus-within:ring-focus ${
+                      payer === who ? 'bg-primary text-on-primary border-primary' : 'bg-surface text-ink border-line'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name={`cost-payer-${trip.id}`}
+                      value={who}
+                      checked={payer === who}
+                      onChange={() => setPayer(who)}
+                      className="sr-only"
+                    />
+                    {who === 'me' ? (myId ? nameFor(myId) : 'Me') : partnerId ? nameFor(partnerId) : 'Partner'}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
           {costError && (
             <p id={`cost-error-${trip.id}`} role="alert" className="sm:col-span-2 text-xs text-danger">
               {costError}
@@ -225,39 +227,46 @@ function TripCard({
         </form>
       </section>
 
-      <section aria-label={`Split for ${trip.title}`} className="mt-5 rounded-2xl bg-hero border border-line p-4">
+      <section
+        aria-label={personal ? `Total for ${trip.title}` : `Split for ${trip.title}`}
+        className="mt-5 rounded-2xl bg-hero border border-line p-4"
+      >
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Total</p>
           <p className="font-display text-2xl font-semibold text-ink tabular-nums">{money(split.total)}</p>
         </div>
-        <dl className="grid grid-cols-2 gap-3 mt-3">
-          <div className="rounded-2xl bg-surface border border-line p-3">
-            <dt className="text-xs text-ink-muted">{myId ? nameFor(myId) : 'You'} paid</dt>
-            <dd className="font-semibold text-ink tabular-nums mt-0.5">{money(myPaid)}</dd>
-          </div>
-          <div className="rounded-2xl bg-surface border border-line p-3">
-            <dt className="text-xs text-ink-muted">{partnerId ? nameFor(partnerId) : 'Your partner'} paid</dt>
-            <dd className="font-semibold text-ink tabular-nums mt-0.5">{money(partnerPaid)}</dd>
-          </div>
-        </dl>
-        <p className="text-xs text-ink-muted mt-3">
-          Fair share each: <span className="tabular-nums">{money(split.fairShare)}</span>
-        </p>
-        <p className="text-sm text-ink mt-1">
-          {split.owes ? (
-            <>
-              <span className="font-semibold">{nameFor(split.owes.from)}</span> owes{' '}
-              <span className="font-semibold">{nameFor(split.owes.to)}</span>{' '}
-              <span className="font-display text-xl font-semibold tabular-nums">{money(split.owes.amount)}</span>
-            </>
-          ) : (
-            "You're even"
-          )}
-        </p>
-        {unsettlable > 0 && (
-          <p className="text-xs text-ink-muted mt-2">
-            {money(unsettlable)} was paid by someone else — it counts toward the total but can't be settled between you.
+        {!personal && (
+          <>
+          <dl className="grid grid-cols-2 gap-3 mt-3">
+            <div className="rounded-2xl bg-surface border border-line p-3">
+              <dt className="text-xs text-ink-muted">{myId ? nameFor(myId) : 'You'} paid</dt>
+              <dd className="font-semibold text-ink tabular-nums mt-0.5">{money(myPaid)}</dd>
+            </div>
+            <div className="rounded-2xl bg-surface border border-line p-3">
+              <dt className="text-xs text-ink-muted">{partnerId ? nameFor(partnerId) : 'Your partner'} paid</dt>
+              <dd className="font-semibold text-ink tabular-nums mt-0.5">{money(partnerPaid)}</dd>
+            </div>
+          </dl>
+          <p className="text-xs text-ink-muted mt-3">
+            Fair share each: <span className="tabular-nums">{money(split.fairShare)}</span>
           </p>
+          <p className="text-sm text-ink mt-1">
+            {split.owes ? (
+              <>
+                <span className="font-semibold">{nameFor(split.owes.from)}</span> owes{' '}
+                <span className="font-semibold">{nameFor(split.owes.to)}</span>{' '}
+                <span className="font-display text-xl font-semibold tabular-nums">{money(split.owes.amount)}</span>
+              </>
+            ) : (
+              "You're even"
+            )}
+          </p>
+          {unsettlable > 0 && (
+            <p className="text-xs text-ink-muted mt-2">
+              {money(unsettlable)} was paid by someone else — it counts toward the total but can't be settled between you.
+            </p>
+          )}
+          </>
         )}
       </section>
 
@@ -280,6 +289,8 @@ function TripCard({
 
 export default function TripsPage() {
   const { data, activeProfile, partnerProfile, showToast } = useDiary();
+  const { isPersonal, note: spaceNote, title: spaceTitle } = useSpaceMode();
+  const note = spaceNote('/trips');
   const {
     sorted,
     next,
@@ -318,7 +329,7 @@ export default function TripsPage() {
       return;
     }
     setError(null);
-    const travellerId = traveller === 'me' ? myId : partnerId;
+    const travellerId = isPersonal || traveller === 'me' ? myId : partnerId;
     addTrip({
       title: title.trim(),
       destination: destination.trim() || undefined,
@@ -359,11 +370,14 @@ export default function TripsPage() {
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Visits</p>
             <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1">
-              The next time we're together
+              {spaceTitle('/trips', "The next time we're together")}
             </h1>
-            <p className="text-sm text-ink-muted mt-2 max-w-2xl">
-              One date to count down to, and what getting there costs — split evenly between you.
-            </p>
+            {!isPersonal && (
+              <p className="text-sm text-ink-muted mt-2 max-w-2xl">
+                One date to count down to, and what getting there costs — split evenly between you.
+              </p>
+            )}
+            {note && <p className="text-sm text-ink-muted mt-2 max-w-2xl">{note}</p>}
           </div>
           <div>
             <label htmlFor="trips-currency" className="block text-xs font-semibold text-ink-muted mb-1">Currency</label>
@@ -390,7 +404,7 @@ export default function TripsPage() {
               </p>
               {nextStatus === 'together-now' ? (
                 <p className="font-display text-4xl sm:text-6xl font-semibold text-ink mt-3 leading-none">
-                  You're together
+                  {isPersonal ? "You're there" : "You're together"}
                 </p>
               ) : (
                 <>
@@ -415,10 +429,15 @@ export default function TripsPage() {
                 <span className="tabular-nums">{nightsLabel(next)}</span>
               </p>
               <p className="text-sm text-ink mt-4">
-                <span className="font-semibold tabular-nums">{money(nextSplit.total)}</span> so far ·{' '}
-                {nextSplit.owes
-                  ? `${nameFor(nextSplit.owes.from)} owes ${nameFor(nextSplit.owes.to)} ${money(nextSplit.owes.amount)}`
-                  : "You're even"}
+                <span className="font-semibold tabular-nums">{money(nextSplit.total)}</span> so far
+                {!isPersonal && (
+                  <>
+                    {' · '}
+                    {nextSplit.owes
+                      ? `${nameFor(nextSplit.owes.from)} owes ${nameFor(nextSplit.owes.to)} ${money(nextSplit.owes.amount)}`
+                      : "You're even"}
+                  </>
+                )}
               </p>
             </div>
           ) : (
@@ -481,29 +500,31 @@ export default function TripsPage() {
                 className={inputClass}
               />
             </div>
-            <fieldset className="sm:col-span-2">
-              <legend className="block text-xs font-semibold text-ink-muted mb-1">Who's travelling?</legend>
-              <div className="flex gap-2">
-                {(['partner', 'me'] as const).map((who) => (
-                  <label
-                    key={who}
-                    className={`flex-1 text-center px-3 py-2.5 rounded-full border text-sm font-semibold cursor-pointer focus-within:ring-2 focus-within:ring-focus ${
-                      traveller === who ? 'bg-primary text-on-primary border-primary' : 'bg-surface text-ink border-line'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="trip-traveller"
-                      value={who}
-                      checked={traveller === who}
-                      onChange={() => setTraveller(who)}
-                      className="sr-only"
-                    />
-                    {who === 'partner' ? partnerProfile.name : `${activeProfile.name} (me)`}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+            {!isPersonal && (
+              <fieldset className="sm:col-span-2">
+                <legend className="block text-xs font-semibold text-ink-muted mb-1">Who's travelling?</legend>
+                <div className="flex gap-2">
+                  {(['partner', 'me'] as const).map((who) => (
+                    <label
+                      key={who}
+                      className={`flex-1 text-center px-3 py-2.5 rounded-full border text-sm font-semibold cursor-pointer focus-within:ring-2 focus-within:ring-focus ${
+                        traveller === who ? 'bg-primary text-on-primary border-primary' : 'bg-surface text-ink border-line'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="trip-traveller"
+                        value={who}
+                        checked={traveller === who}
+                        onChange={() => setTraveller(who)}
+                        className="sr-only"
+                      />
+                      {who === 'partner' ? partnerProfile.name : `${activeProfile.name} (me)`}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
             <div className="sm:col-span-2">
               <label htmlFor="trip-notes" className="block text-xs font-semibold text-ink-muted mb-1">
                 Notes <span className="font-normal">(optional)</span>
@@ -553,6 +574,7 @@ export default function TripsPage() {
                 onRemoveCost={(costId) => removeCost(trip.id, costId)}
                 onRemoveTrip={() => removeTrip(trip.id)}
                 onNotes={(value) => updateTrip(trip.id, { notes: value })}
+                personal={isPersonal}
               />
             ))
           )}
@@ -574,6 +596,7 @@ export default function TripsPage() {
                 onRemoveCost={(costId) => removeCost(trip.id, costId)}
                 onRemoveTrip={() => removeTrip(trip.id)}
                 onNotes={(value) => updateTrip(trip.id, { notes: value })}
+                personal={isPersonal}
                 quiet
               />
             ))}
