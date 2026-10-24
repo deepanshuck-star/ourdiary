@@ -20,6 +20,9 @@ import {
   Ticket,
   LogOut,
 } from 'lucide-react';
+import { Button, ButtonLink } from '@/components/ui/Button';
+import { Card, Chip } from '@/components/ui/Surface';
+import { cn } from '@/lib/cn';
 import { exploreItems } from './exploreNav';
 
 export const navItems = [
@@ -128,27 +131,27 @@ export function AppSidebar() {
   return (
     <aside className="hidden lg:flex flex-col w-64 border-r border-line bg-canvas p-4 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
       {/* Couple Mini Banner */}
-      <div className="p-3.5 mb-5 rounded-[1.25rem] border border-line flex items-center gap-3 shrink-0 bg-hero-soft">
+      <Card tone="glow" className="p-3.5 mb-5 flex items-center gap-3 shrink-0">
         <div className="flex -space-x-3 items-center">
           <img
             src={data.couple.user1.avatar}
             alt={data.couple.user1.name}
-            className="w-10 h-10 rounded-full object-cover ring-2 ring-surface"
+            className="w-10 h-10 rounded-full object-cover ring-2 ring-canvas"
           />
           <img
             src={data.couple.user2.avatar}
             alt={data.couple.user2.name}
-            className="w-10 h-10 rounded-full object-cover ring-2 ring-surface"
+            className="w-10 h-10 rounded-full object-cover ring-2 ring-canvas"
           />
         </div>
         <div className="min-w-0">
-          <p className="font-display text-base font-semibold text-ink truncate">{data.couple.name}</p>
+          <p className="font-display text-base font-normal text-ink truncate">{data.couple.name}</p>
           <p className="text-[11px] text-ink-muted flex items-center gap-1">
             <HeartHandshake className="w-3 h-3 text-primary" />
             Together since {data.couple.startDate.split('-')[0]}
           </p>
         </div>
-      </div>
+      </Card>
 
       {/* Navigation List */}
       <nav className="flex-1 space-y-1 shrink-0" aria-label="Main">
@@ -168,26 +171,33 @@ export function AppSidebar() {
             <Link
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
-              className={`flex items-center justify-between px-3 py-2 rounded-full font-medium text-sm transition-colors duration-200 group ${
+              className={cn(
+                'relative flex items-center justify-between px-3 py-2 rounded-full text-sm transition-colors duration-200 group',
                 isActive
-                  ? 'bg-surface text-ink font-semibold shadow-card ring-1 ring-line'
-                  : 'text-slate-600 hover:text-ink hover:bg-surface/70'
-              }`}
+                  // Lit rather than filled: a wash of primary, a glow around it,
+                  // and a hairline of light down the left edge marking the spot.
+                  ? 'bg-primary/10 text-ink font-semibold shadow-[0_0_30px_-14px_var(--color-primary)] ' +
+                      'before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 ' +
+                      'before:h-6 before:w-[3px] before:rounded-full before:bg-primary ' +
+                      'before:shadow-[0_0_10px_var(--color-primary)]'
+                  : 'font-medium text-ink-muted hover:text-ink hover:bg-ink/5'
+              )}
             >
               <div className="flex items-center gap-3">
                 <div
-                  className={`p-1.5 rounded-full transition-colors ${
-                    isActive ? 'bg-primary text-on-primary' : 'bg-slate-100 text-slate-500 group-hover:text-primary'
-                  }`}
+                  className={cn(
+                    'p-1.5 rounded-full transition-colors',
+                    isActive ? 'bg-beam shadow-cta' : 'bg-ink/5 text-ink-muted group-hover:text-primary'
+                  )}
                 >
                   <Icon className="w-4 h-4" />
                 </div>
                 <span>{item.name}</span>
               </div>
               {item.badge && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">
+                <Chip tone="accent" className="px-2 py-0.5 text-[10px]">
                   {item.badge}
-                </span>
+                </Chip>
               )}
             </Link>
             </React.Fragment>
@@ -197,34 +207,34 @@ export function AppSidebar() {
 
       {/* Fun footer tip & Logout button */}
       <div className="mt-auto pt-4 border-t border-line space-y-2.5 shrink-0">
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
+          block
           onClick={() => logout(true)}
-          className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-full border border-line bg-surface hover:bg-slate-50 text-ink-muted hover:text-ink font-semibold text-xs transition-colors cursor-pointer active:scale-95"
+          className="gap-2 py-2.5 text-ink-muted hover:text-ink"
         >
           <LogOut className="w-4 h-4" />
           <span>Log out</span>
-        </button>
+        </Button>
 
         {!isLiveUser && (
-          <Link
-            href="/login"
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-semibold text-xs shadow-cta transition-colors"
-          >
+          <ButtonLink href="/login" size="sm" block className="gap-2 py-2.5">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Sign in to your space</span>
-          </Link>
+          </ButtonLink>
         )}
 
-        <div className="p-3.5 rounded-[1.25rem] bg-purple-50 text-xs text-purple-900">
-          <div className="flex items-center gap-1.5 font-semibold text-purple-800 mb-1">
+        <Card className="p-3.5">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-secondary mb-1.5">
             <Sparkles className="w-3.5 h-3.5 text-primary" />
             A small tip
           </div>
-          <p className="text-[11px] text-slate-700 leading-relaxed">
+          <p className="text-[11px] text-ink-muted leading-relaxed">
             You can switch viewpoints in the top bar to leave private notes & surprises!
           </p>
-        </div>
+        </Card>
       </div>
     </aside>
   );
