@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
@@ -19,6 +18,9 @@ import {
   LayoutGrid,
   Orbit,
 } from 'lucide-react';
+import { Button, ButtonLink, IconButton } from '@/components/ui/Button';
+import { Card, Field, inputClass } from '@/components/ui/Surface';
+import { cn } from '@/lib/cn';
 
 const PhotoRing = dynamic(() => import('@/components/three/PhotoRing'), {
   ssr: false,
@@ -121,28 +123,27 @@ export default function GalleryPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6 animate-in fade-in duration-300">
-        {/* Gallery Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-line shadow-xs">
+      <div className="space-y-8 animate-in fade-in duration-300">
+        {/* Gallery Header — nothing around it but the dark */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-5 px-1 pt-2">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-2xl bg-emerald-100 text-emerald-600">
+            <span className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
               <GalleryIcon className="w-5 h-5" />
-            </div>
+            </span>
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900">Photo Moments Gallery</h1>
-              <p className="text-xs text-slate-500">
+              <h1 className="font-display text-3xl sm:text-4xl font-normal tracking-tight text-ink">
+                Photo Moments Gallery
+              </h1>
+              <p className="text-xs text-ink-muted mt-1.5">
                 {allPhotos.length} captured snapshots of {data.couple.name}’s adventures
               </p>
             </div>
           </div>
 
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="px-5 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-bold text-xs sm:text-sm shadow-cta hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
-          >
+          <Button variant="primary" size="sm" onClick={() => setShowUploadModal(true)}>
             <Camera className="w-4 h-4" />
             <span>Add Photo</span>
-          </button>
+          </Button>
         </div>
 
         {/* Grid | 3D ring view toggle */}
@@ -150,7 +151,7 @@ export default function GalleryPage() {
           <div
             role="radiogroup"
             aria-label="Gallery view"
-            className="inline-flex p-1 rounded-full bg-surface border border-line shadow-xs"
+            className="inline-flex p-1 rounded-full bg-ink/5 border border-line"
           >
             {(
               [
@@ -158,18 +159,17 @@ export default function GalleryPage() {
                 { id: 'ring', label: '3D ring', Icon: Orbit },
               ] as const
             ).map(({ id, label, Icon }) => (
-              <button
+              <Button
                 key={id}
                 role="radio"
                 aria-checked={view === id}
+                variant={view === id ? 'primary' : 'ghost'}
+                size="sm"
                 onClick={() => setView(id)}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors ${
-                  view === id ? 'bg-primary text-on-primary shadow-cta' : 'text-ink-muted hover:text-ink'
-                }`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 {label}
-              </button>
+              </Button>
             ))}
           </div>
           {view === 'ring' && filteredPhotos.length > RING_MAX_PHOTOS && (
@@ -181,34 +181,30 @@ export default function GalleryPage() {
 
         {/* Filter by Memory Selector */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0">
+          <span className="text-[11px] font-semibold text-ink-muted uppercase tracking-[0.18em] flex-shrink-0">
             Filter:
           </span>
-          <button
+          <Button
+            variant={selectedMemoryFilter === 'all' ? 'primary' : 'ghost'}
+            size="sm"
             onClick={() => setSelectedMemoryFilter('all')}
-            className={`px-3 py-1.5 rounded-xl font-semibold flex-shrink-0 transition-all ${
-              selectedMemoryFilter === 'all'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
+            className="flex-shrink-0"
           >
             All Photos ({allPhotos.length})
-          </button>
+          </Button>
           {data.memories.map((mem) => {
             const count = mem.photos?.length || 0;
             if (count === 0) return null;
             return (
-              <button
+              <Button
                 key={mem.id}
+                variant={selectedMemoryFilter === mem.id ? 'primary' : 'ghost'}
+                size="sm"
                 onClick={() => setSelectedMemoryFilter(mem.id)}
-                className={`px-3 py-1.5 rounded-xl font-semibold flex-shrink-0 transition-all truncate max-w-xs ${
-                  selectedMemoryFilter === mem.id
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                }`}
+                className="flex-shrink-0 truncate max-w-xs"
               >
                 {mem.title} ({count})
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -242,7 +238,7 @@ export default function GalleryPage() {
           )
         ) : /* Photo Grid */
         filteredPhotos.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-7">
             {filteredPhotos.map((photo) => (
               <div
                 key={photo.id}
@@ -255,7 +251,7 @@ export default function GalleryPage() {
                     date: photo.memoryDate,
                   })
                 }
-                className="group relative h-64 rounded-3xl overflow-hidden cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 border border-line bg-slate-100"
+                className="group relative h-72 rounded-2xl overflow-hidden cursor-pointer bg-canvas shadow-card lift"
               >
                 <img
                   src={photo.url}
@@ -266,18 +262,18 @@ export default function GalleryPage() {
                 />
 
                 {/* Hover Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-between text-snow">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-between text-snow">
                   <div className="flex justify-end">
-                    <span className="p-1.5 rounded-full bg-white/20 backdrop-blur-md">
+                    <span className="p-2 rounded-full bg-snow/15 backdrop-blur-md">
                       <ZoomIn className="w-4 h-4 text-snow" />
                     </span>
                   </div>
 
                   <div>
-                    <span className="text-[10px] text-rose-300 font-bold uppercase tracking-wider block">
+                    <span className="text-[10px] text-primary font-semibold uppercase tracking-[0.18em] block">
                       {formatDate(photo.memoryDate)}
                     </span>
-                    <h4 className="font-bold text-sm leading-tight text-snow line-clamp-1">
+                    <h4 className="font-semibold text-sm leading-tight text-snow line-clamp-1 mt-1">
                       {photo.memoryTitle}
                     </h4>
                     {photo.caption && (
@@ -291,19 +287,19 @@ export default function GalleryPage() {
             ))}
           </div>
         ) : (
-          <div className="p-16 text-center rounded-3xl bg-white border border-line space-y-3">
+          <Card tone="flat" className="p-16 text-center space-y-3">
             <div className="text-5xl">🖼️</div>
-            <h3 className="font-bold text-slate-800 text-lg">No photos in this view</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            <h3 className="font-display text-xl font-normal text-ink">No photos in this view</h3>
+            <p className="text-xs text-ink-muted max-w-sm mx-auto">
               Add photos to your memories or choose another category filter.
             </p>
-          </div>
+          </Card>
         )}
 
         {/* Lightbox Modal */}
         {lightboxPhoto && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
             onClick={() => setLightboxPhoto(null)}
           >
             <div
@@ -313,62 +309,67 @@ export default function GalleryPage() {
               <img
                 src={lightboxPhoto.url}
                 alt={lightboxPhoto.caption || 'Enlarged photo'}
-                className="max-h-[75vh] w-auto rounded-3xl object-contain shadow-2xl"
+                className="max-h-[75vh] w-auto rounded-2xl object-contain shadow-card"
               />
 
               {/* Caption and Memory link bar */}
-              <div className="mt-4 p-4 rounded-2xl bg-snow/10 backdrop-blur-lg border border-snow/20 text-snow w-full flex items-center justify-between gap-4">
+              <div className="mt-5 p-4 rounded-2xl bg-snow/5 backdrop-blur-lg border border-snow/10 text-snow w-full flex items-center justify-between gap-4">
                 <div>
-                  <h4 className="font-bold text-sm sm:text-base">{lightboxPhoto.memoryTitle}</h4>
+                  <h4 className="font-display text-base sm:text-lg font-normal">{lightboxPhoto.memoryTitle}</h4>
                   {lightboxPhoto.caption && (
                     <p className="text-xs text-snow/80 italic mt-0.5">"{lightboxPhoto.caption}"</p>
                   )}
                 </div>
 
                 {lightboxPhoto.memoryId && (
-                  <Link
+                  <ButtonLink
                     href={`/memories/${lightboxPhoto.memoryId}`}
-                    className="px-4 py-2 rounded-xl bg-white text-slate-900 font-bold text-xs hover:bg-slate-100 transition-colors flex items-center gap-1.5 flex-shrink-0"
+                    variant="primary"
+                    size="sm"
+                    className="flex-shrink-0"
                   >
                     <span>Open Memory</span>
                     <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
+                  </ButtonLink>
                 )}
               </div>
 
-              <button
+              <IconButton
+                label="Close photo"
+                variant="ghost"
+                size="sm"
                 onClick={() => setLightboxPhoto(null)}
-                className="absolute -top-3 -right-3 sm:top-2 sm:right-2 p-2 rounded-full bg-black/70 text-snow hover:bg-black/95 transition-colors"
+                className="absolute -top-3 -right-3 sm:top-2 sm:right-2 bg-black/70 text-snow hover:text-snow hover:bg-black/95"
               >
                 <X className="w-5 h-5" />
-              </button>
+              </IconButton>
             </div>
           </div>
         )}
 
         {/* Upload Modal */}
         {showUploadModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 space-y-5 animate-in fade-in zoom-in-95">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 className="font-extrabold text-lg text-slate-900">Add Photo to Gallery</h3>
-                <button
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+            <Card className="p-6 sm:p-8 max-w-md w-full space-y-5 animate-in fade-in zoom-in-95">
+              <div className="flex items-center justify-between gap-3 pb-4 border-b border-line">
+                <h3 className="font-display text-xl font-normal text-ink">Add Photo to Gallery</h3>
+                <IconButton
+                  label="Close"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setShowUploadModal(false)}
-                  className="p-1 text-slate-400 hover:text-slate-600"
                 >
                   <X className="w-5 h-5" />
-                </button>
+                </IconButton>
               </div>
 
               <form onSubmit={handleUploadSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Attach to Memory *
-                  </label>
+                <Field id="gallery-target-memory" label="Attach to Memory *">
                   <select
+                    id="gallery-target-memory"
                     value={targetMemoryId}
                     onChange={(e) => setTargetMemoryId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus bg-white"
+                    className={cn(inputClass, 'py-2.5 text-xs')}
                   >
                     {data.memories.map((m) => (
                       <option key={m.id} value={m.id}>
@@ -376,30 +377,28 @@ export default function GalleryPage() {
                       </option>
                     ))}
                   </select>
-                </div>
+                </Field>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Image URL
-                  </label>
+                <Field id="gallery-photo-url" label="Image URL">
                   <input
+                    id="gallery-photo-url"
                     type="url"
                     placeholder="https://images.unsplash.com/..."
                     value={uploadUrl}
                     onChange={(e) => setUploadUrl(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
+                    className={cn(inputClass, 'py-2.5 text-xs')}
                   />
-                </div>
+                </Field>
 
-                <div className="text-center py-2 text-xs text-slate-400 font-semibold">— OR —</div>
+                <div className="text-center py-1 text-[11px] text-ink-muted font-semibold tracking-[0.18em]">— OR —</div>
 
                 <div>
-                  <label className="cursor-pointer block text-center p-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/30 transition-all">
-                    <UploadCloud className="w-6 h-6 text-emerald-500 mx-auto mb-1" />
-                    <span className="text-xs font-semibold text-slate-700 block">
+                  <label className="cursor-pointer block text-center p-5 rounded-2xl border border-dashed border-line hover:border-primary/50 hover:bg-primary/5 transition-all">
+                    <UploadCloud className="w-6 h-6 text-primary mx-auto mb-1.5" />
+                    <span className="text-xs font-semibold text-ink block">
                       Choose local image from computer
                     </span>
-                    <span className="text-[10px] text-slate-400">Instant browser-local preview</span>
+                    <span className="text-[10px] text-ink-muted">Instant browser-local preview</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -409,37 +408,27 @@ export default function GalleryPage() {
                   </label>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Caption (Optional)
-                  </label>
+                <Field id="gallery-photo-caption" label="Caption (Optional)">
                   <input
+                    id="gallery-photo-caption"
                     type="text"
                     placeholder="e.g. Maya smiling by the sunset..."
                     value={uploadCaption}
                     onChange={(e) => setUploadCaption(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
+                    className={cn(inputClass, 'py-2.5 text-xs')}
                   />
-                </div>
+                </Field>
 
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowUploadModal(false)}
-                    className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600"
-                  >
+                <div className="pt-4 border-t border-line flex items-center justify-end gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setShowUploadModal(false)}>
                     Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={!uploadUrl.trim()}
-                    className="px-5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 disabled:opacity-40 shadow-sm"
-                  >
+                  </Button>
+                  <Button type="submit" variant="primary" size="sm" disabled={!uploadUrl.trim()}>
                     Save Photo
-                  </button>
+                  </Button>
                 </div>
               </form>
-            </div>
+            </Card>
           </div>
         )}
       </div>

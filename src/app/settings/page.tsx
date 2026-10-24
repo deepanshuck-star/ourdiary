@@ -245,7 +245,7 @@ export default function SettingsPage() {
         <div className="panel edge-lit rounded-2xl p-6 sm:p-8 space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-line gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <span className="w-10 h-10 rounded-xl bg-primary/12 text-primary flex items-center justify-center flex-shrink-0">
+              <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                 <LogOut className="w-5 h-5" />
               </span>
               <div className="min-w-0">
@@ -354,7 +354,7 @@ export default function SettingsPage() {
                       'p-3 rounded-xl border text-left transition-all',
                       theme === th.id
                         ? 'border-primary/60 bg-primary/10 shadow-cta'
-                        : 'border-line bg-canvas hover:border-primary/35'
+                        : 'border-line bg-canvas hover:border-primary/40'
                     )}
                   >
                     <div data-theme={th.id} className="h-8 rounded-full bg-hero mb-2" />
@@ -404,7 +404,7 @@ export default function SettingsPage() {
                   'p-3.5 rounded-xl border text-left transition-all',
                   palette === option.id
                     ? 'border-primary/60 bg-primary/10 shadow-cta'
-                    : 'border-line bg-canvas hover:border-primary/35'
+                    : 'border-line bg-canvas hover:border-primary/40'
                 )}
               >
                 <div className="flex h-8 rounded-full overflow-hidden mb-2.5 border border-line">
@@ -652,7 +652,7 @@ export default function SettingsPage() {
         <div className="panel edge-lit rounded-2xl p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-line gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <span className="w-10 h-10 rounded-xl bg-primary/12 text-primary flex items-center justify-center flex-shrink-0">
+              <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                 <Bell className="w-5 h-5" />
               </span>
               <div className="min-w-0">
