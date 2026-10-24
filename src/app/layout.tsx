@@ -34,7 +34,7 @@ const peachBodyFont = Plus_Jakarta_Sans({
 
 // Applies the saved appearance (light / dark / system) and palette (rose / peach)
 // before first paint so there is no flash of the other look.
-const preferencesScript = `try{var d=document.documentElement,a=localStorage.getItem('ourdiary-appearance');d.dataset.appearance=a==='dark'||a==='system'?a:'light';var p=localStorage.getItem('ourdiary-palette')==='peach'?'peach':'rose';d.dataset.palette=p;var c=p==='peach'?['#FFF8F3','#1C130E']:['#FFF7FA','#1A1015'];[['light',c[0]],['dark',c[1]]].forEach(function(e){var m=document.createElement('meta');m.name='theme-color';m.media='(prefers-color-scheme: '+e[0]+')';m.content=e[1];document.head.appendChild(m)})}catch(e){}`;
+const preferencesScript = `try{var d=document.documentElement,a=localStorage.getItem('ourdiary-appearance');d.dataset.appearance=a==='light'||a==='system'?a:'dark';var p=localStorage.getItem('ourdiary-palette')==='peach'?'peach':'rose';d.dataset.palette=p;var c=p==='peach'?['#F6F3F8','#0A0910']:['#F6F3F8','#0A0910'];[['light',c[0]],['dark',c[1]]].forEach(function(e){var m=document.createElement('meta');m.name='theme-color';m.media='(prefers-color-scheme: '+e[0]+')';m.content=e[1];document.head.appendChild(m)})}catch(e){}`;
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ourdiary.app';
 

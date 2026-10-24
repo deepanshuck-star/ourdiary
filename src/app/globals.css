@@ -1755,3 +1755,195 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================================================
+   DARK & CINEMATIC — the redesign layer.
+
+   Appended last on purpose. Every block above defines the same token names
+   for each palette x appearance combination; these re-point them without
+   touching the machinery behind the palette and appearance switchers, so
+   markup keeps using bg-surface / border-line / shadow-card and simply
+   looks different.
+
+   The idea: a room with the lights off. Depth comes from LIGHT rather than
+   from lines — panels lift off the background because they are fractionally
+   brighter and carry a hairline of light along their top edge, not because
+   they are outlined. Borders drop to near-invisible for the same reason; an
+   obvious border on a dark surface reads as a sticker, not a plane.
+
+   This matters most for photographs, which is what the app is full of. A
+   photo against near-black has nothing competing with it, which is the whole
+   argument for an evening app: the memories are the brightest thing on the
+   screen.
+   ========================================================================= */
+
+:root,
+:root[data-appearance="dark"],
+:root[data-palette="peach"],
+:root[data-palette="peach"][data-appearance="dark"],
+.appearance-dark {
+  --color-canvas: #0A0910;
+  --color-surface: #15131E;
+  --color-surface-raised: #1E1A2B;
+  --color-ink: #F6F1F8;
+  --color-ink-muted: #9A90AC;
+  /* A hairline, not an outline. */
+  --color-line: #2B2539;
+  --color-primary: #FF3D7F;
+  --color-primary-hover: #FF6A9B;
+  --color-on-primary: #190610;
+  --color-secondary: #8B6BFF;
+  --color-accent: #4ECFC4;
+  --color-focus: #8B6BFF;
+  --color-snow: #F6F1F8;
+  --color-white: #F6F1F8;
+
+  /* Deep drop for separation, plus a coloured bloom for anything live. */
+  --shadow-card: 0 28px 64px -28px rgba(0, 0, 0, 0.95), 0 2px 0 rgba(255, 255, 255, 0.04) inset;
+  --shadow-cta: 0 0 28px -4px rgba(255, 61, 127, 0.55);
+  --shadow-sm: 0 8px 24px -12px rgba(0, 0, 0, 0.8);
+  --shadow-xs: 0 4px 14px -8px rgba(0, 0, 0, 0.7);
+  --shadow-2xs: 0 2px 8px -4px rgba(0, 0, 0, 0.6);
+
+  --radius-card: 1.25rem;
+  --radius-pillow: 2.5rem;
+
+  --glow-image: radial-gradient(70% 55% at 50% 0%, rgba(255, 61, 127, 0.18), transparent 72%);
+  --hero-gradient: radial-gradient(120% 100% at 15% 0%, #2A1030 0%, #150E22 45%, #0A0910 100%);
+}
+
+/*
+ * Daylight. The appearance switcher still works, so the design needs an
+ * answer for it — the same typography, spacing and bloom, lit from the other
+ * side. It is a variant of this language rather than a return to the old one.
+ */
+:root[data-appearance="light"],
+:root[data-palette="peach"][data-appearance="light"] {
+  --color-canvas: #F6F3F8;
+  --color-surface: #FFFFFF;
+  --color-surface-raised: #FFFFFF;
+  --color-ink: #1A1422;
+  --color-ink-muted: #665C75;
+  --color-line: #E4DEEC;
+  --color-primary: #D6186B;
+  --color-primary-hover: #AE0F55;
+  --color-on-primary: #FFFFFF;
+  --color-secondary: #6B4BE0;
+  --color-accent: #0E9D92;
+  --color-focus: #6B4BE0;
+
+  --shadow-card: 0 24px 56px -28px rgba(26, 20, 34, 0.35);
+  --shadow-cta: 0 0 24px -6px rgba(214, 24, 107, 0.45);
+  --glow-image: radial-gradient(70% 55% at 50% 0%, rgba(214, 24, 107, 0.1), transparent 72%);
+  --hero-gradient: radial-gradient(120% 100% at 15% 0%, #FDEAF3 0%, #F3EDFB 50%, #F6F3F8 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-appearance="light"]) {
+    --color-canvas: #0A0910;
+    --color-surface: #15131E;
+    --color-ink: #F6F1F8;
+    --color-ink-muted: #9A90AC;
+    --color-line: #2B2539;
+    --color-primary: #FF3D7F;
+    --color-on-primary: #190610;
+  }
+}
+
+@layer base {
+  /* The display serif earns its place here: high stroke contrast reads as
+     film titling against a dark field, where a heavy sans would just look
+     like an interface. Light weight, large sizes, generous tracking. */
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+
+  body {
+    /* A whisper of vignette so the page has a centre. */
+    background-image: radial-gradient(130% 90% at 50% -10%, rgba(139, 107, 255, 0.07), transparent 60%);
+    background-attachment: fixed;
+  }
+
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+}
+
+/* An elevated plane: fractionally brighter than the page, lit along the top. */
+@utility panel {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-card);
+}
+
+/* Anything live or primary carries a coloured bloom that grows on hover. */
+@utility bloom {
+  transition:
+    box-shadow 260ms cubic-bezier(0.2, 0, 0, 1),
+    transform 260ms cubic-bezier(0.2, 0, 0, 1),
+    filter 260ms cubic-bezier(0.2, 0, 0, 1);
+
+  &:hover {
+    box-shadow: 0 0 38px -6px color-mix(in oklab, var(--color-primary) 60%, transparent);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* A lift with no colour, for cards that are clickable but not calls to action. */
+@utility lift {
+  transition:
+    box-shadow 260ms cubic-bezier(0.2, 0, 0, 1),
+    transform 260ms cubic-bezier(0.2, 0, 0, 1),
+    border-color 260ms cubic-bezier(0.2, 0, 0, 1);
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in oklab, var(--color-primary) 45%, var(--color-line));
+    box-shadow: 0 34px 70px -30px rgba(0, 0, 0, 0.95);
+  }
+}
+
+/* The gradient face used by primary controls. */
+@utility bg-beam {
+  background-image: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    color-mix(in oklab, var(--color-primary) 55%, var(--color-secondary)) 100%
+  );
+  color: var(--color-on-primary);
+}
+
+/* A hairline of light along the top edge — what makes a panel read as lit. */
+@utility edge-lit {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--color-ink) 22%, transparent),
+      transparent
+    );
+    pointer-events: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bloom:hover,
+  .bloom:active,
+  .lift:hover {
+    transform: none;
+  }
+}
