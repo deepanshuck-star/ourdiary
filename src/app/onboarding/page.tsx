@@ -15,6 +15,9 @@ import {
   AlertCircle,
   Loader2,
 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { Field, inputClass } from '@/components/ui/Surface';
+import { cn } from '@/lib/cn';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { fetchMyCouple, createCoupleSpaceRemote, joinCoupleByCodeRemote } from '@/lib/supabase/couple';
 import { friendlyAuthError } from '@/lib/friendlyError';
@@ -258,51 +261,52 @@ export default function OnboardingPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-canvas bg-glow flex items-center justify-center">
+      <div className="min-h-screen bg-canvas bg-hero flex items-center justify-center">
         <div className="text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin text-purple-600 mx-auto" />
-          <p className="text-xs font-semibold text-slate-600">Verifying your account session...</p>
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+          <p className="text-xs font-semibold text-ink-muted">Verifying your account session...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-canvas bg-glow flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+    // One lit card floating in a dark room.
+    <div className="min-h-screen bg-canvas bg-hero flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-lg text-center">
-        <Link href="/" className="inline-flex items-center gap-2 mb-4 group">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md bg-hero">
-            <Heart className="w-6 h-6 text-rose-500 fill-rose-500" />
-          </div>
-          <span className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-rose-500 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+        <Link href="/" className="inline-flex items-center gap-2.5 mb-5 group">
+          <span className="w-12 h-12 rounded-2xl flex items-center justify-center bg-beam shadow-cta bloom">
+            <Heart className="w-6 h-6 text-on-primary fill-on-primary" />
+          </span>
+          <span className="font-display text-3xl font-normal tracking-tight text-ink">
             OurDiary
           </span>
         </Link>
-        <h2 className="text-2xl font-extrabold text-slate-900">
+        <h1 className="font-display text-3xl sm:text-4xl font-normal tracking-tight text-ink">
           Set Up Your Clean Couple Space 💕
-        </h2>
-        <p className="mt-2 text-xs text-slate-500">
+        </h1>
+        <p className="mt-3 text-xs text-ink-muted">
           Strictly invite-only for exactly two people. Logged in as{' '}
-          <strong className="text-slate-700">{authenticatedUser?.email || 'Authenticated User'}</strong>.
+          <strong className="text-ink font-semibold">{authenticatedUser?.email || 'Authenticated User'}</strong>.
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
-        <div className="bg-white py-8 px-6 shadow-xl rounded-3xl border border-line sm:px-10 space-y-6">
+        <div className="panel edge-lit rounded-2xl py-8 px-6 sm:px-10 space-y-6">
           {/* Tabs */}
-          <div className="flex rounded-2xl bg-slate-100 p-1">
+          <div className="flex rounded-full bg-canvas border border-line p-1">
             <button
               onClick={() => {
                 setActiveTab('create');
                 setJoinError(null);
               }}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 py-2.5 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
                 activeTab === 'create'
-                  ? 'bg-white text-rose-700 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'bg-surface text-primary shadow-sm'
+                  : 'text-ink-muted hover:text-ink'
               }`}
             >
-              <UserPlus className="w-4 h-4" />
+              <UserPlus className="w-4 h-4" aria-hidden="true" />
               Create Space (Clean Slate)
             </button>
             <button
@@ -310,49 +314,47 @@ export default function OnboardingPage() {
                 setActiveTab('join');
                 setJoinError(null);
               }}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 py-2.5 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
                 activeTab === 'join'
-                  ? 'bg-white text-purple-700 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'bg-surface text-secondary shadow-sm'
+                  : 'text-ink-muted hover:text-ink'
               }`}
             >
-              <Key className="w-4 h-4" />
+              <Key className="w-4 h-4" aria-hidden="true" />
               Join With Code
             </button>
           </div>
 
           {activeTab === 'create' ? (
             !generatedCode ? (
-              <form onSubmit={handleCreateCouple} className="space-y-4">
-                <div className="p-3 rounded-2xl bg-rose-50/70 border border-rose-100 text-xs text-rose-900 flex items-start gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-rose-500 mt-0.5 flex-shrink-0" />
+              <form onSubmit={handleCreateCouple} className="space-y-5">
+                <div className="p-3.5 rounded-xl bg-canvas border border-line text-xs text-ink-muted flex items-start gap-2.5">
+                  <ShieldCheck className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" aria-hidden="true" />
                   <p>
-                    <strong>Clean Slate Guarantee:</strong> All initial dummy demo data (Alex & Maya) will be completely cleared. Your diary will start with 0 memories so you can build your real memories from scratch!
+                    <strong className="text-ink">Clean Slate Guarantee:</strong> All initial dummy demo data (Alex &amp; Maya) will be completely cleared. Your diary will start with 0 memories so you can build your real memories from scratch!
                   </p>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Couple / Space Name
-                  </label>
+                <Field id="onboarding-couple-name" label="Couple / Space Name">
                   <input
+                    id="onboarding-couple-name"
                     type="text"
                     required
                     value={coupleName}
                     onChange={(e) => setCoupleName(e.target.value)}
                     placeholder="e.g. Maya & Alex's Love Story"
-                    className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
+                    className={inputClass}
                   />
-                </div>
+                </Field>
 
                 {/* Cute Bitmoji Selectors */}
-                <div className="p-3 rounded-2xl bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200/60 space-y-2">
-                  <span className="text-[11px] font-bold text-slate-700 block">
+                <div className="p-4 rounded-xl bg-canvas border border-line space-y-3">
+                  <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
                     Choose Your Cute Bitmoji / Avatars:
                   </span>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <span className="text-[10px] text-slate-500 font-semibold block mb-1">
+                      <span className="text-[11px] text-ink-muted font-semibold block mb-1.5">
                         Your Avatar:
                       </span>
                       <div className="flex items-center gap-1.5">
@@ -361,10 +363,10 @@ export default function OnboardingPage() {
                             key={url}
                             type="button"
                             onClick={() => setAvatar1(url)}
-                            className={`w-9 h-9 rounded-full overflow-hidden border-2 transition-all ${
+                            className={`w-9 h-9 rounded-full overflow-hidden border transition-all ${
                               avatar1 === url
-                                ? 'border-purple-600 ring-2 ring-purple-300 scale-105'
-                                : 'border-white opacity-70 hover:opacity-100'
+                                ? 'border-secondary ring-2 ring-secondary/40 scale-105'
+                                : 'border-line opacity-60 hover:opacity-100'
                             }`}
                           >
                             <img src={url} alt="Avatar" className="w-full h-full object-cover" />
@@ -374,7 +376,7 @@ export default function OnboardingPage() {
                     </div>
 
                     <div>
-                      <span className="text-[10px] text-slate-500 font-semibold block mb-1">
+                      <span className="text-[11px] text-ink-muted font-semibold block mb-1.5">
                         Partner&apos;s Avatar:
                       </span>
                       <div className="flex items-center gap-1.5">
@@ -383,10 +385,10 @@ export default function OnboardingPage() {
                             key={url}
                             type="button"
                             onClick={() => setAvatar2(url)}
-                            className={`w-9 h-9 rounded-full overflow-hidden border-2 transition-all ${
+                            className={`w-9 h-9 rounded-full overflow-hidden border transition-all ${
                               avatar2 === url
-                                ? 'border-rose-600 ring-2 ring-rose-300 scale-105'
-                                : 'border-white opacity-70 hover:opacity-100'
+                                ? 'border-primary ring-2 ring-primary/40 scale-105'
+                                : 'border-line opacity-60 hover:opacity-100'
                             }`}
                           >
                             <img src={url} alt="Avatar" className="w-full h-full object-cover" />
@@ -398,159 +400,146 @@ export default function OnboardingPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Your Name
-                    </label>
+                  <Field id="onboarding-partner1-name" label="Your Name">
                     <input
+                      id="onboarding-partner1-name"
                       type="text"
                       required
                       value={partner1Name}
                       onChange={(e) => setPartner1Name(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
+                      className={inputClass}
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Partner&apos;s Name
-                    </label>
+                  </Field>
+                  <Field id="onboarding-partner2-name" label="Partner&apos;s Name">
                     <input
+                      id="onboarding-partner2-name"
                       type="text"
                       required
                       value={partner2Name}
                       onChange={(e) => setPartner2Name(e.target.value)}
                       placeholder="e.g. Partner"
-                      className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
+                      className={inputClass}
                     />
-                  </div>
+                  </Field>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Relationship Start Date
-                  </label>
+                <Field id="onboarding-start-date" label="Relationship Start Date">
                   <div className="relative">
-                    <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <Calendar className="w-4 h-4 text-ink-muted absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
                     <input
+                      id="onboarding-start-date"
                       type="date"
                       required
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus focus:outline-hidden"
+                      className={cn(inputClass, 'pl-11')}
                     />
                   </div>
-                </div>
+                </Field>
 
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-3 px-4 text-xs font-extrabold transition-opacity flex items-center justify-center gap-2 disabled:opacity-50 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
-                >
+                {/* The only glowing object on the screen. */}
+                <Button type="submit" variant="primary" size="lg" block disabled={isSubmitting} className="text-xs">
                   {isSubmitting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                   ) : (
                     <>
                       Create Clean Space & Generate Invite Code
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4" aria-hidden="true" />
                     </>
                   )}
-                </button>
+                </Button>
               </form>
             ) : (
               <div className="space-y-5 text-center">
-                <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 rounded-full bg-accent/15 text-accent flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-extrabold text-slate-900">
+                  <h3 className="font-display text-xl font-normal tracking-tight text-ink">
                     Couple Space Created!
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-ink-muted mt-1.5">
                     Send this private 6-character code to {partner2Name} to join your space.
                   </p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-between">
-                  <span className="text-2xl font-mono font-black text-rose-600 tracking-widest">
+                <div className="p-4 rounded-xl bg-canvas border border-line flex items-center justify-between gap-3">
+                  <span className="text-2xl font-mono font-black text-primary tracking-widest">
                     {generatedCode}
                   </span>
-                  <button
-                    onClick={copyCode}
-                    className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 shadow-xs flex items-center gap-1.5 text-xs font-bold"
-                  >
-                    <Copy className="w-4 h-4" />
+                  <Button variant="outline" size="sm" onClick={copyCode} className="rounded-xl">
+                    <Copy className="w-4 h-4" aria-hidden="true" />
                     Copy
-                  </button>
+                  </Button>
                 </div>
 
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-ink-muted">
                   Don't worry! You can also view or regenerate this code anytime directly from your dashboard settings if it ever gets exposed.
                 </p>
 
                 {countdown !== null && (
-                  <p className="text-xs text-purple-600 font-bold animate-pulse">
+                  <p className="text-xs text-secondary font-semibold animate-pulse">
                     Entering dashboard automatically in {countdown}s...
                   </p>
                 )}
 
-                <button
+                <Button
                   type="button"
+                  variant="primary"
+                  size="lg"
+                  block
                   onClick={() => router.push('/dashboard')}
-                  className="w-full py-3.5 px-4 text-xs sm:text-sm font-extrabold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
+                  className="text-xs sm:text-sm"
                 >
                   <span>Enter Our Space Now →</span>
-                </button>
+                </Button>
               </div>
             )
           ) : (
-            <form onSubmit={handleJoinCouple} className="space-y-4">
+            <form onSubmit={handleJoinCouple} className="space-y-5">
               {joinError && (
-                <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                <div className="p-3.5 rounded-xl bg-danger/10 border border-danger/30 text-xs text-danger flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                   <span>{joinError}</span>
                 </div>
               )}
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Partner&apos;s 6-Character Invite Code
-                </label>
+              <Field
+                id="onboarding-invite-code"
+                label="Partner&apos;s 6-Character Invite Code"
+                hint="Ask your partner for the invite code generated when they created your space."
+              >
                 <div className="relative">
-                  <Key className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <Key className="w-4 h-4 text-ink-muted absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
                   <input
+                    id="onboarding-invite-code"
                     type="text"
                     required
                     maxLength={10}
                     value={inviteCode}
                     onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                     placeholder="e.g. 7X8K2M"
-                    className="w-full pl-10 pr-4 py-2.5 font-mono text-center tracking-widest text-base font-bold rounded-2xl border border-slate-200 focus:ring-2 focus:ring-focus focus:outline-hidden"
+                    className={cn(inputClass, 'pl-11 font-mono text-center tracking-widest text-base font-bold')}
                   />
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1.5">
-                  Ask your partner for the invite code generated when they created your space.
-                </p>
-              </div>
+              </Field>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3 px-4 text-xs font-extrabold transition-opacity flex items-center justify-center gap-2 disabled:opacity-50 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"
-              >
+              {/* The only glowing object on the screen. */}
+              <Button type="submit" variant="primary" size="lg" block disabled={isSubmitting} className="text-xs">
                 {isSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                 ) : (
                   <>
                     Join Partner Space
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4" aria-hidden="true" />
                   </>
                 )}
-              </button>
+              </Button>
             </form>
           )}
 
-          <div className="pt-3 border-t border-slate-100 text-center">
-            <Link href="/login" className="text-xs text-slate-500 hover:text-slate-700 font-semibold">
+          <div className="pt-4 border-t border-line text-center">
+            <Link href="/login" className="text-xs text-ink-muted hover:text-ink font-semibold">
               ← Back to Sign In
             </Link>
           </div>

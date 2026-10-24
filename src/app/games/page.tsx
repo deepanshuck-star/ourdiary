@@ -3,6 +3,9 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowLeft, Gamepad2, Lock } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
+import { Button } from '@/components/ui/Button';
+import { Chip, SectionHeader } from '@/components/ui/Surface';
+import { cn } from '@/lib/cn';
 import { useDiary } from '@/store/DiaryContext';
 import { useCoupleMembers } from '@/hooks/useCoupleMembers';
 import { useLocalState } from '@/lib/local-store';
@@ -101,20 +104,26 @@ export default function GamesPage() {
       <AppShell>
         <div className="max-w-3xl mx-auto space-y-6">
           <div>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setOpenId(null)}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-muted hover:text-ink mb-3"
+              className="px-0 mb-3 text-xs"
             >
-              <ArrowLeft className="w-4 h-4" /> All games
-            </button>
-            <h1 className="font-display text-3xl font-semibold text-ink">{open.title}</h1>
-            <p className="text-sm text-ink-muted mt-1">{open.tagline}</p>
+              <ArrowLeft className="w-4 h-4" aria-hidden="true" /> All games
+            </Button>
+            <h1 className="font-display text-3xl sm:text-4xl font-normal tracking-tight text-ink">
+              {open.title}
+            </h1>
+            <p className="text-sm text-ink-muted mt-2">{open.tagline}</p>
           </div>
 
-          <details className="rounded-2xl border border-line bg-canvas p-4">
-            <summary className="text-sm font-semibold text-ink cursor-pointer">How it works</summary>
-            <ul className="mt-2 space-y-1 list-disc list-inside">
+          {/* A well cut into the page: reference material, not an object. */}
+          <details className="rounded-2xl border border-line bg-canvas p-4 sm:p-5">
+            <summary className="text-sm font-semibold text-ink cursor-pointer select-none">
+              How it works
+            </summary>
+            <ul className="mt-3 space-y-1.5 list-disc list-inside">
               {open.rules.map((rule) => (
                 <li key={rule} className="text-xs text-ink-muted">
                   {rule}
@@ -131,14 +140,17 @@ export default function GamesPage() {
 
   return (
     <AppShell>
-      <div className="max-w-5xl mx-auto space-y-10">
-        <header>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Couple games</p>
-          <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mt-1 flex items-center gap-2">
-            <Gamepad2 className="w-7 h-7 text-primary" aria-hidden="true" />
+      <div className="max-w-5xl mx-auto space-y-12">
+        {/* The marquee over the lobby: the one surface lit from within. */}
+        <header className="relative overflow-hidden rounded-2xl bg-hero border border-line shadow-card edge-lit p-6 sm:p-10">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
+            Couple games
+          </p>
+          <h1 className="font-display text-3xl sm:text-4xl font-normal tracking-tight text-ink mt-2 flex items-center gap-3">
+            <Gamepad2 className="w-7 h-7 text-primary flex-shrink-0" aria-hidden="true" />
             {GAMES.length} ways to waste an evening
           </h1>
-          <p className="text-sm text-ink-muted mt-2 max-w-2xl">
+          <p className="text-sm text-ink-muted mt-3 max-w-2xl">
             Pick one. The rules are on each card, so you can tell what you’re getting into before you commit.
           </p>
         </header>
@@ -147,13 +159,12 @@ export default function GamesPage() {
           const games = gamesInCategory(category.id);
           if (games.length === 0) return null;
           return (
-            <section key={category.id} aria-labelledby={`cat-${category.id}`} className="space-y-4">
-              <div>
-                <h2 id={`cat-${category.id}`} className="text-2xl font-semibold text-ink">
-                  {category.title}
-                </h2>
-                <p className="text-sm text-ink-muted mt-0.5 max-w-2xl">{category.blurb}</p>
-              </div>
+            <section key={category.id} aria-labelledby={`cat-${category.id}`} className="space-y-5">
+              <SectionHeader
+                id={`cat-${category.id}`}
+                title={category.title}
+                description={category.blurb}
+              />
 
               <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {games.map((gameMeta) => {
@@ -164,28 +175,39 @@ export default function GamesPage() {
                         type="button"
                         onClick={() => setOpenId(gameMeta.id)}
                         disabled={Boolean(blocked)}
-                        className={`h-full w-full text-left rounded-[1.25rem] border p-5 shadow-sm transition-colors flex flex-col gap-3 ${
+                        className={cn(
+                          'h-full w-full text-left rounded-2xl p-5 flex flex-col gap-3',
                           blocked
-                            ? 'border-line bg-canvas opacity-70 cursor-not-allowed'
-                            : 'border-line bg-surface hover:border-primary hover:shadow-card'
-                        }`}
+                            // Deliberately unavailable: recessed below the page,
+                            // no top-edge light, nothing to lift.
+                            ? 'bg-canvas border border-line shadow-none cursor-not-allowed'
+                            : 'panel edge-lit lift'
+                        )}
                       >
                         <div>
                           <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-display text-lg font-semibold text-ink leading-tight">
+                            <h3
+                              className={cn(
+                                'font-display text-lg font-normal leading-tight tracking-tight',
+                                blocked ? 'text-ink-muted' : 'text-ink'
+                              )}
+                            >
                               {gameMeta.title}
                             </h3>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full flex-shrink-0">
+                            <Chip tone={blocked ? 'muted' : 'primary'} className="flex-shrink-0">
                               {gameMeta.players}
-                            </span>
+                            </Chip>
                           </div>
-                          <p className="text-xs text-ink-muted mt-0.5">{gameMeta.tagline}</p>
+                          <p className="text-xs text-ink-muted mt-1.5">{gameMeta.tagline}</p>
                         </div>
 
                         <ul className="space-y-1 flex-1">
                           {gameMeta.rules.map((rule) => (
                             <li key={rule} className="text-xs text-ink-muted flex gap-1.5">
-                              <span className="text-primary flex-shrink-0" aria-hidden="true">
+                              <span
+                                className={cn('flex-shrink-0', blocked ? 'text-ink-muted' : 'text-primary')}
+                                aria-hidden="true"
+                              >
                                 ·
                               </span>
                               <span>{rule}</span>
@@ -194,12 +216,12 @@ export default function GamesPage() {
                         </ul>
 
                         {blocked ? (
-                          <p className="text-[11px] font-semibold text-ink-muted flex items-center gap-1.5 pt-1 border-t border-line">
+                          <p className="text-[11px] font-semibold text-ink-muted flex items-center gap-1.5 pt-3 border-t border-line">
                             <Lock className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
                             {blocked}
                           </p>
                         ) : (
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-primary pt-1 border-t border-line">
+                          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary pt-3 border-t border-line">
                             Play →
                           </span>
                         )}

@@ -25,6 +25,9 @@ import {
   Sparkles,
   ArrowLeft,
 } from 'lucide-react';
+import { Button, IconButton } from '@/components/ui/Button';
+import { Card, Chip, Field, inputClass } from '@/components/ui/Surface';
+import { cn } from '@/lib/cn';
 
 const CATEGORIES: MemoryCategory[] = [
   'First date',
@@ -143,31 +146,30 @@ export default function NewMemoryPage() {
       <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in duration-300">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
-          >
+          <Button variant="ghost" size="sm" onClick={() => router.back()} className="px-0">
             <ArrowLeft className="w-4 h-4" />
             <span>Back</span>
-          </button>
+          </Button>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500">Creating as:</span>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 border border-purple-100 text-purple-800 text-xs font-bold">
+            <span className="text-xs text-ink-muted">Creating as:</span>
+            <Chip tone="primary">
               <img src={activeProfile.avatar} alt={activeProfile.name} className="w-4 h-4 rounded-full" />
               <span>{activeProfile.name}</span>
-            </div>
+            </Chip>
           </div>
         </div>
 
         {/* Main Form Card */}
-        <div className="rounded-3xl bg-white border border-line p-6 sm:p-8 shadow-sm">
-          <div className="flex items-center gap-3 pb-6 border-b border-slate-100 mb-6">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-sm bg-hero">
+        <Card className="p-6 sm:p-8">
+          <div className="flex items-center gap-4 pb-6 mb-8 border-b border-line">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-beam shadow-cta flex-shrink-0">
               <BookHeart className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900">Record a New Memory</h1>
-              <p className="text-xs text-slate-500">
+              <h1 className="font-display text-2xl sm:text-3xl font-normal tracking-tight text-ink">
+                Record a New Memory
+              </h1>
+              <p className="text-xs text-ink-muted mt-1">
                 Log a moment for your love story. It will automatically appear on the Train Journey and Calendar!
               </p>
             </div>
@@ -175,65 +177,57 @@ export default function NewMemoryPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Memory Title *
-              </label>
+            <Field id="memory-title" label="Memory Title *">
               <input
+                id="memory-title"
                 type="text"
                 required
                 placeholder="e.g. Midnight stargazing on the hill..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus"
+                className={inputClass}
               />
-            </div>
+            </Field>
 
             {/* Date & Location */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Date *
-                </label>
+              <Field id="memory-date" label="Date *">
                 <div className="relative">
-                  <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Calendar className="w-4 h-4 text-ink-muted absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
+                    id="memory-date"
                     type="date"
                     required
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus"
+                    className={cn(inputClass, 'pl-11')}
                   />
                 </div>
-              </div>
+              </Field>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Location
-                </label>
+              <Field id="memory-location" label="Location">
                 <div className="relative">
-                  <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <MapPin className="w-4 h-4 text-ink-muted absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
+                    id="memory-location"
                     type="text"
                     placeholder="e.g. Blue Heron Cafe, Downtown"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus"
+                    className={cn(inputClass, 'pl-11')}
                   />
                 </div>
-              </div>
+              </Field>
             </div>
 
             {/* Category & Mood */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Category
-                </label>
+              <Field id="memory-category" label="Category">
                 <select
+                  id="memory-category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value as MemoryCategory)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus bg-white"
+                  className={inputClass}
                 >
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
@@ -241,16 +235,14 @@ export default function NewMemoryPage() {
                     </option>
                   ))}
                 </select>
-              </div>
+              </Field>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Mood
-                </label>
+              <Field id="memory-mood" label="Mood">
                 <select
+                  id="memory-mood"
                   value={mood}
                   onChange={(e) => setMood(e.target.value as Mood)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus bg-white"
+                  className={inputClass}
                 >
                   {MOODS.map((m) => (
                     <option key={m.mood} value={m.mood}>
@@ -258,68 +250,63 @@ export default function NewMemoryPage() {
                     </option>
                   ))}
                 </select>
-              </div>
+              </Field>
             </div>
 
             {/* Shared Story Description */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                The Shared Story *
-              </label>
+            <Field id="memory-description" label="The Shared Story *">
               <textarea
+                id="memory-description"
                 required
                 rows={4}
                 placeholder="What happened on this day? Write down the details so neither of you ever forgets..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus"
+                className={inputClass}
               />
-            </div>
+            </Field>
 
             {/* Your Perspective (Author POV) */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Your Personal Perspective ({activeProfile.name})
-              </label>
+            <Field
+              id="memory-perspective"
+              label={`Your Personal Perspective (${activeProfile.name})`}
+              hint="Both of you can read and write your perspectives in the memory detail page!"
+            >
               <textarea
+                id="memory-perspective"
                 rows={2}
                 placeholder={`What were you privately thinking or feeling during this moment, ${activeProfile.name}?`}
                 value={myPerspective}
                 onChange={(e) => setMyPerspective(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-purple-200 bg-purple-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-focus"
+                className={cn(inputClass, 'border-primary/25')}
               />
-              <p className="text-[11px] text-slate-400 mt-1">
-                Both of you can read and write your perspectives in the memory detail page!
-              </p>
-            </div>
+            </Field>
 
             {/* Tags */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Tags (comma separated)
-              </label>
+            <Field id="memory-tags" label="Tags (comma separated)">
               <div className="relative">
-                <Tag className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Tag className="w-4 h-4 text-ink-muted absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
+                  id="memory-tags"
                   type="text"
                   placeholder="e.g. Roadtrip, Sunset, Laughs, FirstDate"
                   value={tagsInput}
                   onChange={(e) => setTagsInput(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-focus"
+                  className={cn(inputClass, 'pl-11')}
                 />
               </div>
-            </div>
+            </Field>
 
             {/* Photos Section */}
-            <div className="space-y-3 pt-2">
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <div className="space-y-4 pt-2">
+              <label className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
                 Photos & Memories
               </label>
 
               {/* Upload or Preset Buttons */}
               <div className="flex flex-wrap items-center gap-3">
-                <label className="cursor-pointer px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-2 transition-colors">
-                  <UploadCloud className="w-4 h-4 text-purple-600" />
+                <label className="cursor-pointer px-5 py-2.5 rounded-full bg-surface border border-line text-ink text-xs font-semibold flex items-center gap-2 shadow-sm bloom">
+                  <UploadCloud className="w-4 h-4 text-primary" />
                   <span>Choose Local Image</span>
                   <input
                     type="file"
@@ -330,7 +317,7 @@ export default function NewMemoryPage() {
                   />
                 </label>
 
-                <span className="text-xs text-slate-400">or pick quick couple presets:</span>
+                <span className="text-xs text-ink-muted">or pick quick couple presets:</span>
 
                 <div className="flex items-center gap-2">
                   {DEMO_PRESET_PHOTOS.map((url, i) => (
@@ -338,7 +325,7 @@ export default function NewMemoryPage() {
                       type="button"
                       key={i}
                       onClick={() => addPresetPhoto(url)}
-                      className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 hover:scale-110 transition-transform"
+                      className="w-9 h-9 rounded-xl overflow-hidden hover:scale-110 transition-transform"
                       title="Add sample photo"
                     >
                       <img src={url} alt="preset" className="w-full h-full object-cover" />
@@ -349,17 +336,19 @@ export default function NewMemoryPage() {
 
               {/* Photos Preview Grid */}
               {photos.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
                   {photos.map((p) => (
-                    <div key={p.id} className="relative rounded-xl overflow-hidden h-28 group border border-slate-200">
+                    <div key={p.id} className="relative rounded-2xl overflow-hidden h-32 group">
                       <img src={p.url} alt="Memory" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
+                      <IconButton
+                        label="Remove photo"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => removePhoto(p.id)}
-                        className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/60 text-snow hover:bg-danger-solid transition-colors"
+                        className="absolute top-1.5 right-1.5 w-7 h-7 bg-black/60 text-snow hover:text-snow hover:bg-danger-solid"
                       >
                         <X className="w-3.5 h-3.5" />
-                      </button>
+                      </IconButton>
                     </div>
                   ))}
                 </div>
@@ -367,24 +356,17 @@ export default function NewMemoryPage() {
             </div>
 
             {/* Submit Button */}
-            <div className="pt-6 border-t border-slate-100 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50"
-              >
+            <div className="pt-6 border-t border-line flex items-center justify-end gap-3">
+              <Button variant="outline" size="sm" onClick={() => router.back()}>
                 Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-bold text-sm shadow-cta hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
-              >
-                <Sparkles className="w-4 h-4 text-purple-700" />
+              </Button>
+              <Button type="submit" variant="primary">
+                <Sparkles className="w-4 h-4" />
                 <span>Save to Our Diary</span>
-              </button>
+              </Button>
             </div>
           </form>
-        </div>
+        </Card>
       </div>
     </AppShell>
   );

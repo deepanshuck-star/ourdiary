@@ -45,6 +45,9 @@ import { CoupleStreakChip } from '@/components/widgets/CoupleStreakChip';
 import { GoodMorningHandoff } from '@/components/widgets/GoodMorningHandoff';
 import { DistanceCounter } from '@/components/widgets/DistanceCounter';
 import { MoodHistoryRecorder } from '@/components/widgets/MoodHistoryRecorder';
+import { Button, ButtonLink, IconButton } from '@/components/ui/Button';
+import { Card, Chip, SectionHeader } from '@/components/ui/Surface';
+import { cn } from '@/lib/cn';
 
 type Ritual = {
   key: string;
@@ -55,15 +58,19 @@ type Ritual = {
   action: string;
 };
 
+/** A band of near-nothing: it groups without drawing a box around itself. */
+const SECTION_BAND = 'rounded-[2rem] bg-ink/[0.03] p-5 sm:p-8';
+
 function TodayRitualRow({ ritual }: { ritual: Ritual }) {
   return (
-    <li className="flex items-center gap-4 py-3.5 first:pt-0 last:pb-0">
+    <li className="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
       <span
-        className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
+        className={cn(
+          'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-colors',
           ritual.done
-            ? 'bg-primary border-primary text-on-primary'
-            : 'bg-surface border-purple-200 text-primary'
-        }`}
+            ? 'bg-beam shadow-cta'
+            : 'bg-ink/5 border border-line text-primary'
+        )}
         aria-hidden="true"
       >
         {ritual.done ? <Check className="w-4 h-4" strokeWidth={3} /> : <Heart className="w-4 h-4" />}
@@ -80,15 +87,6 @@ function TodayRitualRow({ ritual }: { ritual: Ritual }) {
         <ArrowRight className="w-3.5 h-3.5" />
       </Link>
     </li>
-  );
-}
-
-function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
-  return (
-    <div className="mb-4">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">{eyebrow}</p>
-      <h2 className="text-2xl font-semibold text-ink">{title}</h2>
-    </div>
   );
 }
 
@@ -240,34 +238,34 @@ export default function DashboardPage() {
       <IncomingHeartbeatAlert />
       <MoodHistoryRecorder />
       <div className="space-y-10 animate-in fade-in duration-300">
-        {/* Couple header — pillow-shaped section break */}
-        <header className="relative rounded-pillow overflow-hidden bg-hero px-6 py-8 sm:px-10 sm:py-10">
-          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
+        {/* Couple header — the title floats on the dark, lit only by a bloom */}
+        <header className="relative rounded-pillow overflow-hidden bg-glow px-2 py-6 sm:px-6 sm:py-10">
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
             <div className="flex items-center gap-5 sm:gap-6">
               <div className="relative flex items-center flex-shrink-0">
                 <img
                   src={data.couple.user1.avatar}
                   alt={data.couple.user1.name}
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover ring-4 ring-surface shadow-cta z-10"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover ring-1 ring-ink/15 shadow-card z-10"
                 />
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-30 bg-surface rounded-full p-1.5 shadow-sm">
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-30 bg-surface rounded-full p-1.5 shadow-cta">
                   <Heart className="w-4 h-4 text-primary fill-primary" />
                 </div>
                 <img
                   src={data.couple.user2.avatar}
                   alt={data.couple.user2.name}
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover ring-4 ring-surface shadow-cta -ml-4 z-20"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover ring-1 ring-ink/15 shadow-card -ml-4 z-20"
                 />
               </div>
 
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-purple-800">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
                   {data.couple.name}
                 </p>
-                <h1 className="text-3xl sm:text-5xl font-semibold text-ink leading-tight">
+                <h1 className="font-display text-4xl sm:text-6xl font-normal tracking-tight text-ink leading-[1.05] mt-2">
                   Day {daysTogether} together
                 </h1>
-                <p className="text-sm text-slate-700 mt-1.5">
+                <p className="text-sm text-ink-muted mt-3">
                   Viewing as <strong className="font-semibold text-ink">{activeProfile.name}</strong>
                   <span aria-hidden="true"> · </span>
                   Year {anniversaryInfo.yearsCount} of your story
@@ -276,20 +274,22 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-2.5 w-full md:w-auto">
-              <Link
+              <ButtonLink
                 href="/memories/new"
-                className="flex-1 md:flex-none whitespace-nowrap px-5 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-semibold text-sm shadow-cta transition-colors flex items-center justify-center gap-2"
+                variant="primary"
+                className="flex-1 md:flex-none whitespace-nowrap"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>Add a memory</span>
-              </Link>
-              <Link
+              </ButtonLink>
+              <ButtonLink
                 href="/journey"
-                className="flex-1 md:flex-none whitespace-nowrap px-5 py-2.5 rounded-full bg-surface/90 hover:bg-surface text-ink font-semibold text-sm border border-line transition-colors flex items-center justify-center gap-2"
+                variant="outline"
+                className="flex-1 md:flex-none whitespace-nowrap"
               >
                 <Compass className="w-4 h-4 text-primary" />
                 <span>Our journey</span>
-              </Link>
+              </ButtonLink>
             </div>
           </div>
         </header>
@@ -301,18 +301,14 @@ export default function DashboardPage() {
 
         {/* Today — the dominant card */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6" aria-labelledby="today-heading">
-          <div className="lg:col-span-2 rounded-[1.5rem] bg-surface border border-line p-6 sm:p-8 shadow-card">
-            <div className="flex items-end justify-between gap-4 mb-6">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
-                  {isHydrated ? formatDate(todayStr) : 'Today'}
-                </p>
-                <h2 id="today-heading" className="text-3xl font-semibold text-ink">Today</h2>
-              </div>
-              <span className="px-3 py-1 rounded-full bg-purple-50 text-purple-800 text-xs font-semibold">
-                {isHydrated ? `${ritualsDone} of ${rituals.length} done` : '—'}
-              </span>
-            </div>
+          <Card as="div" className="lg:col-span-2 p-6 sm:p-8">
+            <SectionHeader
+              id="today-heading"
+              eyebrow={isHydrated ? formatDate(todayStr) : 'Today'}
+              title="Today"
+              actions={<Chip tone="muted">{isHydrated ? `${ritualsDone} of ${rituals.length} done` : '—'}</Chip>}
+              className="mb-6"
+            />
             <CoupleStreakChip />
             {isHydrated ? (
               <ul className="divide-y divide-line">
@@ -321,36 +317,35 @@ export default function DashboardPage() {
                 ))}
               </ul>
             ) : (
-              <div className="h-40 rounded-2xl bg-slate-50 animate-pulse" />
+              <div className="h-40 rounded-2xl bg-ink/5 animate-pulse" />
             )}
-          </div>
+          </Card>
 
-          <div className="rounded-[1.5rem] bg-purple-50 border border-purple-100 p-6 sm:p-8 flex flex-col justify-between gap-6">
-            <div className="flex items-center gap-2 text-purple-800">
-              <Clock className="w-4 h-4" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.14em]">Next anniversary</span>
+          {/* The one lit object on the page: a huge thin numeral in a glowing well. */}
+          <Card tone="glow" className="p-6 sm:p-8 flex flex-col justify-between gap-8">
+            <div className="flex items-center gap-2 text-ink-muted">
+              <Clock className="w-4 h-4 text-primary" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.22em]">Next anniversary</span>
             </div>
             <div>
-              <p className="font-display text-6xl font-semibold text-ink leading-none">{anniversaryInfo.daysLeft}</p>
-              <p className="text-sm text-slate-700 mt-2">
+              <p className="font-display text-7xl sm:text-8xl font-light text-ink leading-none tracking-tight">
+                {anniversaryInfo.daysLeft}
+              </p>
+              <p className="text-sm text-ink-muted mt-3">
                 days until year {anniversaryInfo.yearsCount + 1}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowHeartbeatModal(true)}
-              className="w-full px-4 py-2.5 rounded-full bg-surface border border-purple-200 text-purple-800 hover:bg-purple-100 font-semibold text-sm transition-colors flex items-center justify-center gap-2"
-            >
-              <Heart className="w-4 h-4" />
+            <Button variant="outline" block onClick={() => setShowHeartbeatModal(true)}>
+              <Heart className="w-4 h-4 text-primary" />
               <span>Send a love ping</span>
-            </button>
-          </div>
+            </Button>
+          </Card>
         </section>
 
         {/* Locked notes your partner chose to let you know about */}
         {lockedNoteTeasers.length > 0 && (
-          <div className="p-5 rounded-[1.5rem] bg-surface border border-line">
-            <h3 className="text-xs font-semibold text-purple-700 uppercase tracking-[0.14em] mb-3 flex items-center gap-1.5">
+          <Card className="p-5">
+            <h3 className="text-[11px] font-semibold text-primary uppercase tracking-[0.22em] mb-4 flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5" />
               Locked notes waiting for you ({lockedNoteTeasers.length})
             </h3>
@@ -359,23 +354,23 @@ export default function DashboardPage() {
                 <Link
                   key={note.id}
                   href={`/memories/${memory.id}`}
-                  className="flex items-center gap-3 p-3 rounded-2xl bg-purple-50 border border-purple-100 hover:border-purple-300 transition-colors"
+                  className="flex items-center gap-3 p-3 rounded-2xl bg-canvas border border-line lift"
                 >
-                  <div className="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center flex-shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-beam flex items-center justify-center flex-shrink-0">
                     <Lock className="w-4 h-4" />
                   </div>
-                  <p className="text-xs text-slate-700">
+                  <p className="text-xs text-ink-muted">
                     {partnerProfile.name} left a locked note on &ldquo;{memory.title}&rdquo;. Only they can unlock it.
                   </p>
                 </Link>
               ))}
             </div>
-          </div>
+          </Card>
         )}
 
-        {/* Stay close — colour-blocked section */}
-        <section className="rounded-[2rem] bg-purple-100/60 p-5 sm:p-8">
-          <SectionHeading eyebrow="Stay close" title="Check in with each other" />
+        {/* Stay close */}
+        <section className={SECTION_BAND}>
+          <SectionHeader eyebrow="Stay close" title="Check in with each other" className="mb-6" />
           <div className="space-y-5">
             <div id="mood" className="scroll-mt-24">
               <MoodBeaconBanner />
@@ -396,47 +391,43 @@ export default function DashboardPage() {
           ].map((s) => {
             const Icon = s.icon;
             return (
-              <div key={s.label} className="p-5 rounded-[1.25rem] bg-surface border border-line flex flex-col gap-3">
-                <span className="w-9 h-9 rounded-full bg-purple-50 text-primary flex items-center justify-center">
+              <Card key={s.label} className="p-5 flex flex-col gap-5">
+                <span className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                   <Icon className="w-4 h-4" />
                 </span>
                 <div>
-                  <p className="font-display text-3xl font-semibold text-ink leading-none">
+                  <p className="font-display text-4xl font-light text-ink leading-none tracking-tight">
                     {s.value}
-                    {s.suffix && <span className="font-sans text-xs font-medium text-ink-muted ml-1">{s.suffix}</span>}
+                    {s.suffix && <span className="font-sans text-xs font-medium text-ink-muted ml-1.5">{s.suffix}</span>}
                   </p>
-                  <p className="text-xs font-medium text-ink-muted mt-1.5">{s.label}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-muted mt-3">{s.label}</p>
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
 
-        {/* Remember — colour-blocked section */}
-        <section className="rounded-[2rem] bg-rose-50 p-5 sm:p-8">
-          <SectionHeading eyebrow="Remember" title="Moments worth keeping" />
+        {/* Remember */}
+        <section className={SECTION_BAND}>
+          <SectionHeader eyebrow="Remember" title="Moments worth keeping" className="mb-6" />
           <div className="space-y-5">
             <OnThisDayCard />
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 items-start">
-              <div className="lg:col-span-3 rounded-[1.25rem] bg-surface border border-line p-6 flex flex-col justify-between">
+              <Card className="lg:col-span-3 p-6 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
-                    <h3 className="font-display text-lg font-semibold text-ink">From your memory lane</h3>
-                    <button
-                      type="button"
-                      onClick={handleShuffleMemory}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 text-xs font-semibold hover:bg-purple-100 transition-colors"
-                    >
+                  <div className="flex items-center justify-between gap-3 mb-5">
+                    <h3 className="font-display text-lg font-normal text-ink">From your memory lane</h3>
+                    <Button variant="ghost" size="sm" onClick={handleShuffleMemory}>
                       <Shuffle className="w-3.5 h-3.5" />
                       <span>Shuffle</span>
-                    </button>
+                    </Button>
                   </div>
 
                   {randomMemory ? (
                     <div className="flex flex-col sm:flex-row gap-5">
                       {randomMemory.photos?.[0] && (
-                        <div className="sm:w-2/5 h-48 rounded-2xl overflow-hidden relative group">
+                        <div className="sm:w-2/5 h-52 rounded-2xl overflow-hidden relative group">
                           <img
                             src={randomMemory.photos[0].url}
                             alt={randomMemory.title}
@@ -444,12 +435,15 @@ export default function DashboardPage() {
                             decoding="async"
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
-                          <div className="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-black/60 text-snow text-[10px] font-semibold backdrop-blur-xs">
+                          <Chip
+                            tone="muted"
+                            className="absolute top-2.5 left-2.5 bg-canvas/70 border-transparent text-ink backdrop-blur-sm"
+                          >
                             {randomMemory.category}
-                          </div>
+                          </Chip>
                         </div>
                       )}
-                      <div className="flex-1 space-y-2">
+                      <div className="flex-1 space-y-2.5">
                         <div className="flex items-center gap-2 text-xs text-ink-muted">
                           <Calendar className="w-3.5 h-3.5" />
                           <span>{formatDate(randomMemory.date)}</span>
@@ -458,39 +452,36 @@ export default function DashboardPage() {
                           <span>{randomMemory.location}</span>
                         </div>
 
-                        <h4 className="font-display text-xl font-semibold text-ink">{randomMemory.title}</h4>
-                        <p className="text-sm text-slate-600 line-clamp-3 leading-relaxed">
+                        <h4 className="font-display text-2xl font-normal text-ink tracking-tight">{randomMemory.title}</h4>
+                        <p className="text-sm text-ink-muted line-clamp-3 leading-relaxed">
                           {randomMemory.description}
                         </p>
 
                         {randomMemory.perspectives?.[activeProfile.id] && (
-                          <blockquote className="p-3 rounded-xl bg-purple-50 border-l-2 border-primary text-xs text-purple-900 italic">
+                          <blockquote className="p-3.5 rounded-xl bg-ink/5 border-l-2 border-primary text-xs text-ink-muted italic">
                             &ldquo;{randomMemory.perspectives[activeProfile.id]}&rdquo;
                           </blockquote>
                         )}
                       </div>
                     </div>
                   ) : (
-                    <div className="py-8 px-4 text-center space-y-3 rounded-2xl border border-dashed border-purple-200">
+                    <div className="py-10 px-4 text-center space-y-4 rounded-2xl border border-dashed border-line">
                       <div>
-                        <h4 className="font-display text-lg font-semibold text-ink">Your diary is ready</h4>
-                        <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto leading-relaxed">
+                        <h4 className="font-display text-lg font-normal text-ink">Your diary is ready</h4>
+                        <p className="text-xs text-ink-muted mt-1.5 max-w-sm mx-auto leading-relaxed">
                           A fresh, private space for the two of you. Start with a first date, a trip or a quiet evening in.
                         </p>
                       </div>
-                      <Link
-                        href="/memories/new"
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary hover:bg-primary-hover text-on-primary text-xs font-semibold shadow-cta transition-colors"
-                      >
+                      <ButtonLink href="/memories/new" variant="secondary" size="sm">
                         <PlusCircle className="w-3.5 h-3.5" />
                         <span>Add your first memory</span>
-                      </Link>
+                      </ButtonLink>
                     </div>
                   )}
                 </div>
 
                 {randomMemory && (
-                  <div className="mt-5 pt-4 border-t border-line flex items-center justify-between">
+                  <div className="mt-6 pt-4 border-t border-line flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-xs text-ink-muted">
                       <Smile className="w-4 h-4 text-primary" />
                       <span>Mood: <strong className="capitalize font-semibold text-ink">{randomMemory.mood}</strong></span>
@@ -504,12 +495,12 @@ export default function DashboardPage() {
                     </Link>
                   </div>
                 )}
-              </div>
+              </Card>
 
               {/* Recent Memories */}
-              <div className="lg:col-span-2 rounded-[1.25rem] bg-surface border border-line p-6">
-                <div className="flex items-center justify-between pb-4 border-b border-line mb-3">
-                  <h3 className="font-display text-lg font-semibold text-ink">Recently added</h3>
+              <Card className="lg:col-span-2 p-6">
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <h3 className="font-display text-lg font-normal text-ink">Recently added</h3>
                   <Link href="/memories" className="text-xs font-semibold text-primary hover:text-primary-hover">
                     View all ({totalMemories})
                   </Link>
@@ -521,7 +512,7 @@ export default function DashboardPage() {
                       <Link
                         key={mem.id}
                         href={`/memories/${mem.id}`}
-                        className="flex items-center gap-3.5 p-2.5 rounded-2xl hover:bg-purple-50 transition-colors group"
+                        className="flex items-center gap-3.5 p-2.5 rounded-2xl hover:bg-ink/5 transition-colors group"
                       >
                         {mem.photos?.[0] ? (
                           <img
@@ -529,10 +520,10 @@ export default function DashboardPage() {
                             alt={mem.title}
                             loading="lazy"
                             decoding="async"
-                            className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+                            className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-xl bg-purple-100 text-primary flex items-center justify-center flex-shrink-0">
+                          <div className="w-14 h-14 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                             <Heart className="w-4 h-4" />
                           </div>
                         )}
@@ -544,7 +535,7 @@ export default function DashboardPage() {
                             {mem.category} · {formatDate(mem.date)}
                           </p>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
+                        <ChevronRight className="w-4 h-4 text-ink-muted group-hover:text-primary transition-colors" />
                       </Link>
                     ))
                   ) : (
@@ -556,36 +547,36 @@ export default function DashboardPage() {
                     </div>
                   )}
                 </div>
-              </div>
+              </Card>
             </div>
           </div>
         </section>
 
-        {/* Play & plan — colour-blocked section */}
-        <section className="rounded-[2rem] bg-slate-100 p-5 sm:p-8">
-          <SectionHeading eyebrow="Play & plan" title="Something to look forward to" />
+        {/* Play & plan */}
+        <section className={SECTION_BAND}>
+          <SectionHeader eyebrow="Play & plan" title="Something to look forward to" className="mb-6" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
             <div className="lg:col-span-2 space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Link
                   href="/spin-wheel"
-                  className="p-5 rounded-[1.25rem] bg-surface border border-line hover:border-purple-300 transition-colors group flex items-center gap-4"
+                  className="p-5 rounded-2xl panel edge-lit lift group flex items-center gap-4"
                 >
-                  <span className="w-11 h-11 rounded-full bg-purple-50 text-primary flex items-center justify-center flex-shrink-0">
+                  <span className="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                     <Dices className="w-5 h-5" />
                   </span>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-sm text-ink">Spin the date wheel</h4>
                     <p className="text-xs text-ink-muted mt-0.5">Let the wheel choose tonight’s plan</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
+                  <ChevronRight className="w-4 h-4 text-ink-muted group-hover:text-primary transition-colors" />
                 </Link>
 
                 <Link
                   href="/coupons"
-                  className="p-5 rounded-[1.25rem] bg-surface border border-line hover:border-purple-300 transition-colors group flex items-center gap-4"
+                  className="p-5 rounded-2xl panel edge-lit lift group flex items-center gap-4"
                 >
-                  <span className="w-11 h-11 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
+                  <span className="w-11 h-11 rounded-full bg-secondary/15 text-secondary flex items-center justify-center flex-shrink-0">
                     <Ticket className="w-5 h-5" />
                   </span>
                   <div className="flex-1 min-w-0">
@@ -594,16 +585,16 @@ export default function DashboardPage() {
                       {data.loveCoupons?.filter((c) => !c.redeemed).length || 0} ready to redeem
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
+                  <ChevronRight className="w-4 h-4 text-ink-muted group-hover:text-primary transition-colors" />
                 </Link>
               </div>
 
               {/* Upcoming Calendar Events */}
-              <div className="rounded-[1.25rem] bg-surface border border-line p-6">
-                <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
+              <Card className="p-6">
+                <div className="flex items-center justify-between gap-3 mb-5">
                   <div className="flex items-center gap-2">
                     <CalendarDays className="w-4 h-4 text-primary" />
-                    <h3 className="font-display text-lg font-semibold text-ink">Coming up</h3>
+                    <h3 className="font-display text-lg font-normal text-ink">Coming up</h3>
                   </div>
                   <Link href="/calendar" className="text-xs font-semibold text-primary hover:text-primary-hover">
                     Open calendar
@@ -615,24 +606,24 @@ export default function DashboardPage() {
                     upcomingEvents.map((evt) => (
                       <div
                         key={evt.id}
-                        className="p-3.5 rounded-2xl bg-slate-50 border border-line flex items-center justify-between gap-3"
+                        className="p-4 rounded-2xl bg-canvas border border-line flex items-center justify-between gap-3"
                       >
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 uppercase tracking-wider">
+                            <Chip tone="primary" className="uppercase tracking-[0.14em] text-[10px]">
                               {evt.category}
-                            </span>
+                            </Chip>
                             <span className="text-xs font-medium text-ink-muted">{formatDate(evt.date)}</span>
                           </div>
-                          <h4 className="font-semibold text-sm text-ink mt-1">{evt.title}</h4>
+                          <h4 className="font-semibold text-sm text-ink mt-2">{evt.title}</h4>
                           {evt.description && (
-                            <p className="text-xs text-slate-600 mt-0.5 line-clamp-1">{evt.description}</p>
+                            <p className="text-xs text-ink-muted mt-1 line-clamp-1">{evt.description}</p>
                           )}
                         </div>
                         {evt.time && (
-                          <span className="text-xs font-semibold text-ink-muted px-2.5 py-1 rounded-full bg-surface border border-line flex-shrink-0">
+                          <Chip tone="muted" className="flex-shrink-0">
                             {evt.time}
-                          </span>
+                          </Chip>
                         )}
                       </div>
                     ))
@@ -642,88 +633,86 @@ export default function DashboardPage() {
                     </p>
                   )}
                 </div>
-              </div>
+              </Card>
             </div>
 
             <div className="space-y-5">
               <CassettePlayerWidget />
 
               {/* Relationship Milestones */}
-              <div className="rounded-[1.25rem] bg-surface border border-line p-6 flex flex-col">
-                <div className="flex items-center gap-2 pb-4 border-b border-line mb-4">
+              <Card className="p-6 flex flex-col">
+                <div className="flex items-center gap-2 mb-5">
                   <Award className="w-4 h-4 text-primary" />
-                  <h3 className="font-display text-lg font-semibold text-ink">Milestones</h3>
+                  <h3 className="font-display text-lg font-normal text-ink">Milestones</h3>
                 </div>
 
                 <div className="space-y-2.5 flex-1 overflow-y-auto max-h-80 pr-1">
                   {milestones.slice(0, 5).map((m) => (
                     <div
                       key={m.days}
-                      className={`p-3 rounded-2xl border ${
-                        m.reached ? 'bg-purple-50 border-purple-100' : 'bg-surface border-line'
-                      }`}
+                      className={cn(
+                        'p-3.5 rounded-2xl border',
+                        m.reached ? 'bg-primary/10 border-primary/25' : 'bg-canvas border-line'
+                      )}
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-semibold text-xs text-ink">{m.label}</span>
                         {m.reached ? (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary text-on-primary">
+                          <Chip tone="solid" className="text-[10px] px-2.5">
                             Celebrated
-                          </span>
+                          </Chip>
                         ) : (
                           <span className="text-[10px] font-semibold text-ink-muted">In {m.daysLeft} days</span>
                         )}
                       </div>
-                      <p className="text-[11px] text-ink-muted mt-1">{formatDate(m.targetDate)}</p>
+                      <p className="text-[11px] text-ink-muted mt-1.5">{formatDate(m.targetDate)}</p>
                     </div>
                   ))}
                 </div>
 
                 <Link
                   href="/our-stats"
-                  className="mt-4 pt-3 border-t border-line text-xs font-semibold text-primary hover:text-primary-hover flex items-center justify-between"
+                  className="mt-5 pt-4 border-t border-line text-xs font-semibold text-primary hover:text-primary-hover flex items-center justify-between"
                 >
                   <span>All milestones & stats</span>
                   <ChevronRight className="w-4 h-4" />
                 </Link>
-              </div>
+              </Card>
             </div>
           </div>
         </section>
 
         {/* Your space — invite code (live couples only) */}
         {isLiveUser && (
-          <section className="p-5 sm:p-6 rounded-[1.5rem] bg-surface border border-line flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <Card as="section" className="p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
             <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-full bg-purple-50 text-primary flex items-center justify-center flex-shrink-0">
+              <div className="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                 <Key className="w-5 h-5" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-ink">Your couple invite code</span>
-                  <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-semibold">
-                    Active
-                  </span>
+                  <Chip tone="primary">Active</Chip>
                 </div>
-                <p className="text-xs text-ink-muted mt-0.5 max-w-xl">
+                <p className="text-xs text-ink-muted mt-1 max-w-xl">
                   Share it with your partner to join. If it was exposed, regenerate it to retire the old code for good.
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2 w-full md:w-auto">
-              <div className="flex items-center bg-slate-50 pl-4 pr-1.5 py-1.5 rounded-full border border-line flex-1 md:flex-none justify-between md:justify-start">
+              <div className="flex items-center bg-canvas pl-4 pr-1.5 py-1.5 rounded-full border border-line flex-1 md:flex-none justify-between md:justify-start">
                 <span className="font-mono font-semibold text-primary text-sm tracking-widest mr-3">
                   {data.couple.inviteCode || 'N/A'}
                 </span>
-                <button
-                  type="button"
+                <IconButton
+                  label="Copy invite code"
+                  variant="ghost"
+                  size="sm"
                   onClick={handleCopyCode}
-                  title="Copy invite code"
-                  aria-label="Copy invite code"
-                  className="p-1.5 hover:bg-purple-100 rounded-full text-ink-muted hover:text-ink transition-colors"
                 >
                   <Copy className="w-4 h-4" />
-                </button>
+                </IconButton>
               </div>
 
               {/* Owner-only. The database enforces this too — a partner
@@ -731,106 +720,105 @@ export default function DashboardPage() {
                   about not offering an action that would fail. */}
               {isCoupleCreator && (
                 <>
-                  <button
-                    type="button"
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => setShowRegenModal(true)}
-                    className="px-4 py-2 rounded-full bg-surface border border-line text-ink hover:bg-slate-50 text-xs font-semibold transition-colors flex items-center gap-1.5 flex-shrink-0"
+                    className="flex-shrink-0"
                   >
                     <RefreshCw className="w-3.5 h-3.5 text-primary" />
                     <span>Regenerate</span>
-                  </button>
-                  <button
-                    type="button"
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => setShowRemoveModal(true)}
-                    className="px-4 py-2 rounded-full bg-surface border border-line text-ink hover:bg-slate-50 text-xs font-semibold transition-colors flex items-center gap-1.5 flex-shrink-0"
+                    className="flex-shrink-0"
                   >
                     <UserMinus className="w-3.5 h-3.5 text-primary" />
                     <span>Remove partner</span>
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
-          </section>
+          </Card>
         )}
       </div>
 
       {/* Regenerate Couple Invite Code Confirmation Modal */}
       {showRegenModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-surface rounded-[1.5rem] p-6 max-w-md w-full shadow-2xl border border-line space-y-4 animate-in fade-in zoom-in-95">
-            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <Card className="p-6 max-w-md w-full space-y-4 animate-in fade-in zoom-in-95">
+            <div className="w-12 h-12 rounded-full bg-danger/15 text-danger flex items-center justify-center">
               <RefreshCw className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-display text-xl font-semibold text-ink">Regenerate your invite code?</h3>
-              <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
-                If your current code (<strong className="font-mono text-rose-600">{data.couple.inviteCode}</strong>) was exposed or shared by mistake, this permanently removes it and issues a new one.
+              <h3 className="font-display text-xl font-normal text-ink">Regenerate your invite code?</h3>
+              <p className="text-xs text-ink-muted mt-2 leading-relaxed">
+                If your current code (<strong className="font-mono text-primary">{data.couple.inviteCode}</strong>) was exposed or shared by mistake, this permanently removes it and issues a new one.
               </p>
             </div>
 
             <div className="flex gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowRegenModal(false)}
-                className="flex-1 py-2.5 rounded-full border border-line text-ink text-xs font-semibold hover:bg-slate-50 transition-colors"
-              >
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => setShowRegenModal(false)}>
                 Cancel
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                className="flex-1"
                 onClick={handleConfirmRegenerate}
+                loading={isRegenerating}
                 disabled={isRegenerating}
-                className="flex-1 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-on-primary text-xs font-semibold shadow-cta transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
               >
                 {isRegenerating ? 'Regenerating…' : 'Delete & regenerate'}
-              </button>
+              </Button>
             </div>
-          </div>
+          </Card>
         </div>
       )}
 
       {/* Remove partner confirmation */}
       {showRemoveModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-surface rounded-[1.5rem] p-6 max-w-md w-full shadow-2xl border border-line space-y-4 animate-in fade-in zoom-in-95">
-            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <Card className="p-6 max-w-md w-full space-y-4 animate-in fade-in zoom-in-95">
+            <div className="w-12 h-12 rounded-full bg-danger/15 text-danger flex items-center justify-center">
               <UserMinus className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-display text-xl font-semibold text-ink">Remove {partnerProfile.name} from this space?</h3>
-              <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+              <h3 className="font-display text-xl font-normal text-ink">Remove {partnerProfile.name} from this space?</h3>
+              <p className="text-xs text-ink-muted mt-2 leading-relaxed">
                 They lose access immediately, and a fresh invite code is issued so the old one can't be used to come
                 straight back. Everything they added — memories, notes, gifts — stays here.
               </p>
             </div>
 
             <div className="flex gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowRemoveModal(false)}
-                className="flex-1 py-2.5 rounded-full border border-line text-ink text-xs font-semibold hover:bg-slate-50 transition-colors"
-              >
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => setShowRemoveModal(false)}>
                 Cancel
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                className="flex-1"
                 onClick={handleConfirmRemovePartner}
+                loading={isRemoving}
                 disabled={isRemoving}
-                className="flex-1 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-on-primary text-xs font-semibold shadow-cta transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
               >
                 {isRemoving ? 'Removing…' : 'Remove and reissue code'}
-              </button>
+              </Button>
             </div>
-          </div>
+          </Card>
         </div>
       )}
 
       {/* Floating love ping */}
       <div className="fixed bottom-20 sm:bottom-8 right-5 sm:right-8 z-40">
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => setShowHeartbeatModal(true)}
-          className="px-4 py-3 sm:px-5 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-semibold text-xs sm:text-sm shadow-cta hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,transform] duration-200 flex items-center gap-2.5 ring-4 ring-canvas"
+          className="py-3 sm:px-5 sm:text-sm gap-2.5 ring-4 ring-canvas"
           title="Send a thinking-of-you love ping"
         >
           <Heart className="w-4 h-4 fill-current" />
@@ -839,7 +827,7 @@ export default function DashboardPage() {
             <Flame className="w-3 h-3" />
             {data.heartbeatStreak || 1}d
           </span>
-        </button>
+        </Button>
       </div>
 
       <HeartbeatLovePingModal
