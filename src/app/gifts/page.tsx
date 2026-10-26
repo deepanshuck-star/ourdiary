@@ -8,14 +8,15 @@ import { useCoupleMembers } from '@/hooks/useCoupleMembers';
 import { newId } from '@/hooks/useNow';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useLocalState } from '@/lib/local-store';
-import { destroyCloudinaryAsset, uploadImageToCloudinary } from '@/lib/cloudinary/upload';
+import { destroyCloudinaryAsset } from '@/lib/cloudinary/upload';
 import { createGiftRemote, deleteGiftRemote, fetchGiftsRemote, type GiftRow } from '@/lib/supabase/gifts';
+import { PhotoInput, type PickedPhoto } from '@/components/ui/PhotoInput';
 import { OCCASIONS, formatGiftDate, splitByDirection, tallyGifts, validateGift } from '@/lib/features/gifts';
 
 const inputClass =
   'w-full px-4 py-2.5 rounded-2xl border border-line bg-surface text-ink text-sm focus:outline-none focus:ring-2 focus:ring-focus';
 
-/** Demo-mode gift. Ids are profile slots; the photo is a data URL on device. */
+/** Demo-mode gift. Ids are profile slots; the photo is a hosted URL. */
 interface LocalGift {
   id: string;
   fromUserId: string;
@@ -52,7 +53,9 @@ export default function GiftsPage() {
   const [occasion, setOccasion] = useState('');
   const [note, setNote] = useState('');
   const [givenOn, setGivenOn] = useState('');
-  const [photo, setPhoto] = useState<File | null>(null);
+  // The photo is uploaded as soon as it is picked, so only its URL is held.
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [photoPublicId, setPhotoPublicId] = useState<string | null>(null);
 
   const gifts = useMemo(
     () =>
@@ -102,7 +105,21 @@ export default function GiftsPage() {
     setOccasion('');
     setNote('');
     setGivenOn('');
-    setPhoto(null);
+    setPhotoUrl(null);
+    setPhotoPublicId(null);
+  };
+
+  const handlePickedPhoto = (picked: PickedPhoto) => {
+    setPhotoUrl(picked.url);
+    setPhotoPublicId(picked.publicId ?? null);
+  };
+
+  /** Dropping a photo before the gift is saved would otherwise orphan it. */
+  const clearPhoto = async () => {
+    const orphan = photoPublicId;
+    setPhotoUrl(null);
+    setPhotoPublicId(null);
+    if (orphan) await destroyCloudinaryAsset(orphan, 'image');
   };
 
   const add = async (e: React.FormEvent) => {
@@ -123,13 +140,6 @@ export default function GiftsPage() {
     setSaving(true);
     try {
       if (live && supabase && currentUserId) {
-        let photoUrl: string | null = null;
-        let photoPublicId: string | null = null;
-        if (photo) {
-          const uploaded = await uploadImageToCloudinary(photo);
-          photoUrl = uploaded.secureUrl;
-          photoPublicId = uploaded.publicId;
-        }
         try {
           await createGiftRemote(supabase, coupleId, currentUserId, {
             fromUserId,
@@ -148,10 +158,6 @@ export default function GiftsPage() {
         }
         await reload();
       } else {
-        // Demo mode has no Cloudinary upload, so the photo is inlined as a
-        // data URL. Kept small deliberately: localStorage has a hard quota.
-        let photoUrl: string | null = null;
-        if (photo) photoUrl = await readAsDataUrl(photo);
         setLocal((prev) => [
           {
             id: newId('gift'),
@@ -162,7 +168,7 @@ export default function GiftsPage() {
             occasion: occasion || null,
             note: note.trim() || null,
             photoUrl,
-            photoPublicId: null,
+            photoPublicId,
             givenOn: givenOn || null,
             createdAt: new Date().toISOString(),
           },
@@ -289,26 +295,27 @@ export default function GiftsPage() {
                 />
               </div>
               <div>
-                <label htmlFor="gift-photo" className="block text-xs font-semibold text-ink mb-1">
+                <p className="block text-xs font-semibold text-ink mb-1">
                   Photo <span className="font-normal text-ink-muted">(optional)</span>
-                </label>
+                </p>
                 <div className="flex items-center gap-2">
-                  <input
-                    id="gift-photo"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
-                    className="block w-full text-xs text-ink-muted file:mr-3 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-secondary file:text-ink"
-                  />
-                  {photo && (
-                    <button
-                      type="button"
-                      onClick={() => setPhoto(null)}
-                      aria-label="Remove the selected photo"
-                      className="p-1.5 rounded-full text-ink-muted hover:text-danger flex-shrink-0"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                  <PhotoInput onPicked={handlePickedPhoto} label="Gift photo" disabled={saving} />
+                  {photoUrl && (
+                    <>
+                      <img
+                        src={photoUrl}
+                        alt="The gift photo you picked"
+                        className="w-10 h-10 rounded-xl object-cover border border-line flex-shrink-0"
+                      />
+                      <button
+                        type="button"
+                        onClick={clearPhoto}
+                        aria-label="Remove the selected photo"
+                        className="p-1.5 rounded-full text-ink-muted hover:text-danger flex-shrink-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -432,14 +439,4 @@ export default function GiftsPage() {
       </div>
     </AppShell>
   );
-}
-
-/** Demo mode only: inline a small photo so it survives a refresh. */
-function readAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error ?? new Error('Could not read that image.'));
-    reader.readAsDataURL(file);
-  });
 }
