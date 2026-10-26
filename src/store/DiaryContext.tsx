@@ -31,7 +31,14 @@ import {
   updateCoupleDetailsRemote,
 } from '@/lib/supabase/couple';
 import { fetchMemoriesRemote, createMemoryRemote, updateMemoryRemote, deleteMemoryRemote } from '@/lib/supabase/memories';
-import { fetchCoupleProfilesRemote, updateMyAvatarRemote, updateCouplePhotoRemote } from '@/lib/supabase/profiles';
+import {
+  fetchCoupleProfilesRemote,
+  updateMyAvatarRemote,
+  updateCouplePhotoRemote,
+  fetchCoupleMemberIdsRemote,
+} from '@/lib/supabase/profiles';
+import { createNotificationRemote } from '@/lib/supabase/notifications';
+import * as notify from '@/lib/features/notify';
 import { setSyncContext, setSyncErrorHandler } from '@/lib/local-store';
 import {
   fetchEventsRemote, createEventRemote, updateEventRemote, deleteEventRemote,
@@ -205,6 +212,9 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
   const [isLiveUser, setIsLiveUser] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastInfo[]>([]);
+  // Notifications are addressed to the other person, so the provider needs
+  // their id. useCoupleMembers can't be used here — it reads this context.
+  const [partnerUserId, setPartnerUserId] = useState<string | null>(null);
 
   // Ephemeral Demo Mode vs Live Couple Space Hydration:
   // If in demo mode, modifications are in-memory only and reset on refresh.
@@ -243,6 +253,28 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('ourdiary_real_couple_v1', JSON.stringify(data));
     }
   }, [data, isHydrated, isLiveUser, currentUserId]);
+
+  // Null until a partner has actually joined, which is also the signal that
+  // there is nobody to notify yet.
+  useEffect(() => {
+    const supabase = isLiveUser && currentUserId ? getSupabaseBrowserClient() : null;
+    if (!supabase || !currentUserId || !data.couple.id) {
+      setPartnerUserId(null);
+      return;
+    }
+    let cancelled = false;
+    fetchCoupleMemberIdsRemote(supabase, data.couple.id, currentUserId)
+      .then((ids) => {
+        if (!cancelled) setPartnerUserId(ids.partner);
+      })
+      .catch((err) => {
+        console.warn('[OurDiary] Could not look up the partner for notifications:', err);
+        if (!cancelled) setPartnerUserId(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isLiveUser, currentUserId, data.couple.id]);
 
   const showToast = (message: string, type: ToastInfo['type'] = 'success') => {
     const id = Math.random().toString(36).substring(2, 9);
@@ -389,6 +421,28 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     return getSupabaseBrowserClient();
   };
 
+  /**
+   * Tells the other person something happened. Fire-and-forget on purpose:
+   * the user's action has already succeeded by the time this runs, so a
+   * failed notification is logged and dropped rather than surfaced or
+   * allowed to reject into the caller. Skipped entirely in demo mode, with
+   * no Supabase, or before a partner has joined — nobody to tell.
+   */
+  const notifyPartner = (payload: notify.NotifyPayload) => {
+    const supabase = remoteClient();
+    if (!supabase || !partnerUserId || !currentUserId || !data.couple.id) return;
+    createNotificationRemote(supabase, data.couple.id, {
+      recipientId: partnerUserId,
+      actorId: currentUserId,
+      kind: payload.kind,
+      title: payload.title,
+      body: payload.body,
+      href: payload.href,
+    }).catch((err) => {
+      console.warn('[OurDiary] Could not raise a notification:', err);
+    });
+  };
+
   const addMemory = (newMem: Omit<Memory, 'id' | 'reactions' | 'notes'>): Memory => {
     const tempId = 'mem_' + Date.now();
     const createdMemory: Memory = {
@@ -428,6 +482,9 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
               b.memoryId === tempId ? { ...b, memoryId: saved.id } : b
             ),
           }));
+          // Only once the server has it — otherwise the feed would point
+          // them at a memory that never made it off this device.
+          notifyPartner(notify.memoryAdded(activeProfile.name));
         })
         .catch((err) => {
           console.error('[OurDiary] Failed to save memory to database:', err);
@@ -498,6 +555,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
                 : m
             ),
           }));
+          notifyPartner(notify.photoAdded(activeProfile.name));
         })
         .catch((err) => {
         console.error('[OurDiary] Failed to save photo to database:', err);
@@ -911,6 +969,8 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
                 : m
             ),
           }));
+          // A locked note stays secret: saying one exists would defeat the lock.
+          if (visibility === 'shared') notifyPartner(notify.noteAdded(author.name));
         })
         .catch((err) => {
           console.error('[OurDiary] Failed to save note to database:', err);
@@ -1055,6 +1115,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
             ...prev,
             events: prev.events.map((e) => (e.id === tempId ? { ...e, id: saved.id } : e)),
           }));
+          notifyPartner(notify.eventAdded(activeProfile.name));
         })
         .catch((err) => {
         console.error('[OurDiary] Failed to save event to database:', err);
@@ -1118,6 +1179,8 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
             ...prev,
             letters: prev.letters.map((l) => (l.id === tempId ? { ...l, id: saved.id, createdAt: saved.createdAt } : l)),
           }));
+          // A draft isn't sent yet, and the title carries no part of the letter.
+          if (!letter.isDraft) notifyPartner(notify.letterSent(activeProfile.name));
         })
         .catch((err) => {
         console.error('[OurDiary] Failed to save letter to database:', err);
@@ -1315,6 +1378,8 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       url: '/dashboard',
     });
     showToast(`Sent heartbeat love ping to ${partnerProfile.name}! 💓`, 'heart');
+    // The ping itself stays on this device; the feed is how it reaches them.
+    notifyPartner(notify.pingSent(senderName));
   };
 
   const markHeartbeatSeen = () => {
@@ -1343,6 +1408,8 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       },
     }));
     showToast('Updated your mood beacon! ☀️', 'success');
+    // The mood itself, and any note with it, stays out of the notification.
+    notifyPartner(notify.moodUpdated(activeProfile.name));
   };
 
   const sendWarmHug = (message?: string) => {
@@ -1362,6 +1429,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       url: '/dashboard',
     });
     showToast(`Sent a warm cuddle hug to ${partnerProfile.name}! 🤗💕`, 'heart');
+    notifyPartner(notify.hugSent(senderName));
   };
 
   const answerDailySpark = (questionId: string, question: string, content: string) => {

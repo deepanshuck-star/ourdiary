@@ -7,7 +7,11 @@ import { useDiary } from '@/store/DiaryContext';
 import { usePresence } from '@/components/providers/PresenceProvider';
 import { PresenceDot } from '@/components/widgets/PartnerPresence';
 import { newId, useNow } from '@/hooks/useNow';
+import { useCoupleMembers } from '@/hooks/useCoupleMembers';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { createNotificationRemote } from '@/lib/supabase/notifications';
+import { previewFor } from '@/lib/crypto/envelope';
+import * as notify from '@/lib/features/notify';
 import { useLocalState } from '@/lib/local-store';
 import {
   deleteMessageRemote,
@@ -54,6 +58,7 @@ interface ViewMessage {
 export default function ChatPage() {
   const { data, activeProfile, partnerProfile, isLiveUser, currentUserId, showToast } = useDiary();
   const presence = usePresence();
+  const { partnerId } = useCoupleMembers();
   const coupleId = data.couple.id;
   const supabase = isLiveUser && currentUserId ? getSupabaseBrowserClient() : null;
   const isRemote = Boolean(supabase && coupleId);
@@ -201,6 +206,32 @@ export default function ChatPage() {
   }, [presence.partnerTyping]);
 
   // --------------------------------------------------------------- send ---
+
+  /**
+   * Puts the message in their notification feed. Fire-and-forget: the message
+   * itself has already sent, so nothing here may surface as a send failure.
+   * Skipped in demo mode and before a partner has joined.
+   *
+   * The body is the sender's own preview, and previewFor() returns null
+   * unless this couple switched previews on — then the feed shows its
+   * generic "sent you a message" line instead of the words.
+   */
+  const raiseMessageNotification = (content: string) => {
+    try {
+      if (!supabase || !coupleId || !currentUserId || !partnerId) return;
+      const previewsEnabled = data.couple.notificationPreviews === true;
+      createNotificationRemote(supabase, coupleId, {
+        recipientId: partnerId,
+        actorId: currentUserId,
+        ...notify.messageSent(activeProfile.name, previewFor(content, previewsEnabled, 80)),
+      }).catch((err) => {
+        console.warn('[OurDiary] Could not raise a chat notification:', err);
+      });
+    } catch (err) {
+      console.warn('[OurDiary] Could not raise a chat notification:', err);
+    }
+  };
+
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
     const problem = validateMessage(draft);
@@ -247,6 +278,7 @@ export default function ChatPage() {
       const saved = await sendMessageRemote(supabase!, coupleId, currentUserId!, content);
       setRemote((prev) => mergeMessages(prev, [saved]));
       setPending((prev) => prev.filter((m) => m.id !== tempId));
+      raiseMessageNotification(content);
     } catch (err: any) {
       setPending((prev) => prev.filter((m) => m.id !== tempId));
       setDraft(content);
