@@ -89,3 +89,37 @@ export async function removePartnerRemote(
   if (!data) throw new Error('The server did not confirm the change.');
   return data as RemoteCouple;
 }
+
+/**
+ * Saves the couple row's own fields: name, dates and theme.
+ *
+ * These were the one part of Settings that never reached the database.
+ * updateCouple() persisted only the photo, so changing the relationship
+ * start date updated React state and localStorage, announced "Relationship
+ * settings saved!", and was then overwritten by the untouched database row
+ * on the next sign-in — a silent revert that also reported success.
+ *
+ * Only the fields the caller actually passed are sent, so saving the name
+ * cannot blank the anniversary date. `invite_code` is deliberately not
+ * settable here: it is creator-only and guarded by a trigger (migration 18).
+ */
+export async function updateCoupleDetailsRemote(
+  supabase: SupabaseClient,
+  coupleId: string,
+  fields: {
+    name?: string;
+    startDate?: string;
+    anniversaryDate?: string;
+    theme?: string;
+  }
+): Promise<void> {
+  const patch: Record<string, string> = {};
+  if (fields.name !== undefined) patch.name = fields.name;
+  if (fields.startDate !== undefined) patch.relationship_start_date = fields.startDate;
+  if (fields.anniversaryDate !== undefined) patch.anniversary_date = fields.anniversaryDate;
+  if (fields.theme !== undefined) patch.theme = fields.theme;
+  if (Object.keys(patch).length === 0) return;
+
+  const { error } = await supabase.from('couples').update(patch).eq('id', coupleId);
+  if (error) throw new Error(error.message);
+}

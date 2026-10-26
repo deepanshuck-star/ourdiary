@@ -84,3 +84,51 @@ test('AI date planner is fully removed: no route, no page, no SDK dependency', (
   const nav = read('src', 'components', 'layout', 'exploreNav.ts');
   assert.ok(!nav.includes('/planner'));
 });
+
+// ---------------------------------------------------------------------------
+// The couple row's own fields (name, dates, theme) stopped at React state and
+// localStorage. loadExistingCoupleSpace spreads the database row over the
+// cache on sign-in, so an unsaved change silently reverted — and the UI had
+// already said "Relationship settings saved!" before attempting any write.
+// ---------------------------------------------------------------------------
+
+test('the couple details write exists and only sends what was passed', () => {
+  const src = read('src', 'lib', 'supabase', 'couple.ts');
+  assert.ok(src.includes('export async function updateCoupleDetailsRemote'));
+  // Column names must match the schema, not the client-side field names.
+  assert.ok(src.includes('patch.relationship_start_date = fields.startDate'));
+  assert.ok(src.includes('patch.anniversary_date = fields.anniversaryDate'));
+  // Partial: saving the name must not blank the dates.
+  assert.ok(src.includes('if (fields.name !== undefined)'));
+  assert.ok(src.includes('if (Object.keys(patch).length === 0) return;'));
+  // The invite code is creator-only and trigger-guarded; it is not settable here.
+  assert.equal(src.includes('patch.invite_code'), false);
+  assert.ok(src.includes('if (error) throw new Error(error.message)'));
+});
+
+test('updateCouple persists the relationship basics, not just the photo', () => {
+  const ctx = read('src', 'store', 'DiaryContext.tsx');
+  assert.ok(ctx.includes('updateCoupleDetailsRemote'));
+  for (const field of ['updates.name', 'updates.startDate', 'updates.anniversaryDate', 'updates.theme']) {
+    assert.ok(ctx.includes(field), `${field} should be forwarded to the server`);
+  }
+});
+
+test('the save toast waits for the server instead of announcing up front', () => {
+  const ctx = read('src', 'store', 'DiaryContext.tsx');
+  const toast = "showToast('Relationship settings saved!', 'success')";
+  // Every success toast must sit inside a .then(...) or the demo-mode branch —
+  // never on the line straight after setData, which is what made the original
+  // failure invisible.
+  const idx = ctx.indexOf('const updateCouple');
+  assert.ok(idx > -1);
+  const body = ctx.slice(idx, idx + 2600);
+  assert.ok(body.includes(toast));
+  assert.equal(
+    /setData\(\(prev\) => \(\{[\s\S]{0,200}?\}\)\);\s*showToast\('Relationship settings saved!'/.test(body),
+    false,
+    'the toast must not fire before the write is attempted'
+  );
+  // And a failed write has to say so rather than passing silently.
+  assert.ok(body.includes("'warn'"));
+});

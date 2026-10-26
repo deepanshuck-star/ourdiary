@@ -25,7 +25,11 @@ import {
   validateAndImportDiaryData,
 } from '@/lib/storage';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { regenerateInviteCodeRemote, removePartnerRemote } from '@/lib/supabase/couple';
+import {
+  regenerateInviteCodeRemote,
+  removePartnerRemote,
+  updateCoupleDetailsRemote,
+} from '@/lib/supabase/couple';
 import { fetchMemoriesRemote, createMemoryRemote, updateMemoryRemote, deleteMemoryRemote } from '@/lib/supabase/memories';
 import { fetchCoupleProfilesRemote, updateMyAvatarRemote, updateCouplePhotoRemote } from '@/lib/supabase/profiles';
 import { setSyncContext, setSyncErrorHandler } from '@/lib/local-store';
@@ -281,7 +285,38 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       ...prev,
       couple: { ...prev.couple, ...updates },
     }));
-    showToast('Relationship settings saved!', 'success');
+
+    const supabaseForDetails = isLiveUser && currentUserId ? getSupabaseBrowserClient() : null;
+
+    // The couple row's own fields — name, dates, theme — used to stop at
+    // React state and localStorage. Sign-in reads the row back and spreads
+    // it over the cache (see loadExistingCoupleSpace), so an unsaved change
+    // silently reverted to whatever the database still held.
+    const details = {
+      name: updates.name,
+      startDate: updates.startDate,
+      anniversaryDate: updates.anniversaryDate,
+      theme: updates.theme,
+    };
+    const hasDetails = Object.values(details).some((value) => value !== undefined);
+
+    if (hasDetails && supabaseForDetails && data.couple.id) {
+      // The toast waits for the write. Announcing success before the server
+      // has agreed is what made the original bug invisible for days.
+      updateCoupleDetailsRemote(supabaseForDetails, data.couple.id, details)
+        .then(() => showToast('Relationship settings saved!', 'success'))
+        .catch((err) => {
+          console.error('[OurDiary] Failed to save relationship settings:', err);
+          showToast(
+            "Couldn't save that to the server — it's only on this device, and will revert when you sign in again.",
+            'warn'
+          );
+        });
+    } else if (hasDetails || !(isLiveUser && currentUserId && data.couple.id)) {
+      // Demo mode, or a change with no server leg: local is the truth here,
+      // so it is saved the moment state updates.
+      showToast('Relationship settings saved!', 'success');
+    }
 
     if (updates.photoUrl !== undefined) {
       const previousPhotoUrl = data.couple.photoUrl;
@@ -289,6 +324,9 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       if (supabase && data.couple.id) {
         updateCouplePhotoRemote(supabase, data.couple.id, updates.photoUrl)
           .then(() => {
+            // Confirmed by the server, so now it can say so. Skipped when a
+            // details write is already reporting on the same action.
+            if (!hasDetails) showToast('Relationship settings saved!', 'success');
             // A couple keeps one couple photo, so the one it replaced is
             // dead weight in Cloudinary. Only after the new URL is saved,
             // or a failure here would delete the photo still in use.
