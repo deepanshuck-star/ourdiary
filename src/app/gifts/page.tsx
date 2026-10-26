@@ -8,7 +8,8 @@ import { useCoupleMembers } from '@/hooks/useCoupleMembers';
 import { newId } from '@/hooks/useNow';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useLocalState } from '@/lib/local-store';
-import { destroyCloudinaryAsset, uploadImageToCloudinary } from '@/lib/cloudinary/upload';
+import { destroyCloudinaryAsset, packEncryptedUrl, uploadEncryptedImage } from '@/lib/cloudinary/upload';
+import { SecureImage } from '@/components/ui/SecureImage';
 import { createGiftRemote, deleteGiftRemote, fetchGiftsRemote, type GiftRow } from '@/lib/supabase/gifts';
 import { OCCASIONS, formatGiftDate, splitByDirection, tallyGifts, validateGift } from '@/lib/features/gifts';
 
@@ -126,8 +127,8 @@ export default function GiftsPage() {
         let photoUrl: string | null = null;
         let photoPublicId: string | null = null;
         if (photo) {
-          const uploaded = await uploadImageToCloudinary(photo);
-          photoUrl = uploaded.secureUrl;
+          const uploaded = await uploadEncryptedImage(photo, coupleId);
+          photoUrl = packEncryptedUrl(uploaded.secureUrl, uploaded.iv);
           photoPublicId = uploaded.publicId;
         }
         try {
@@ -393,7 +394,7 @@ export default function GiftsPage() {
                       {/* Cloudinary and data URLs both go through a plain img:
                           next/image would need every Cloudinary cloud name in
                           remotePatterns, and can't handle a data URL at all. */}
-                      <img
+                      <SecureImage
                         src={gift.photoUrl}
                         alt={gift.title}
                         className="absolute inset-0 w-full h-full object-cover"

@@ -4,6 +4,7 @@ import React, { useState, Suspense } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
+import { SecureImage } from '@/components/ui/SecureImage';
 import { useDiary } from '@/store/DiaryContext';
 import { formatDate } from '@/lib/date-utils';
 import { VoiceNotesSection } from '@/components/widgets/VoiceNotesSection';
@@ -384,7 +385,7 @@ function MemoryDetailContent() {
           <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-3">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <img
+                <SecureImage
                   src={data.couple.user1.avatar}
                   alt={data.couple.user1.name}
                   className="w-8 h-8 rounded-full object-cover ring-2 ring-secondary"
@@ -445,7 +446,7 @@ function MemoryDetailContent() {
           <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-3">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <img
+                <SecureImage
                   src={data.couple.user2.avatar}
                   alt={data.couple.user2.name}
                   className="w-8 h-8 rounded-full object-cover ring-2 ring-secondary"

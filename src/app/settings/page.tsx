@@ -24,7 +24,9 @@ import {
   requestPushPermission,
   sendPushNotification,
 } from '@/lib/notifications';
-import { uploadImageToCloudinary } from '@/lib/cloudinary/upload';
+// Falls back to a plain upload when the deployment has no master key.
+import { packEncryptedUrl, uploadEncryptedImage } from '@/lib/cloudinary/upload';
+import { SecureImage } from '@/components/ui/SecureImage';
 import { getAppearance, setAppearance, type Appearance } from '@/lib/appearance';
 import { getPalette, setPalette, PALETTES, type Palette } from '@/lib/palette';
 
@@ -108,9 +110,10 @@ export default function SettingsPage() {
     if (!file) return;
     setUploadingCouplePhoto(true);
     try {
-      const { secureUrl } = await uploadImageToCloudinary(file);
-      setCouplePhoto(secureUrl);
-      updateCouple({ photoUrl: secureUrl });
+      const { secureUrl, iv } = await uploadEncryptedImage(file, data.couple.id);
+      const stored = packEncryptedUrl(secureUrl, iv);
+      setCouplePhoto(stored);
+      updateCouple({ photoUrl: stored });
       showToast('Couple photo updated! 💕', 'heart');
     } catch (err: any) {
       showToast(err?.message || 'Could not upload that photo. Please try again.', 'warn');
@@ -130,9 +133,10 @@ export default function SettingsPage() {
     const setAvatarState = profileId === 'user_1' ? setUser1Avatar : setUser2Avatar;
     setUploading(true);
     try {
-      const { secureUrl } = await uploadImageToCloudinary(file);
-      setAvatarState(secureUrl);
-      updateProfile(profileId, { avatar: secureUrl });
+      const { secureUrl, iv } = await uploadEncryptedImage(file, data.couple.id);
+      const stored = packEncryptedUrl(secureUrl, iv);
+      setAvatarState(stored);
+      updateProfile(profileId, { avatar: stored });
       showToast('Photo updated! 💕', 'heart');
     } catch (err: any) {
       showToast(err?.message || 'Could not upload that photo. Please try again.', 'warn');
@@ -463,7 +467,7 @@ export default function SettingsPage() {
           </p>
           <div className="flex items-center gap-4">
             {couplePhoto ? (
-              <img
+              <SecureImage
                 src={couplePhoto}
                 alt="Couple"
                 className="w-16 h-16 rounded-2xl object-cover ring-2 ring-secondary shadow-xs"
@@ -492,7 +496,7 @@ export default function SettingsPage() {
           {/* User 1 Profile Form */}
           <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-4">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-              <img
+              <SecureImage
                 src={user1Avatar}
                 alt={user1Name}
                 className="w-10 h-10 rounded-full object-cover ring-2 ring-secondary"
@@ -578,7 +582,7 @@ export default function SettingsPage() {
           {/* User 2 Profile Form */}
           <div className="rounded-3xl bg-white border border-line p-6 shadow-sm space-y-4">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-              <img
+              <SecureImage
                 src={user2Avatar}
                 alt={user2Name}
                 className="w-10 h-10 rounded-full object-cover ring-2 ring-secondary"

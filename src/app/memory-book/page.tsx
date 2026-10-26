@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { BookOpen, Printer, Heart } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { SecureImage } from '@/components/ui/SecureImage';
 import { formatDate } from '@/lib/date-utils';
 import { availableYears } from '@/lib/features/yearReview';
 import type { Couple, Memory } from '@/types';
@@ -32,11 +33,11 @@ function CoverPage({ couple, label, count, range }: { couple: Couple; label: str
       <div className="absolute inset-[4%] border border-[#F9A8D4] rounded-[1rem] pointer-events-none" aria-hidden="true" />
       <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#9D174D]">Our memory book</p>
       {couple.photoUrl ? (
-        <img src={couple.photoUrl} alt="" className="w-40 h-40 rounded-full object-cover border-4 border-white shadow" />
+        <SecureImage src={couple.photoUrl} alt="" className="w-40 h-40 rounded-full object-cover border-4 border-white shadow" />
       ) : (
         <div className="flex items-center">
-          <img src={couple.user1.avatar} alt="" className="w-24 h-24 rounded-full object-cover border-4 border-white" />
-          <img src={couple.user2.avatar} alt="" className="w-24 h-24 rounded-full object-cover border-4 border-white -ml-5" />
+          <SecureImage src={couple.user1.avatar} alt="" className="w-24 h-24 rounded-full object-cover border-4 border-white" />
+          <SecureImage src={couple.user2.avatar} alt="" className="w-24 h-24 rounded-full object-cover border-4 border-white -ml-5" />
         </div>
       )}
       <h2 className="font-display text-4xl sm:text-5xl font-semibold leading-tight">{couple.name}</h2>
@@ -60,7 +61,7 @@ function MemoryPage({ memory, couple, pageNo }: { memory: Memory; couple: Couple
   return (
     <section className="book-page relative flex flex-col bg-white text-[#2A1520] px-[8%] py-[7%] gap-4 overflow-hidden">
       {hero && (
-        <img
+        <SecureImage
           src={hero.url}
           alt={hero.caption || memory.title}
           className={`w-full ${rest.length ? 'h-[38%]' : 'h-[46%]'} object-cover rounded-[0.75rem] flex-shrink-0`}
@@ -69,7 +70,7 @@ function MemoryPage({ memory, couple, pageNo }: { memory: Memory; couple: Couple
       {rest.length > 0 && (
         <div className="grid grid-cols-3 gap-2 h-[11%] flex-shrink-0">
           {rest.slice(0, 3).map((p) => (
-            <img key={p.id} src={p.url} alt={p.caption || ''} className="w-full h-full object-cover rounded-[0.5rem]" />
+            <SecureImage key={p.id} src={p.url} alt={p.caption || ''} className="w-full h-full object-cover rounded-[0.5rem]" />
           ))}
         </div>
       )}

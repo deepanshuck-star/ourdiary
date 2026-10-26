@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { CalendarClock, Globe2, Loader2, MapPin, Moon, Sun, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
+import { SecureImage } from '@/components/ui/SecureImage';
 import { useDiary } from '@/store/DiaryContext';
 import { useLongDistance } from '@/hooks/useLongDistance';
 import { splitDuration } from '@/lib/features/countdowns';
@@ -241,7 +242,7 @@ function PersonClock({
     <div className="rounded-[1.25rem] bg-surface border border-line p-5 sm:p-6 shadow-card">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <img src={profile.avatar} alt="" className="w-10 h-10 rounded-full object-cover bg-purple-50 flex-shrink-0" />
+          <SecureImage src={profile.avatar} alt="" className="w-10 h-10 rounded-full object-cover bg-purple-50 flex-shrink-0" />
           <div className="min-w-0">
             <p className="font-semibold text-ink truncate">
               {profile.name}

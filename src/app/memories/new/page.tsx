@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { SecureImage } from '@/components/ui/SecureImage';
 import { MemoryCategory, Mood, MemoryPhoto } from '@/types';
 
 // Defined at module scope (not inside the component) so these impure calls
@@ -153,7 +154,7 @@ export default function NewMemoryPage() {
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500">Creating as:</span>
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 border border-purple-100 text-purple-800 text-xs font-bold">
-              <img src={activeProfile.avatar} alt={activeProfile.name} className="w-4 h-4 rounded-full" />
+              <SecureImage src={activeProfile.avatar} alt={activeProfile.name} className="w-4 h-4 rounded-full" />
               <span>{activeProfile.name}</span>
             </div>
           </div>
@@ -341,7 +342,7 @@ export default function NewMemoryPage() {
                       className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 hover:scale-110 transition-transform"
                       title="Add sample photo"
                     >
-                      <img src={url} alt="preset" className="w-full h-full object-cover" />
+                      <SecureImage src={url} alt="preset" className="w-full h-full object-cover" />
                     </button>
                   ))}
                 </div>
@@ -352,7 +353,7 @@ export default function NewMemoryPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
                   {photos.map((p) => (
                     <div key={p.id} className="relative rounded-xl overflow-hidden h-28 group border border-slate-200">
-                      <img src={p.url} alt="Memory" className="w-full h-full object-cover" />
+                      <SecureImage src={p.url} alt="Memory" className="w-full h-full object-cover" />
                       <button
                         type="button"
                         onClick={() => removePhoto(p.id)}

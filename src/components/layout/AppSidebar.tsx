@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useDiary } from '@/store/DiaryContext';
+import { SecureImage } from '@/components/ui/SecureImage';
 import {
   LayoutDashboard,
   Compass,
@@ -130,12 +131,12 @@ export function AppSidebar() {
       {/* Couple Mini Banner */}
       <div className="p-3.5 mb-5 rounded-[1.25rem] border border-line flex items-center gap-3 shrink-0 bg-hero-soft">
         <div className="flex -space-x-3 items-center">
-          <img
+          <SecureImage
             src={data.couple.user1.avatar}
             alt={data.couple.user1.name}
             className="w-10 h-10 rounded-full object-cover ring-2 ring-surface"
           />
-          <img
+          <SecureImage
             src={data.couple.user2.avatar}
             alt={data.couple.user2.name}
             className="w-10 h-10 rounded-full object-cover ring-2 ring-surface"

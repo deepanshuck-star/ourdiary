@@ -208,6 +208,59 @@ export async function uploadSongToCloudinary(
  *  so a photo is never accepted on one path and rejected on the other. */
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
+// ------------------------------------------------- the iv, inside the URL ---
+//
+// Decrypting a file needs its nonce, but every call site stores exactly one
+// string — a Supabase TEXT column, or a URL inside a JSON blob — with no
+// spare field. Carrying the nonce in the URL fragment avoids a migration
+// across four tables for a value that is not secret in the first place.
+//
+// Three things make this safe rather than merely convenient:
+//   * an iv is public by design; AES-GCM assumes the attacker has it,
+//   * a fragment is never sent to the server, so it costs nothing on the
+//     wire and cannot end up in Cloudinary's logs,
+//   * `new URL().pathname` ignores it, so publicIdFromCloudinaryUrl and
+//     therefore destroyCloudinaryAsset keep working on a packed URL.
+//
+// And the part that matters most: a stored URL with NO fragment means
+// "plaintext, from before encryption" — which is exactly how every photo
+// already in the database keeps rendering.
+
+const IV_FRAGMENT_PREFIX = 'iv=';
+
+/** Attaches an iv to a URL for storage. Returns `url` unchanged when there
+ *  is no iv, so the plaintext path stores precisely what it stores today. */
+export function packEncryptedUrl(url: string, iv: string | null | undefined): string {
+  if (!url || !iv) return url || '';
+  return `${url}#${IV_FRAGMENT_PREFIX}${encodeURIComponent(iv)}`;
+}
+
+/**
+ * Splits a stored value back into the URL and its iv.
+ *
+ * `iv` is null for anything this function did not pack — an old plaintext
+ * URL, a data: URL from demo mode, a fragment that means something else —
+ * and callers must read that as "render it as-is", never as an error.
+ */
+export function readEncryptedUrl(stored: string | null | undefined): { url: string; iv: string | null } {
+  const value = stored || '';
+  const hash = value.lastIndexOf('#');
+  if (hash === -1) return { url: value, iv: null };
+
+  const fragment = value.slice(hash + 1);
+  if (!fragment.startsWith(IV_FRAGMENT_PREFIX)) return { url: value, iv: null };
+
+  let iv: string;
+  try {
+    iv = decodeURIComponent(fragment.slice(IV_FRAGMENT_PREFIX.length));
+  } catch {
+    // A truncated or mangled fragment is not worth failing an image over;
+    // falling back to the plaintext reading is the safe direction.
+    return { url: value, iv: null };
+  }
+  return iv ? { url: value.slice(0, hash), iv } : { url: value, iv: null };
+}
+
 export interface UploadedVariant {
   secureUrl: string;
   publicId: string;

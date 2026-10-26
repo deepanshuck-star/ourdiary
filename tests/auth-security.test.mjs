@@ -543,7 +543,13 @@ test('Settings UI: upload is only offered for your own profile in live mode', ()
   const settings = read('src', 'app', 'settings', 'page.tsx');
   assert.ok(settings.includes("activeProfile.id !== 'user_1'"));
   assert.ok(settings.includes("activeProfile.id !== 'user_2'"));
-  assert.ok(settings.includes('uploadImageToCloudinary'));
+  // Settings now uploads through the encrypting path, which itself falls back
+  // to uploadImageToCloudinary when no master key is configured. Either name
+  // satisfies the thing this test actually cares about: that an upload is
+  // offered here at all.
+  assert.ok(
+    settings.includes('uploadEncryptedImage') || settings.includes('uploadImageToCloudinary')
+  );
 });
 
 test('Navbar shows the couple photo top-left when set', () => {

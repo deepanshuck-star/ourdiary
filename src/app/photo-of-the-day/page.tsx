@@ -7,7 +7,8 @@ import { useDiary } from '@/store/DiaryContext';
 import { useCoupleMembers } from '@/hooks/useCoupleMembers';
 import { newId, useNow } from '@/hooks/useNow';
 import { useLocalState } from '@/lib/local-store';
-import { destroyCloudinaryAsset, uploadImageToCloudinary } from '@/lib/cloudinary/upload';
+import { destroyCloudinaryAsset, packEncryptedUrl, uploadEncryptedImage } from '@/lib/cloudinary/upload';
+import { SecureImage } from '@/components/ui/SecureImage';
 import {
   MAX_CAPTION_LENGTH,
   bothPostedStreak,
@@ -59,13 +60,15 @@ export default function PhotoOfTheDayPage() {
     setUploading(true);
     try {
       const replaced = photoFor(photos, myId, todayKey);
-      const { secureUrl, publicId } = await uploadImageToCloudinary(file);
+      const { secureUrl, publicId, iv } = await uploadEncryptedImage(file, coupleId);
       setPhotos((prev) =>
         upsertPhoto(prev, {
           id: newId('pod'),
           authorId: myId,
           day: todayKey,
-          url: secureUrl,
+          // The iv rides in the fragment; publicId is stored separately and
+          // stays clean for destroyCloudinaryAsset.
+          url: packEncryptedUrl(secureUrl, iv),
           publicId,
           caption: caption.trim() || undefined,
           createdAt: new Date().toISOString(),
@@ -261,7 +264,7 @@ function PhotoFrame({
   return (
     <figure className="space-y-2">
       <div className="relative aspect-square rounded-2xl overflow-hidden border border-line bg-canvas">
-        <img src={photo.url} alt={alt} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+        <SecureImage src={photo.url} alt={alt} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
         {onRemove && (
           <button
             type="button"

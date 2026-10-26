@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useDiary } from '@/store/DiaryContext';
+import { SecureImage } from '@/components/ui/SecureImage';
 import { PartnerPresenceChip } from '@/components/widgets/PartnerPresence';
 import { NotificationBell } from '@/components/widgets/NotificationBell';
 import { calculateDaysTogether } from '@/lib/date-utils';
@@ -36,7 +37,7 @@ export function AppNavbar() {
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="flex items-center gap-2.5 group">
             {data.couple.photoUrl ? (
-              <img
+              <SecureImage
                 src={data.couple.photoUrl}
                 alt={`${data.couple.name} together`}
                 title="Your couple photo"
@@ -108,7 +109,7 @@ export function AppNavbar() {
               aria-label="Profile switcher"
             >
               <div className="relative">
-                <img
+                <SecureImage
                   src={activeProfile.avatar}
                   alt={activeProfile.name}
                   className="w-8 h-8 rounded-full object-cover ring-2 ring-secondary"
@@ -148,7 +149,7 @@ export function AppNavbar() {
 
                   {/* Active Profile */}
                   <div className="flex items-center gap-3 p-2 rounded-xl bg-purple-50/70 border border-purple-100/80 mb-2">
-                    <img
+                    <SecureImage
                       src={activeProfile.avatar}
                       alt={activeProfile.name}
                       className="w-10 h-10 rounded-full object-cover ring-2 ring-purple-300"
@@ -170,7 +171,7 @@ export function AppNavbar() {
                     }}
                     className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors text-left group"
                   >
-                    <img
+                    <SecureImage
                       src={partnerProfile.avatar}
                       alt={partnerProfile.name}
                       className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-200 group-hover:ring-secondary"

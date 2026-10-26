@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 import { CheckCheck, Clock, Loader2, MessagesSquare, Send, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
+import { SecureImage } from '@/components/ui/SecureImage';
 import { usePresence } from '@/components/providers/PresenceProvider';
 import { PresenceDot } from '@/components/widgets/PartnerPresence';
 import { newId, useNow } from '@/hooks/useNow';
@@ -344,7 +345,7 @@ export default function ChatPage() {
           <div className="px-4 py-2.5 sm:py-3 border-b border-line bg-surface/90 backdrop-blur-xs flex items-center justify-between gap-3 z-10">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
               <div className="relative flex-shrink-0">
-                <img
+                <SecureImage
                   src={partnerProfile.avatar}
                   alt={partnerProfile.name}
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover ring-2 ring-primary/20 shadow-xs"
@@ -411,7 +412,7 @@ export default function ChatPage() {
                       {/* Partner's message: avatar on the left */}
                       {!message.mine && (
                         <div className="flex-shrink-0 mb-0.5" title={partnerProfile.name}>
-                          <img
+                          <SecureImage
                             src={partnerProfile.avatar}
                             alt={partnerProfile.name}
                             className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover ring-2 ring-line shadow-2xs"
@@ -499,7 +500,7 @@ export default function ChatPage() {
             )}
             {presence.partnerTyping && (
               <div className="flex items-end gap-2 justify-start" aria-live="polite">
-                <img
+                <SecureImage
                   src={partnerProfile.avatar}
                   alt=""
                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover ring-2 ring-line shadow-2xs flex-shrink-0 mb-0.5"

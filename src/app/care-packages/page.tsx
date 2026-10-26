@@ -8,7 +8,8 @@ import { useCoupleMembers } from '@/hooks/useCoupleMembers';
 import { useLocalState } from '@/lib/local-store';
 import { newId, useNow } from '@/hooks/useNow';
 import { localDayKey } from '@/lib/features/photoOfDay';
-import { destroyCloudinaryAsset, uploadImageToCloudinary } from '@/lib/cloudinary/upload';
+import { destroyCloudinaryAsset, packEncryptedUrl, uploadEncryptedImage } from '@/lib/cloudinary/upload';
+import { SecureImage } from '@/components/ui/SecureImage';
 import {
   arrivalPhrase,
   daysUntilArrival,
@@ -96,8 +97,8 @@ export default function CarePackagesPage() {
       let photoUrl: string | undefined;
       let photoPublicId: string | undefined;
       if (photo) {
-        const uploaded = await uploadImageToCloudinary(photo);
-        photoUrl = uploaded.secureUrl;
+        const uploaded = await uploadEncryptedImage(photo, coupleId);
+        photoUrl = packEncryptedUrl(uploaded.secureUrl, uploaded.iv);
         photoPublicId = uploaded.publicId;
       }
       setPackages((prev) => [
@@ -345,7 +346,7 @@ export default function CarePackagesPage() {
                         {pkg.note && <p className="text-sm text-ink-muted mt-2 whitespace-pre-wrap">{pkg.note}</p>}
 
                         {pkg.photoUrl && (
-                          <img
+                          <SecureImage
                             src={pkg.photoUrl}
                             alt={pkg.title}
                             loading="lazy"

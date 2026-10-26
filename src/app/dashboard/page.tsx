@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
+import { SecureImage } from '@/components/ui/SecureImage';
 import { useDiary } from '@/store/DiaryContext';
 import {
   calculateDaysTogether,
@@ -245,7 +246,7 @@ export default function DashboardPage() {
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
             <div className="flex items-center gap-5 sm:gap-6">
               <div className="relative flex items-center flex-shrink-0">
-                <img
+                <SecureImage
                   src={data.couple.user1.avatar}
                   alt={data.couple.user1.name}
                   className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover ring-4 ring-surface shadow-cta z-10"
@@ -253,7 +254,7 @@ export default function DashboardPage() {
                 <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-30 bg-surface rounded-full p-1.5 shadow-sm">
                   <Heart className="w-4 h-4 text-primary fill-primary" />
                 </div>
-                <img
+                <SecureImage
                   src={data.couple.user2.avatar}
                   alt={data.couple.user2.name}
                   className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover ring-4 ring-surface shadow-cta -ml-4 z-20"

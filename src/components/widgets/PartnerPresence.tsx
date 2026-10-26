@@ -3,6 +3,7 @@
 import React from 'react';
 import { usePresence } from '@/components/providers/PresenceProvider';
 import { useDiary } from '@/store/DiaryContext';
+import { SecureImage } from '@/components/ui/SecureImage';
 
 const TONE_DOT: Record<string, string> = {
   online: 'bg-emerald-500',
@@ -43,7 +44,7 @@ export function PartnerPresenceChip() {
       title={`${partnerProfile.name} — ${label.text}`}
     >
       <span className="relative flex-shrink-0">
-        <img
+        <SecureImage
           src={partnerProfile.avatar}
           alt=""
           className={`w-7 h-7 rounded-full object-cover ${partnerOnline ? 'ring-2 ring-emerald-400' : 'opacity-70'}`}
