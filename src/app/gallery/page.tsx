@@ -4,14 +4,15 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { AppShell } from '@/components/layout/AppShell';
+import { SecureImage } from '@/components/ui/SecureImage';
 import { useDiary } from '@/store/DiaryContext';
 import { formatDate } from '@/lib/date-utils';
 import { useLocalState } from '@/lib/local-store';
 import { usePrefersReducedMotion, useWebGLSupport } from '@/components/three/capabilities';
 import { ThreeFallback, ThreeLoading } from '@/components/three/ThreeFallback';
+import { PhotoInput, type PickedPhoto } from '@/components/ui/PhotoInput';
 import {
   Image as GalleryIcon,
-  UploadCloud,
   X,
   ArrowRight,
   ZoomIn,
@@ -49,7 +50,8 @@ export default function GalleryPage() {
   const [targetMemoryId, setTargetMemoryId] = useState<string>(
     data.memories[0]?.id || ''
   );
-  const [uploadUrl, setUploadUrl] = useState('');
+  // The picked photo is already uploaded; the caption is added before saving.
+  const [pickedUrl, setPickedUrl] = useState('');
   const [uploadCaption, setUploadCaption] = useState('');
 
   // Collect all photos from all memories flattened with memory metadata
@@ -88,35 +90,26 @@ export default function GalleryPage() {
 
   const handleUploadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!uploadUrl.trim() || !targetMemoryId) return;
+    if (!pickedUrl || !targetMemoryId) return;
 
     addPhotoToMemory(targetMemoryId, {
-      url: uploadUrl.trim(),
+      url: pickedUrl,
       caption: uploadCaption.trim() || undefined,
     });
 
-    setUploadUrl('');
+    setPickedUrl('');
     setUploadCaption('');
     setShowUploadModal(false);
   };
 
-  const handleLocalImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0 || !targetMemoryId) return;
+  const handlePickedPhoto = (picked: PickedPhoto) => {
+    setPickedUrl(picked.url);
+  };
 
-    const file = files[0];
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        addPhotoToMemory(targetMemoryId, {
-          url: event.target.result as string,
-          caption: uploadCaption.trim() || file.name,
-        });
-        setUploadCaption('');
-        setShowUploadModal(false);
-      }
-    };
-    reader.readAsDataURL(file);
+  const closeUploadModal = () => {
+    setPickedUrl('');
+    setUploadCaption('');
+    setShowUploadModal(false);
   };
 
   return (
@@ -257,7 +250,7 @@ export default function GalleryPage() {
                 }
                 className="group relative h-64 rounded-3xl overflow-hidden cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 border border-line bg-slate-100"
               >
-                <img
+                <SecureImage
                   src={photo.url}
                   alt={photo.caption || photo.memoryTitle}
                   loading="lazy"
@@ -310,7 +303,7 @@ export default function GalleryPage() {
               className="relative max-w-4xl max-h-[92vh] flex flex-col items-center"
               onClick={(e) => e.stopPropagation()}
             >
-              <img
+              <SecureImage
                 src={lightboxPhoto.url}
                 alt={lightboxPhoto.caption || 'Enlarged photo'}
                 className="max-h-[75vh] w-auto rounded-3xl object-contain shadow-2xl"
@@ -353,7 +346,7 @@ export default function GalleryPage() {
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <h3 className="font-extrabold text-lg text-slate-900">Add Photo to Gallery</h3>
                 <button
-                  onClick={() => setShowUploadModal(false)}
+                  onClick={closeUploadModal}
                   className="p-1 text-slate-400 hover:text-slate-600"
                 >
                   <X className="w-5 h-5" />
@@ -378,35 +371,27 @@ export default function GalleryPage() {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Image URL
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://images.unsplash.com/..."
-                    value={uploadUrl}
-                    onChange={(e) => setUploadUrl(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
-                  />
-                </div>
-
-                <div className="text-center py-2 text-xs text-slate-400 font-semibold">— OR —</div>
-
-                <div>
-                  <label className="cursor-pointer block text-center p-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/30 transition-all">
-                    <UploadCloud className="w-6 h-6 text-emerald-500 mx-auto mb-1" />
-                    <span className="text-xs font-semibold text-slate-700 block">
-                      Choose local image from computer
-                    </span>
-                    <span className="text-[10px] text-slate-400">Instant browser-local preview</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleLocalImageSelect}
-                      className="hidden"
-                    />
-                  </label>
+                <div className="space-y-2">
+                  <p className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    The Photo
+                  </p>
+                  <PhotoInput onPicked={handlePickedPhoto} label="Photo to add to the gallery" />
+                  {pickedUrl && (
+                    <div className="flex items-center gap-3 pt-1">
+                      <img
+                        src={pickedUrl}
+                        alt="Photo ready to save"
+                        className="w-16 h-16 rounded-xl object-cover border border-slate-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPickedUrl('')}
+                        className="text-xs font-semibold text-slate-500 hover:text-slate-800"
+                      >
+                        Choose a different one
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -425,14 +410,14 @@ export default function GalleryPage() {
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
                   <button
                     type="button"
-                    onClick={() => setShowUploadModal(false)}
+                    onClick={closeUploadModal}
                     className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    disabled={!uploadUrl.trim()}
+                    disabled={!pickedUrl}
                     className="px-5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 disabled:opacity-40 shadow-sm"
                   >
                     Save Photo

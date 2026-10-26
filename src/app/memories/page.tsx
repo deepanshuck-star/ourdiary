@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
+import { SecureImage } from '@/components/ui/SecureImage';
 import { useDiary } from '@/store/DiaryContext';
 import { formatDate } from '@/lib/date-utils';
 import { MemoryCategory, Mood } from '@/types';
@@ -221,7 +222,7 @@ export default function MemoriesPage() {
                     {/* Photo Header */}
                     <Link href={`/memories/${mem.id}`} className="block relative h-48 overflow-hidden bg-slate-100">
                       {primaryPhoto ? (
-                        <img
+                        <SecureImage
                           src={primaryPhoto.url}
                           alt={mem.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

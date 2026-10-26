@@ -8,6 +8,7 @@ import { SecureImage } from '@/components/ui/SecureImage';
 import { useDiary } from '@/store/DiaryContext';
 import { formatDate } from '@/lib/date-utils';
 import { VoiceNotesSection } from '@/components/widgets/VoiceNotesSection';
+import { PhotoInput, type PickedPhoto } from '@/components/ui/PhotoInput';
 import {
   Calendar,
   MapPin,
@@ -74,7 +75,6 @@ function MemoryDetailContent() {
   // Photo modal states
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const [showAddPhotoInput, setShowAddPhotoInput] = useState(false);
-  const [newPhotoUrl, setNewPhotoUrl] = useState('');
 
   // Delete modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -127,12 +127,9 @@ function MemoryDetailContent() {
     setEditingNoteId(null);
   };
 
-  // Photo adding
-  const handleAddPhotoSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPhotoUrl.trim()) return;
-    addPhotoToMemory(memory.id, { url: newPhotoUrl.trim() });
-    setNewPhotoUrl('');
+  // Photo adding — the upload has already happened by the time this runs.
+  const handlePickedPhoto = (picked: PickedPhoto) => {
+    addPhotoToMemory(memory.id, { url: picked.url });
     setShowAddPhotoInput(false);
   };
 
@@ -319,25 +316,10 @@ function MemoryDetailContent() {
 
           {/* Add Photo Input */}
           {showAddPhotoInput && (
-            <form onSubmit={handleAddPhotoSubmit} className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-3">
-              <label className="block text-xs font-bold text-emerald-900">Add Image URL</label>
-              <div className="flex gap-2">
-                <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/photo-..."
-                  required
-                  value={newPhotoUrl}
-                  onChange={(e) => setNewPhotoUrl(e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-focus"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-xs"
-                >
-                  Save Photo
-                </button>
-              </div>
-            </form>
+            <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-3">
+              <p className="block text-xs font-bold text-emerald-900">Add a photo</p>
+              <PhotoInput onPicked={handlePickedPhoto} label="Add a photo to this memory" />
+            </div>
           )}
 
           {/* Photo Thumbnails */}
@@ -349,7 +331,7 @@ function MemoryDetailContent() {
                   className="group relative h-48 rounded-2xl overflow-hidden cursor-pointer shadow-xs border border-slate-100"
                   onClick={() => setLightboxPhoto(p.url)}
                 >
-                  <img
+                  <SecureImage
                     src={p.url}
                     alt={p.caption || 'Memory photo'}
                     loading="lazy"

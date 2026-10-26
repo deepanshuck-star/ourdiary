@@ -6,6 +6,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
 import { SecureImage } from '@/components/ui/SecureImage';
 import { MemoryCategory, Mood, MemoryPhoto } from '@/types';
+import { PhotoInput, type PickedPhoto } from '@/components/ui/PhotoInput';
 
 // Defined at module scope (not inside the component) so these impure calls
 // are never associated with render — they only ever run inside event
@@ -21,7 +22,6 @@ import {
   Calendar,
   MapPin,
   Tag,
-  UploadCloud,
   X,
   Sparkles,
   ArrowLeft,
@@ -75,27 +75,14 @@ export default function NewMemoryPage() {
   const [tagsInput, setTagsInput] = useState('');
   const [photos, setPhotos] = useState<MemoryPhoto[]>([]);
 
-  // Handle local file selection preview
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          const newPhoto: MemoryPhoto = {
-            id: makePhotoId('p_loc'),
-            url: event.target.result as string,
-            caption: file.name,
-            dateAdded: nowIso(),
-          };
-          setPhotos((prev) => [...prev, newPhoto]);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
+  // Uploaded to Cloudinary (or pasted) — only the URL is kept, never the file.
+  const handlePickedPhoto = (picked: PickedPhoto) => {
+    const newPhoto: MemoryPhoto = {
+      id: makePhotoId('p_up'),
+      url: picked.url,
+      dateAdded: nowIso(),
+    };
+    setPhotos((prev) => [...prev, newPhoto]);
   };
 
   const addPresetPhoto = (url: string) => {
@@ -318,19 +305,9 @@ export default function NewMemoryPage() {
               </label>
 
               {/* Upload or Preset Buttons */}
-              <div className="flex flex-wrap items-center gap-3">
-                <label className="cursor-pointer px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-2 transition-colors">
-                  <UploadCloud className="w-4 h-4 text-purple-600" />
-                  <span>Choose Local Image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                </label>
+              <PhotoInput onPicked={handlePickedPhoto} label="Add a photo to this memory" />
 
+              <div className="flex flex-wrap items-center gap-3">
                 <span className="text-xs text-slate-400">or pick quick couple presets:</span>
 
                 <div className="flex items-center gap-2">
