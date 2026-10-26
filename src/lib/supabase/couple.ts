@@ -7,6 +7,7 @@ export type RemoteCouple = {
   anniversary_date: string | null;
   theme: string | null;
   invite_code: string;
+  notification_previews?: boolean;
 };
 
 export type CoupleRole = 'creator' | 'partner';
@@ -91,7 +92,8 @@ export async function removePartnerRemote(
 }
 
 /**
- * Saves the couple row's own fields: name, dates and theme.
+ * Saves the couple row's own fields: name, dates, theme and the
+ * notification-preview flag.
  *
  * These were the one part of Settings that never reached the database.
  * updateCouple() persisted only the photo, so changing the relationship
@@ -111,13 +113,17 @@ export async function updateCoupleDetailsRemote(
     startDate?: string;
     anniversaryDate?: string;
     theme?: string;
+    notificationPreviews?: boolean;
   }
 ): Promise<void> {
-  const patch: Record<string, string> = {};
+  const patch: Record<string, string | boolean> = {};
   if (fields.name !== undefined) patch.name = fields.name;
   if (fields.startDate !== undefined) patch.relationship_start_date = fields.startDate;
   if (fields.anniversaryDate !== undefined) patch.anniversary_date = fields.anniversaryDate;
   if (fields.theme !== undefined) patch.theme = fields.theme;
+  if (fields.notificationPreviews !== undefined) {
+    patch.notification_previews = fields.notificationPreviews;
+  }
   if (Object.keys(patch).length === 0) return;
 
   const { error } = await supabase.from('couples').update(patch).eq('id', coupleId);

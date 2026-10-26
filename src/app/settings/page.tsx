@@ -17,6 +17,7 @@ import {
   Smartphone,
   Send,
   LogOut,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   getNotificationPermission,
@@ -79,6 +80,9 @@ export default function SettingsPage() {
   const [anniversaryDate, setAnniversaryDate] = useState(data.couple.anniversaryDate);
   const [theme, setTheme] = useState(data.couple.theme);
   const [animationsEnabled, setAnimationsEnabled] = useState(data.couple.animationsEnabled);
+  const [notificationPreviews, setNotificationPreviews] = useState(
+    data.couple.notificationPreviews === true
+  );
 
   // Profile 1 Settings
   const [user1Name, setUser1Name] = useState(data.couple.user1.name);
@@ -135,6 +139,14 @@ export default function SettingsPage() {
     } finally {
       setUploading(false);
     }
+  };
+
+  // Saved on the spot rather than behind a Save button: it decides what the
+  // NEXT message is allowed to carry, so a pending change would be misleading.
+  const handleToggleNotificationPreviews = () => {
+    const next = !notificationPreviews;
+    setNotificationPreviews(next);
+    updateCouple({ notificationPreviews: next });
   };
 
   // Reset modal state
@@ -729,6 +741,68 @@ export default function SettingsPage() {
                 🤖 <strong>Android (Chrome):</strong> Tap <em>Menu (⋮)</em> &rarr; <em>Install App / Add to Home Screen</em>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Notification previews — what a lock-screen alert is allowed to say */}
+        <div className="rounded-3xl bg-white border border-line p-6 sm:p-8 shadow-sm space-y-4">
+          <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 id="notification-previews-title" className="font-extrabold text-lg text-slate-900">
+                Message Previews in Notifications
+              </h2>
+              <p className="text-xs text-slate-500">
+                How much a notification may show before you unlock your phone
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="max-w-xl space-y-1">
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Off, every alert reads “You have a new message”. On, the sending device writes a
+                short snippet as it sends, so the notification can show the first line — handy, and
+                readable by anyone glancing at your screen.
+              </p>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Changing this never alters messages already sent.{' '}
+                <Link href="/privacy" className="font-semibold text-primary hover:underline">
+                  How we handle your data
+                </Link>
+              </p>
+            </div>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={notificationPreviews}
+              aria-labelledby="notification-previews-title"
+              onClick={handleToggleNotificationPreviews}
+              className={`shrink-0 inline-flex items-center gap-3 px-4 py-2.5 rounded-full border transition-colors cursor-pointer ${
+                notificationPreviews
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                  : 'border-slate-200 bg-slate-50 text-slate-600'
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className={`relative inline-block w-10 h-5 rounded-full transition-colors ${
+                  notificationPreviews ? 'bg-emerald-500' : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-xs transition-all ${
+                    notificationPreviews ? 'left-5.5' : 'left-0.5'
+                  }`}
+                />
+              </span>
+              <span className="text-xs font-bold">
+                {notificationPreviews ? 'Previews on' : 'Previews off'}
+              </span>
+            </button>
           </div>
         </div>
 

@@ -16,6 +16,8 @@ import {
   Camera,
   Package,
   Plane,
+  Bell,
+  ShieldCheck,
 } from 'lucide-react';
 
 // Newer features — synced to the shared couple space in Supabase (see
@@ -23,6 +25,7 @@ import {
 export const exploreItems = [
   { name: 'Couple Games', href: '/games', icon: Gamepad2 },
   { name: 'Our Chat', href: '/chat', icon: MessagesSquare },
+  { name: 'Notifications', href: '/notifications', icon: Bell },
   { name: 'Our Soundtrack', href: '/music', icon: Music4 },
   { name: 'Gifts Wardrobe', href: '/gifts', icon: ShoppingBag },
   { name: 'Bad Habits', href: '/habits', icon: ThumbsDown },
@@ -38,4 +41,5 @@ export const exploreItems = [
   { name: 'Surprise Notes', href: '/surprises', icon: MapPinned },
   { name: 'Year in Review', href: '/year-review', icon: Gift },
   { name: 'Memory Book', href: '/memory-book', icon: BookOpen },
+  { name: 'Privacy', href: '/privacy', icon: ShieldCheck },
 ];

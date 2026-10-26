@@ -297,6 +297,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       startDate: updates.startDate,
       anniversaryDate: updates.anniversaryDate,
       theme: updates.theme,
+      notificationPreviews: updates.notificationPreviews,
     };
     const hasDetails = Object.values(details).some((value) => value !== undefined);
 
@@ -602,6 +603,8 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
       startDate: remoteCouple.relationship_start_date || '2024-01-01',
       anniversaryDate: remoteCouple.anniversary_date || remoteCouple.relationship_start_date || '2024-01-01',
       theme: remoteCouple.theme || 'candy',
+      // Absent column or NULL means off: the private default survives a read.
+      notificationPreviews: remoteCouple.notification_previews === true,
       inviteCode: remoteCouple.invite_code,
       photoUrl: remoteCouple.photo_url || undefined,
       myRole: role,
