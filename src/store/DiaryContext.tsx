@@ -20,6 +20,7 @@ import {
 } from '@/types';
 import { initialDiaryData } from '@/data/seed';
 import {
+  cacheDiaryData,
   resetDiaryData,
   exportDiaryDataJSON,
   validateAndImportDiaryData,
@@ -247,10 +248,13 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
   // Save changes ONLY for real authenticated couples (keyed by user ID)
   useEffect(() => {
     if (isHydrated && isLiveUser && typeof window !== 'undefined') {
+      // Never a bare setItem: a space holding inline base64 photos overflows
+      // the few megabytes localStorage allows, and an uncaught quota error
+      // here used to take the whole provider — and so the whole app — down.
       if (currentUserId) {
-        localStorage.setItem(`ourdiary_space_${currentUserId}`, JSON.stringify(data));
+        cacheDiaryData(`ourdiary_space_${currentUserId}`, data);
       }
-      localStorage.setItem('ourdiary_real_couple_v1', JSON.stringify(data));
+      cacheDiaryData('ourdiary_real_couple_v1', data);
     }
   }, [data, isHydrated, isLiveUser, currentUserId]);
 
@@ -633,9 +637,9 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.setItem('ourdiary_is_live_user', 'true');
       if (userId) {
-        localStorage.setItem(`ourdiary_space_${userId}`, JSON.stringify(freshCleanData));
+        cacheDiaryData(`ourdiary_space_${userId}`, freshCleanData);
       }
-      localStorage.setItem('ourdiary_real_couple_v1', JSON.stringify(freshCleanData));
+      cacheDiaryData('ourdiary_real_couple_v1', freshCleanData);
     }
     setData(freshCleanData);
     showToast(`Created private couple space for ${couple.name}! 💕 (Clean slate ready)`, 'heart');
@@ -696,8 +700,8 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         };
 
     if (typeof window !== 'undefined') {
-      localStorage.setItem(`ourdiary_space_${userId}`, JSON.stringify(nextData));
-      localStorage.setItem('ourdiary_real_couple_v1', JSON.stringify(nextData));
+      cacheDiaryData(`ourdiary_space_${userId}`, nextData);
+      cacheDiaryData('ourdiary_real_couple_v1', nextData);
     }
     setData(nextData);
 
@@ -813,7 +817,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
             },
           };
           if (typeof window !== 'undefined') {
-            localStorage.setItem(`ourdiary_space_${userId}`, JSON.stringify(updated));
+            cacheDiaryData(`ourdiary_space_${userId}`, updated);
           }
           return updated;
         });
@@ -874,7 +878,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         try {
           const parsed = JSON.parse(saved);
           parsed.couple.inviteCode = newCode;
-          localStorage.setItem('ourdiary_real_couple_v1', JSON.stringify(parsed));
+          cacheDiaryData('ourdiary_real_couple_v1', parsed);
         } catch (e) {
           console.error(e);
         }

@@ -101,3 +101,7 @@ export function validateAndImportDiaryData(jsonStr: string): { success: boolean;
     return { success: false, error: err?.message || 'Failed to parse JSON file' };
   }
 }
+
+// Re-exported so call sites keep importing their caching from one place.
+export { cacheDiaryData, isQuotaError, slimForCache } from './storage-quota';
+export type { CacheableSpace } from './storage-quota';
