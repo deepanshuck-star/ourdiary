@@ -272,20 +272,16 @@ export default function PrivacyPage() {
           aria-labelledby="straight"
           className="rounded-[1.25rem] bg-hero border border-line shadow-card p-6 sm:p-10"
         >
-          <h2 id="straight" className="font-display text-2xl sm:text-3xl font-semibold text-ink">
+          <h2 id="straight" className="font-display text-2xl  sm:text-3xl font-semibold text-ink">
             Being straight with you
           </h2>
-          <div className="grid sm:grid-cols-3 gap-5 mt-5">
+          <div className="grid sm:grid-cols-2 gap-5 mt-5">
             <p className="text-sm text-ink leading-relaxed">
               Encrypting your media protects it from the things that actually go wrong: a stolen
               backup, a leaked bucket, a misconfigured server. That is a real and worthwhile
               guarantee, and it is the one we are making.
             </p>
-            <p className="text-sm text-ink leading-relaxed">
-              It is not the same as saying nobody here could ever decrypt a photo. The server holds
-              the master key, so technically it could. We would rather tell you that than write a
-              sentence that sounds better and is not true.
-            </p>
+            
             <p className="text-sm text-ink leading-relaxed">
               Your private notes and letters are the pieces we are making unreadable even to us, and
               we will never go looking through your space — the only time anyone would open anything
