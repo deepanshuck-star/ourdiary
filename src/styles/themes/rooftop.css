@@ -46,15 +46,21 @@
 
 /* The garland is a separate top-anchored plate. If it lived in the main viewBox it would
    be the first thing cropped away on a wide desktop viewport, and the brief requires it
-   to stay visible everywhere. Height scales with viewport width so that `slice` never
-   eats the lowest point of the swag (y=86 + bulb glow in a 220-unit box). */
+   to stay visible everywhere.
+
+   Height is tied to viewport width on purpose. Above ~900px the scale of a `slice` fit is
+   width-driven, so a height of 11vw leaves a constant 132 viewBox units visible no matter
+   how wide the screen gets — comfortably clear of the lowest bulb at y=94. Below that the
+   min-height takes over and the crop moves to the horizontal axis instead, which costs the
+   outermost bulbs but keeps the rest at a readable size on a phone. */
 .rooftop-garland {
   position: absolute;
   top: 0;
   left: 0;
   display: block;
   width: 100%;
-  height: clamp(100px, 11vw, 280px);
+  height: 11vw;
+  min-height: 120px;
 }
 
 /* --- Resting appearance (also the complete reduced-motion picture) --- */

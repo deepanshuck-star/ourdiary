@@ -80,13 +80,15 @@
     }
   }
 
+  /* Relative to each pool's resting opacity, so the near pool does not jump to
+     the far pool's weight the moment motion is allowed. */
   @keyframes ocean-reflection-breathe {
     0%,
     100% {
-      opacity: 0.24;
+      opacity: calc(var(--ocean-base) * 0.84);
     }
     50% {
-      opacity: 0.34;
+      opacity: calc(var(--ocean-base) * 1.12);
     }
   }
 
@@ -146,6 +148,7 @@
   .scene-ocean .ocean-reflection {
     animation-name: ocean-reflection-breathe;
     animation-duration: 26s;
+    animation-delay: var(--ocean-delay, 0s);
     animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
   }

@@ -65,13 +65,13 @@ const WAVE_BANDS = [
  * same reason.
  */
 const SHIMMER = [
-  { x: 894, y: 320, w: 52, dur: '7.4s', delay: '-2.1s' },
-  { x: 868, y: 358, w: 84, dur: '9.1s', delay: '-5.6s' },
-  { x: 906, y: 396, w: 46, dur: '8.2s', delay: '-0.9s' },
-  { x: 856, y: 442, w: 102, dur: '10.6s', delay: '-4.3s' },
-  { x: 898, y: 494, w: 60, dur: '7.9s', delay: '-6.8s' },
-  { x: 842, y: 556, w: 120, dur: '11.4s', delay: '-3.2s' },
-  { x: 886, y: 622, w: 76, dur: '9.6s', delay: '-8.1s' },
+  { x: 854, y: 320, w: 52, dur: '7.4s', delay: '-2.1s' },
+  { x: 828, y: 358, w: 84, dur: '9.1s', delay: '-5.6s' },
+  { x: 866, y: 396, w: 46, dur: '8.2s', delay: '-0.9s' },
+  { x: 816, y: 442, w: 102, dur: '10.6s', delay: '-4.3s' },
+  { x: 858, y: 494, w: 60, dur: '7.9s', delay: '-6.8s' },
+  { x: 802, y: 556, w: 120, dur: '11.4s', delay: '-3.2s' },
+  { x: 846, y: 622, w: 76, dur: '9.6s', delay: '-8.1s' },
 ];
 
 /** One sail, drawn small enough that it reads as distance rather than detail. */
@@ -123,11 +123,14 @@ export function OceanScene() {
             <stop offset="1" stopColor="var(--scene-glow)" stopOpacity="0" />
           </radialGradient>
 
-          <linearGradient id="ocean-reflection" gradientUnits="userSpaceOnUse" x1="0" y1="290" x2="0" y2="700">
+          {/* Radial, not linear: a straight-edged column reads as a runway.
+              Two soft pools filled with this instead give the reflection an
+              edge that dissolves, which is what the water actually does. */}
+          <radialGradient id="ocean-reflection">
             <stop offset="0" stopColor="var(--scene-glow)" stopOpacity="0.5" />
-            <stop offset="0.45" stopColor="var(--scene-glow)" stopOpacity="0.2" />
+            <stop offset="0.5" stopColor="var(--scene-glow)" stopOpacity="0.18" />
             <stop offset="1" stopColor="var(--scene-glow)" stopOpacity="0" />
-          </linearGradient>
+          </radialGradient>
 
           <linearGradient id="ocean-haze" gradientUnits="userSpaceOnUse" x1="0" y1="256" x2="0" y2="292">
             <stop offset="0" stopColor="var(--scene-glow)" stopOpacity="0" />
@@ -165,8 +168,8 @@ export function OceanScene() {
 
         {/* Sun centre sits above the horizon, its lower limb below it: the sea
             rect that follows crops it, so it reads as half-set. */}
-        <circle cx="920" cy="272" r="150" fill="url(#ocean-sunglow)" />
-        <circle cx="920" cy="272" r="40" fill="var(--scene-glow)" opacity="0.85" />
+        <circle cx="880" cy="272" r="150" fill="url(#ocean-sunglow)" />
+        <circle cx="880" cy="272" r="40" fill="var(--scene-glow)" opacity="0.85" />
 
         {/* Cliffs, far to near: lighter and hazier with distance. All three sit
             left of centre so the middle of the frame stays empty for content. */}
@@ -192,11 +195,25 @@ export function OceanScene() {
         <rect x="0" y="290" width="1600" height="510" fill="url(#ocean-sea)" />
         <rect x="0" y="289" width="1600" height="1.5" fill="var(--scene-glow)" opacity="0.4" />
 
-        <path
+        <ellipse
           className="ocean-reflection"
-          d="M 896 290 L 944 290 L 1012 700 L 828 700 Z"
+          cx="880"
+          cy="330"
+          rx="84"
+          ry="52"
+          fill="url(#ocean-reflection)"
+          opacity="0.55"
+          style={vars({ '--ocean-base': '0.55' })}
+        />
+        <ellipse
+          className="ocean-reflection"
+          cx="880"
+          cy="470"
+          rx="126"
+          ry="168"
           fill="url(#ocean-reflection)"
           opacity="0.3"
+          style={vars({ '--ocean-base': '0.3', '--ocean-delay': '-9s' })}
         />
 
         {WAVE_BANDS.map((band) => (
