@@ -115,6 +115,26 @@ const CARD_SURFACES = [
   '[class*=" bg-snow/"]',
 ].join(', ');
 
+/**
+ * The pale ramp steps the app uses to colour-block a section — the rose
+ * panel behind "Moments worth keeping", and its equivalents on the other
+ * routes. They are backgrounds only (nothing in the app writes
+ * text-rose-50), so making them translucent lets the environment through a
+ * whole section the way it already does through a card.
+ */
+const PANEL_STEP = /-(50|100)$/;
+
+function panelRule(ramp, opaque) {
+  return [...ramp.entries()]
+    .filter(([name]) => PANEL_STEP.test(name) && !OWN.has(name))
+    .map(([name, value]) =>
+      opaque
+        ? `  ${name}: ${value};`
+        : `  ${name}: color-mix(in srgb, ${value} var(--ourdiary-panel-opacity, 55%), transparent);`
+    )
+    .join('\n');
+}
+
 // Tokens the theme states for itself; the ramp must not fight them.
 const OWN = new Set([
   '--color-canvas', '--color-surface', '--color-ink', '--color-ink-muted',
@@ -160,6 +180,8 @@ ${inherited}
   --color-line: ${t.line};
   --color-focus: ${dark ? t.primaryOnScene : t.primary};
 
+${panelRule(dark ? ramp : light, false)}
+
   --font-display-face: ${theme.fonts.display};
   --font-body: ${theme.fonts.body};
 
@@ -201,6 +223,21 @@ ${[...light.entries()].filter(([n]) => !OWN.has(n)).map(([n, v]) => `  ${n}: ${v
   --color-on-primary: ${t.onPrimary};
   --color-accent: ${t.accent};
   --color-focus: ${t.primary};
+}
+
+/* Anything floating ABOVE the page goes back to a solid surface.
+   A dropdown or modal is a different plane, not a window onto the scenery:
+   when it was translucent you could read the card underneath through it,
+   which is the one place see-through is actively confusing.
+
+   Keyed on Tailwind's own position classes rather than on each component,
+   so every modal, menu and sheet in the app is covered without eighteen
+   files having to remember. Variables inherit, so declaring it on the
+   overlay root reaches everything inside it. */
+:root[data-theme="${theme.id}"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]),
+[data-theme="${theme.id}"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) {
+  --color-surface: ${t.surface};
+${panelRule(dark ? ramp : light, true)}
 }`;
 }
 

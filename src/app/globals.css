@@ -14,7 +14,13 @@
    scripts/generate-theme-css.mjs will not overwrite it.
 --------------------------------------------------------------------------- */
 :root {
-  --ourdiary-card-opacity: 70%;
+  /* Cards: the "Today" panel, memory cards, anything you read off. */
+  --ourdiary-card-opacity: 85%;
+
+  /* Colour-blocked sections: the tinted bands a page groups things into,
+     like "Moments worth keeping" on the dashboard. Lower than the cards
+     because these carry less text and cover more of the screen. */
+  --ourdiary-panel-opacity: 75%;
 }
 
 /* Rose Quartz Romance — tokens generated from a contrast-checked palette.
@@ -2046,6 +2052,51 @@
   --color-line: #D6CDE2;
   --color-focus: #C9C7E8;
 
+  --color-purple-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-purple-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-violet-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-violet-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-indigo-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-indigo-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-fuchsia-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-fuchsia-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-slate-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-slate-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-gray-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-gray-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-zinc-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-zinc-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-stone-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-stone-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-neutral-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-neutral-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-pink-50: color-mix(in srgb, oklch(28.4% 0.109 3.907) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-pink-100: color-mix(in srgb, oklch(40.8% 0.153 2.432) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-rose-50: color-mix(in srgb, #2A1219 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-rose-100: color-mix(in srgb, #3B1520 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-emerald-50: color-mix(in srgb, oklch(26.2% 0.051 172.552) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-emerald-100: color-mix(in srgb, oklch(37.8% 0.077 168.94) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-amber-50: color-mix(in srgb, oklch(27.9% 0.077 45.635) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-amber-100: color-mix(in srgb, oklch(41.4% 0.112 45.904) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-blue-50: color-mix(in srgb, oklch(28.2% 0.091 267.935) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-blue-100: color-mix(in srgb, oklch(37.9% 0.146 265.522) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-orange-50: color-mix(in srgb, oklch(26.6% 0.079 36.259) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-orange-100: color-mix(in srgb, oklch(40.8% 0.123 38.172) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-teal-50: color-mix(in srgb, oklch(27.7% 0.046 192.524) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-teal-100: color-mix(in srgb, oklch(38.6% 0.063 188.416) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-yellow-50: color-mix(in srgb, oklch(28.6% 0.066 53.813) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-yellow-100: color-mix(in srgb, oklch(42.1% 0.095 57.708) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-green-50: color-mix(in srgb, oklch(26.6% 0.065 152.934) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-green-100: color-mix(in srgb, oklch(39.3% 0.095 152.535) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-red-50: color-mix(in srgb, oklch(25.8% 0.092 26.042) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-red-100: color-mix(in srgb, oklch(39.6% 0.141 25.723) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-sky-50: color-mix(in srgb, oklch(29.3% 0.066 243.157) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-sky-100: color-mix(in srgb, oklch(39.1% 0.09 240.876) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-cyan-50: color-mix(in srgb, oklch(30.2% 0.056 229.695) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-cyan-100: color-mix(in srgb, oklch(39.8% 0.07 227.392) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-lime-50: color-mix(in srgb, oklch(27.4% 0.072 132.109) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-lime-100: color-mix(in srgb, oklch(40.5% 0.101 131.063) var(--ourdiary-panel-opacity, 55%), transparent);
+
   --font-display-face: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
   --font-body: var(--font-body-rose), 'DM Sans', ui-sans-serif, system-ui, sans-serif;
 
@@ -2335,6 +2386,64 @@
   --color-focus: #343A68;
 }
 
+/* Anything floating ABOVE the page goes back to a solid surface.
+   A dropdown or modal is a different plane, not a window onto the scenery:
+   when it was translucent you could read the card underneath through it,
+   which is the one place see-through is actively confusing.
+
+   Keyed on Tailwind's own position classes rather than on each component,
+   so every modal, menu and sheet in the app is covered without eighteen
+   files having to remember. Variables inherit, so declaring it on the
+   overlay root reaches everything inside it. */
+:root[data-theme="moonlit"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]),
+[data-theme="moonlit"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) {
+  --color-surface: #F6EFE4;
+  --color-purple-50: #2E1824;
+  --color-purple-100: #3A1D2D;
+  --color-violet-50: #2E1824;
+  --color-violet-100: #3A1D2D;
+  --color-indigo-50: #2E1824;
+  --color-indigo-100: #3A1D2D;
+  --color-fuchsia-50: #2E1824;
+  --color-fuchsia-100: #3A1D2D;
+  --color-slate-50: #21141B;
+  --color-slate-100: #2C1C25;
+  --color-gray-50: #21141B;
+  --color-gray-100: #2C1C25;
+  --color-zinc-50: #21141B;
+  --color-zinc-100: #2C1C25;
+  --color-stone-50: #21141B;
+  --color-stone-100: #2C1C25;
+  --color-neutral-50: #21141B;
+  --color-neutral-100: #2C1C25;
+  --color-pink-50: oklch(28.4% 0.109 3.907);
+  --color-pink-100: oklch(40.8% 0.153 2.432);
+  --color-rose-50: #2A1219;
+  --color-rose-100: #3B1520;
+  --color-emerald-50: oklch(26.2% 0.051 172.552);
+  --color-emerald-100: oklch(37.8% 0.077 168.94);
+  --color-amber-50: oklch(27.9% 0.077 45.635);
+  --color-amber-100: oklch(41.4% 0.112 45.904);
+  --color-blue-50: oklch(28.2% 0.091 267.935);
+  --color-blue-100: oklch(37.9% 0.146 265.522);
+  --color-orange-50: oklch(26.6% 0.079 36.259);
+  --color-orange-100: oklch(40.8% 0.123 38.172);
+  --color-teal-50: oklch(27.7% 0.046 192.524);
+  --color-teal-100: oklch(38.6% 0.063 188.416);
+  --color-yellow-50: oklch(28.6% 0.066 53.813);
+  --color-yellow-100: oklch(42.1% 0.095 57.708);
+  --color-green-50: oklch(26.6% 0.065 152.934);
+  --color-green-100: oklch(39.3% 0.095 152.535);
+  --color-red-50: oklch(25.8% 0.092 26.042);
+  --color-red-100: oklch(39.6% 0.141 25.723);
+  --color-sky-50: oklch(29.3% 0.066 243.157);
+  --color-sky-100: oklch(39.1% 0.09 240.876);
+  --color-cyan-50: oklch(30.2% 0.056 229.695);
+  --color-cyan-100: oklch(39.8% 0.07 227.392);
+  --color-lime-50: oklch(27.4% 0.072 132.109);
+  --color-lime-100: oklch(40.5% 0.101 131.063);
+}
+
 /* Starlit Rooftop Date — A rooftop table for two, fairy lights above a quiet city. */
 :root[data-theme="rooftop"],
 [data-theme="rooftop"] {
@@ -2605,6 +2714,51 @@
   --color-accent: #F1DCC0;
   --color-line: #E3CDB0;
   --color-focus: #D9A879;
+
+  --color-purple-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-purple-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-violet-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-violet-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-indigo-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-indigo-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-fuchsia-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-fuchsia-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-slate-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-slate-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-gray-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-gray-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-zinc-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-zinc-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-stone-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-stone-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-neutral-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-neutral-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-pink-50: color-mix(in srgb, oklch(28.4% 0.109 3.907) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-pink-100: color-mix(in srgb, oklch(40.8% 0.153 2.432) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-rose-50: color-mix(in srgb, #2A1219 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-rose-100: color-mix(in srgb, #3B1520 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-emerald-50: color-mix(in srgb, oklch(26.2% 0.051 172.552) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-emerald-100: color-mix(in srgb, oklch(37.8% 0.077 168.94) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-amber-50: color-mix(in srgb, oklch(27.9% 0.077 45.635) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-amber-100: color-mix(in srgb, oklch(41.4% 0.112 45.904) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-blue-50: color-mix(in srgb, oklch(28.2% 0.091 267.935) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-blue-100: color-mix(in srgb, oklch(37.9% 0.146 265.522) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-orange-50: color-mix(in srgb, oklch(26.6% 0.079 36.259) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-orange-100: color-mix(in srgb, oklch(40.8% 0.123 38.172) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-teal-50: color-mix(in srgb, oklch(27.7% 0.046 192.524) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-teal-100: color-mix(in srgb, oklch(38.6% 0.063 188.416) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-yellow-50: color-mix(in srgb, oklch(28.6% 0.066 53.813) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-yellow-100: color-mix(in srgb, oklch(42.1% 0.095 57.708) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-green-50: color-mix(in srgb, oklch(26.6% 0.065 152.934) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-green-100: color-mix(in srgb, oklch(39.3% 0.095 152.535) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-red-50: color-mix(in srgb, oklch(25.8% 0.092 26.042) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-red-100: color-mix(in srgb, oklch(39.6% 0.141 25.723) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-sky-50: color-mix(in srgb, oklch(29.3% 0.066 243.157) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-sky-100: color-mix(in srgb, oklch(39.1% 0.09 240.876) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-cyan-50: color-mix(in srgb, oklch(30.2% 0.056 229.695) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-cyan-100: color-mix(in srgb, oklch(39.8% 0.07 227.392) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-lime-50: color-mix(in srgb, oklch(27.4% 0.072 132.109) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-lime-100: color-mix(in srgb, oklch(40.5% 0.101 131.063) var(--ourdiary-panel-opacity, 55%), transparent);
 
   --font-display-face: var(--font-dm-serif), 'DM Serif Display', Georgia, serif;
   --font-body: var(--font-manrope), Manrope, ui-sans-serif, system-ui, sans-serif;
@@ -2895,6 +3049,64 @@
   --color-focus: #344B63;
 }
 
+/* Anything floating ABOVE the page goes back to a solid surface.
+   A dropdown or modal is a different plane, not a window onto the scenery:
+   when it was translucent you could read the card underneath through it,
+   which is the one place see-through is actively confusing.
+
+   Keyed on Tailwind's own position classes rather than on each component,
+   so every modal, menu and sheet in the app is covered without eighteen
+   files having to remember. Variables inherit, so declaring it on the
+   overlay root reaches everything inside it. */
+:root[data-theme="rooftop"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]),
+[data-theme="rooftop"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) {
+  --color-surface: #F7EAD6;
+  --color-purple-50: #2E1824;
+  --color-purple-100: #3A1D2D;
+  --color-violet-50: #2E1824;
+  --color-violet-100: #3A1D2D;
+  --color-indigo-50: #2E1824;
+  --color-indigo-100: #3A1D2D;
+  --color-fuchsia-50: #2E1824;
+  --color-fuchsia-100: #3A1D2D;
+  --color-slate-50: #21141B;
+  --color-slate-100: #2C1C25;
+  --color-gray-50: #21141B;
+  --color-gray-100: #2C1C25;
+  --color-zinc-50: #21141B;
+  --color-zinc-100: #2C1C25;
+  --color-stone-50: #21141B;
+  --color-stone-100: #2C1C25;
+  --color-neutral-50: #21141B;
+  --color-neutral-100: #2C1C25;
+  --color-pink-50: oklch(28.4% 0.109 3.907);
+  --color-pink-100: oklch(40.8% 0.153 2.432);
+  --color-rose-50: #2A1219;
+  --color-rose-100: #3B1520;
+  --color-emerald-50: oklch(26.2% 0.051 172.552);
+  --color-emerald-100: oklch(37.8% 0.077 168.94);
+  --color-amber-50: oklch(27.9% 0.077 45.635);
+  --color-amber-100: oklch(41.4% 0.112 45.904);
+  --color-blue-50: oklch(28.2% 0.091 267.935);
+  --color-blue-100: oklch(37.9% 0.146 265.522);
+  --color-orange-50: oklch(26.6% 0.079 36.259);
+  --color-orange-100: oklch(40.8% 0.123 38.172);
+  --color-teal-50: oklch(27.7% 0.046 192.524);
+  --color-teal-100: oklch(38.6% 0.063 188.416);
+  --color-yellow-50: oklch(28.6% 0.066 53.813);
+  --color-yellow-100: oklch(42.1% 0.095 57.708);
+  --color-green-50: oklch(26.6% 0.065 152.934);
+  --color-green-100: oklch(39.3% 0.095 152.535);
+  --color-red-50: oklch(25.8% 0.092 26.042);
+  --color-red-100: oklch(39.6% 0.141 25.723);
+  --color-sky-50: oklch(29.3% 0.066 243.157);
+  --color-sky-100: oklch(39.1% 0.09 240.876);
+  --color-cyan-50: oklch(30.2% 0.056 229.695);
+  --color-cyan-100: oklch(39.8% 0.07 227.392);
+  --color-lime-50: oklch(27.4% 0.072 132.109);
+  --color-lime-100: oklch(40.5% 0.101 131.063);
+}
+
 /* Cherry Blossom Dream — A spring garden with a stream, a little bridge and falling petals. */
 :root[data-theme="blossom"],
 [data-theme="blossom"] {
@@ -2914,6 +3126,51 @@
   --color-accent: #9A4356;
   --color-line: #D9E2D6;
   --color-focus: #45594F;
+
+  --color-purple-50: color-mix(in srgb, #FDF2F8 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-purple-100: color-mix(in srgb, #FCE7F3 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-violet-50: color-mix(in srgb, #FDF2F8 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-violet-100: color-mix(in srgb, #FCE7F3 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-indigo-50: color-mix(in srgb, #FDF2F8 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-indigo-100: color-mix(in srgb, #FCE7F3 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-fuchsia-50: color-mix(in srgb, #FDF2F8 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-fuchsia-100: color-mix(in srgb, #FCE7F3 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-slate-50: color-mix(in srgb, #FDF5F8 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-slate-100: color-mix(in srgb, #F9ECF1 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-gray-50: color-mix(in srgb, #FDF5F8 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-gray-100: color-mix(in srgb, #F9ECF1 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-zinc-50: color-mix(in srgb, #FDF5F8 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-zinc-100: color-mix(in srgb, #F9ECF1 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-stone-50: color-mix(in srgb, #FDF5F8 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-stone-100: color-mix(in srgb, #F9ECF1 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-neutral-50: color-mix(in srgb, #FDF5F8 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-neutral-100: color-mix(in srgb, #F9ECF1 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-pink-50: color-mix(in srgb, oklch(97.1% 0.014 343.198) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-pink-100: color-mix(in srgb, oklch(94.8% 0.028 342.258) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-rose-50: color-mix(in srgb, #FFF1F2 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-rose-100: color-mix(in srgb, #FFE4E6 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-emerald-50: color-mix(in srgb, oklch(97.9% 0.021 166.113) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-emerald-100: color-mix(in srgb, oklch(95% 0.052 163.051) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-amber-50: color-mix(in srgb, oklch(98.7% 0.022 95.277) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-amber-100: color-mix(in srgb, oklch(96.2% 0.059 95.617) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-blue-50: color-mix(in srgb, oklch(97% 0.014 254.604) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-blue-100: color-mix(in srgb, oklch(93.2% 0.032 255.585) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-orange-50: color-mix(in srgb, oklch(98% 0.016 73.684) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-orange-100: color-mix(in srgb, oklch(95.4% 0.038 75.164) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-teal-50: color-mix(in srgb, oklch(98.4% 0.014 180.72) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-teal-100: color-mix(in srgb, oklch(95.3% 0.051 180.801) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-yellow-50: color-mix(in srgb, oklch(98.7% 0.026 102.212) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-yellow-100: color-mix(in srgb, oklch(97.3% 0.071 103.193) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-green-50: color-mix(in srgb, oklch(98.2% 0.018 155.826) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-green-100: color-mix(in srgb, oklch(96.2% 0.044 156.743) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-red-50: color-mix(in srgb, oklch(97.1% 0.013 17.38) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-red-100: color-mix(in srgb, oklch(93.6% 0.032 17.717) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-sky-50: color-mix(in srgb, oklch(97.7% 0.013 236.62) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-sky-100: color-mix(in srgb, oklch(95.1% 0.026 236.824) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-cyan-50: color-mix(in srgb, oklch(98.4% 0.019 200.873) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-cyan-100: color-mix(in srgb, oklch(95.6% 0.045 203.388) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-lime-50: color-mix(in srgb, oklch(98.6% 0.031 120.757) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-lime-100: color-mix(in srgb, oklch(96.7% 0.067 122.328) var(--ourdiary-panel-opacity, 55%), transparent);
 
   --font-display-face: var(--font-display-peach), Fraunces, Georgia, serif;
   --font-body: var(--font-body-rose), 'DM Sans', ui-sans-serif, system-ui, sans-serif;
@@ -2953,6 +3210,64 @@
   --color-on-primary: #FFF9F5;
   --color-accent: #9A4356;
   --color-focus: #45594F;
+}
+
+/* Anything floating ABOVE the page goes back to a solid surface.
+   A dropdown or modal is a different plane, not a window onto the scenery:
+   when it was translucent you could read the card underneath through it,
+   which is the one place see-through is actively confusing.
+
+   Keyed on Tailwind's own position classes rather than on each component,
+   so every modal, menu and sheet in the app is covered without eighteen
+   files having to remember. Variables inherit, so declaring it on the
+   overlay root reaches everything inside it. */
+:root[data-theme="blossom"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]),
+[data-theme="blossom"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) {
+  --color-surface: #FFF9F5;
+  --color-purple-50: #FDF2F8;
+  --color-purple-100: #FCE7F3;
+  --color-violet-50: #FDF2F8;
+  --color-violet-100: #FCE7F3;
+  --color-indigo-50: #FDF2F8;
+  --color-indigo-100: #FCE7F3;
+  --color-fuchsia-50: #FDF2F8;
+  --color-fuchsia-100: #FCE7F3;
+  --color-slate-50: #FDF5F8;
+  --color-slate-100: #F9ECF1;
+  --color-gray-50: #FDF5F8;
+  --color-gray-100: #F9ECF1;
+  --color-zinc-50: #FDF5F8;
+  --color-zinc-100: #F9ECF1;
+  --color-stone-50: #FDF5F8;
+  --color-stone-100: #F9ECF1;
+  --color-neutral-50: #FDF5F8;
+  --color-neutral-100: #F9ECF1;
+  --color-pink-50: oklch(97.1% 0.014 343.198);
+  --color-pink-100: oklch(94.8% 0.028 342.258);
+  --color-rose-50: #FFF1F2;
+  --color-rose-100: #FFE4E6;
+  --color-emerald-50: oklch(97.9% 0.021 166.113);
+  --color-emerald-100: oklch(95% 0.052 163.051);
+  --color-amber-50: oklch(98.7% 0.022 95.277);
+  --color-amber-100: oklch(96.2% 0.059 95.617);
+  --color-blue-50: oklch(97% 0.014 254.604);
+  --color-blue-100: oklch(93.2% 0.032 255.585);
+  --color-orange-50: oklch(98% 0.016 73.684);
+  --color-orange-100: oklch(95.4% 0.038 75.164);
+  --color-teal-50: oklch(98.4% 0.014 180.72);
+  --color-teal-100: oklch(95.3% 0.051 180.801);
+  --color-yellow-50: oklch(98.7% 0.026 102.212);
+  --color-yellow-100: oklch(97.3% 0.071 103.193);
+  --color-green-50: oklch(98.2% 0.018 155.826);
+  --color-green-100: oklch(96.2% 0.044 156.743);
+  --color-red-50: oklch(97.1% 0.013 17.38);
+  --color-red-100: oklch(93.6% 0.032 17.717);
+  --color-sky-50: oklch(97.7% 0.013 236.62);
+  --color-sky-100: oklch(95.1% 0.026 236.824);
+  --color-cyan-50: oklch(98.4% 0.019 200.873);
+  --color-cyan-100: oklch(95.6% 0.045 203.388);
+  --color-lime-50: oklch(98.6% 0.031 120.757);
+  --color-lime-100: oklch(96.7% 0.067 122.328);
 }
 
 /* Enchanted Forest of Memories — Mossy woodland, lantern light and a path winding toward a cottage. */
@@ -3225,6 +3540,51 @@
   --color-accent: #E7DCC8;
   --color-line: #D2C8AF;
   --color-focus: #D9BD8B;
+
+  --color-purple-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-purple-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-violet-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-violet-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-indigo-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-indigo-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-fuchsia-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-fuchsia-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-slate-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-slate-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-gray-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-gray-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-zinc-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-zinc-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-stone-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-stone-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-neutral-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-neutral-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-pink-50: color-mix(in srgb, oklch(28.4% 0.109 3.907) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-pink-100: color-mix(in srgb, oklch(40.8% 0.153 2.432) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-rose-50: color-mix(in srgb, #2A1219 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-rose-100: color-mix(in srgb, #3B1520 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-emerald-50: color-mix(in srgb, oklch(26.2% 0.051 172.552) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-emerald-100: color-mix(in srgb, oklch(37.8% 0.077 168.94) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-amber-50: color-mix(in srgb, oklch(27.9% 0.077 45.635) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-amber-100: color-mix(in srgb, oklch(41.4% 0.112 45.904) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-blue-50: color-mix(in srgb, oklch(28.2% 0.091 267.935) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-blue-100: color-mix(in srgb, oklch(37.9% 0.146 265.522) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-orange-50: color-mix(in srgb, oklch(26.6% 0.079 36.259) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-orange-100: color-mix(in srgb, oklch(40.8% 0.123 38.172) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-teal-50: color-mix(in srgb, oklch(27.7% 0.046 192.524) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-teal-100: color-mix(in srgb, oklch(38.6% 0.063 188.416) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-yellow-50: color-mix(in srgb, oklch(28.6% 0.066 53.813) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-yellow-100: color-mix(in srgb, oklch(42.1% 0.095 57.708) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-green-50: color-mix(in srgb, oklch(26.6% 0.065 152.934) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-green-100: color-mix(in srgb, oklch(39.3% 0.095 152.535) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-red-50: color-mix(in srgb, oklch(25.8% 0.092 26.042) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-red-100: color-mix(in srgb, oklch(39.6% 0.141 25.723) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-sky-50: color-mix(in srgb, oklch(29.3% 0.066 243.157) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-sky-100: color-mix(in srgb, oklch(39.1% 0.09 240.876) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-cyan-50: color-mix(in srgb, oklch(30.2% 0.056 229.695) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-cyan-100: color-mix(in srgb, oklch(39.8% 0.07 227.392) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-lime-50: color-mix(in srgb, oklch(27.4% 0.072 132.109) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-lime-100: color-mix(in srgb, oklch(40.5% 0.101 131.063) var(--ourdiary-panel-opacity, 55%), transparent);
 
   --font-display-face: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
   --font-body: var(--font-nunito), 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
@@ -3515,6 +3875,64 @@
   --color-focus: #3A5D4A;
 }
 
+/* Anything floating ABOVE the page goes back to a solid surface.
+   A dropdown or modal is a different plane, not a window onto the scenery:
+   when it was translucent you could read the card underneath through it,
+   which is the one place see-through is actively confusing.
+
+   Keyed on Tailwind's own position classes rather than on each component,
+   so every modal, menu and sheet in the app is covered without eighteen
+   files having to remember. Variables inherit, so declaring it on the
+   overlay root reaches everything inside it. */
+:root[data-theme="forest"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]),
+[data-theme="forest"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) {
+  --color-surface: #EFE7D6;
+  --color-purple-50: #2E1824;
+  --color-purple-100: #3A1D2D;
+  --color-violet-50: #2E1824;
+  --color-violet-100: #3A1D2D;
+  --color-indigo-50: #2E1824;
+  --color-indigo-100: #3A1D2D;
+  --color-fuchsia-50: #2E1824;
+  --color-fuchsia-100: #3A1D2D;
+  --color-slate-50: #21141B;
+  --color-slate-100: #2C1C25;
+  --color-gray-50: #21141B;
+  --color-gray-100: #2C1C25;
+  --color-zinc-50: #21141B;
+  --color-zinc-100: #2C1C25;
+  --color-stone-50: #21141B;
+  --color-stone-100: #2C1C25;
+  --color-neutral-50: #21141B;
+  --color-neutral-100: #2C1C25;
+  --color-pink-50: oklch(28.4% 0.109 3.907);
+  --color-pink-100: oklch(40.8% 0.153 2.432);
+  --color-rose-50: #2A1219;
+  --color-rose-100: #3B1520;
+  --color-emerald-50: oklch(26.2% 0.051 172.552);
+  --color-emerald-100: oklch(37.8% 0.077 168.94);
+  --color-amber-50: oklch(27.9% 0.077 45.635);
+  --color-amber-100: oklch(41.4% 0.112 45.904);
+  --color-blue-50: oklch(28.2% 0.091 267.935);
+  --color-blue-100: oklch(37.9% 0.146 265.522);
+  --color-orange-50: oklch(26.6% 0.079 36.259);
+  --color-orange-100: oklch(40.8% 0.123 38.172);
+  --color-teal-50: oklch(27.7% 0.046 192.524);
+  --color-teal-100: oklch(38.6% 0.063 188.416);
+  --color-yellow-50: oklch(28.6% 0.066 53.813);
+  --color-yellow-100: oklch(42.1% 0.095 57.708);
+  --color-green-50: oklch(26.6% 0.065 152.934);
+  --color-green-100: oklch(39.3% 0.095 152.535);
+  --color-red-50: oklch(25.8% 0.092 26.042);
+  --color-red-100: oklch(39.6% 0.141 25.723);
+  --color-sky-50: oklch(29.3% 0.066 243.157);
+  --color-sky-100: oklch(39.1% 0.09 240.876);
+  --color-cyan-50: oklch(30.2% 0.056 229.695);
+  --color-cyan-100: oklch(39.8% 0.07 227.392);
+  --color-lime-50: oklch(27.4% 0.072 132.109);
+  --color-lime-100: oklch(40.5% 0.101 131.063);
+}
+
 /* Sunset by the Ocean — Cliffs, a long horizon and the track running down to the shore. */
 :root[data-theme="ocean"],
 [data-theme="ocean"] {
@@ -3785,6 +4203,51 @@
   --color-accent: #F2DCC0;
   --color-line: #E6D3BA;
   --color-focus: #F2B38D;
+
+  --color-purple-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-purple-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-violet-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-violet-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-indigo-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-indigo-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-fuchsia-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-fuchsia-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-slate-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-slate-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-gray-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-gray-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-zinc-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-zinc-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-stone-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-stone-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-neutral-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-neutral-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-pink-50: color-mix(in srgb, oklch(28.4% 0.109 3.907) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-pink-100: color-mix(in srgb, oklch(40.8% 0.153 2.432) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-rose-50: color-mix(in srgb, #2A1219 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-rose-100: color-mix(in srgb, #3B1520 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-emerald-50: color-mix(in srgb, oklch(26.2% 0.051 172.552) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-emerald-100: color-mix(in srgb, oklch(37.8% 0.077 168.94) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-amber-50: color-mix(in srgb, oklch(27.9% 0.077 45.635) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-amber-100: color-mix(in srgb, oklch(41.4% 0.112 45.904) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-blue-50: color-mix(in srgb, oklch(28.2% 0.091 267.935) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-blue-100: color-mix(in srgb, oklch(37.9% 0.146 265.522) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-orange-50: color-mix(in srgb, oklch(26.6% 0.079 36.259) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-orange-100: color-mix(in srgb, oklch(40.8% 0.123 38.172) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-teal-50: color-mix(in srgb, oklch(27.7% 0.046 192.524) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-teal-100: color-mix(in srgb, oklch(38.6% 0.063 188.416) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-yellow-50: color-mix(in srgb, oklch(28.6% 0.066 53.813) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-yellow-100: color-mix(in srgb, oklch(42.1% 0.095 57.708) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-green-50: color-mix(in srgb, oklch(26.6% 0.065 152.934) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-green-100: color-mix(in srgb, oklch(39.3% 0.095 152.535) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-red-50: color-mix(in srgb, oklch(25.8% 0.092 26.042) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-red-100: color-mix(in srgb, oklch(39.6% 0.141 25.723) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-sky-50: color-mix(in srgb, oklch(29.3% 0.066 243.157) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-sky-100: color-mix(in srgb, oklch(39.1% 0.09 240.876) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-cyan-50: color-mix(in srgb, oklch(30.2% 0.056 229.695) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-cyan-100: color-mix(in srgb, oklch(39.8% 0.07 227.392) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-lime-50: color-mix(in srgb, oklch(27.4% 0.072 132.109) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-lime-100: color-mix(in srgb, oklch(40.5% 0.101 131.063) var(--ourdiary-panel-opacity, 55%), transparent);
 
   --font-display-face: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
   --font-body: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
@@ -4075,6 +4538,64 @@
   --color-focus: #3C566C;
 }
 
+/* Anything floating ABOVE the page goes back to a solid surface.
+   A dropdown or modal is a different plane, not a window onto the scenery:
+   when it was translucent you could read the card underneath through it,
+   which is the one place see-through is actively confusing.
+
+   Keyed on Tailwind's own position classes rather than on each component,
+   so every modal, menu and sheet in the app is covered without eighteen
+   files having to remember. Variables inherit, so declaring it on the
+   overlay root reaches everything inside it. */
+:root[data-theme="ocean"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]),
+[data-theme="ocean"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) {
+  --color-surface: #FBF1E2;
+  --color-purple-50: #2E1824;
+  --color-purple-100: #3A1D2D;
+  --color-violet-50: #2E1824;
+  --color-violet-100: #3A1D2D;
+  --color-indigo-50: #2E1824;
+  --color-indigo-100: #3A1D2D;
+  --color-fuchsia-50: #2E1824;
+  --color-fuchsia-100: #3A1D2D;
+  --color-slate-50: #21141B;
+  --color-slate-100: #2C1C25;
+  --color-gray-50: #21141B;
+  --color-gray-100: #2C1C25;
+  --color-zinc-50: #21141B;
+  --color-zinc-100: #2C1C25;
+  --color-stone-50: #21141B;
+  --color-stone-100: #2C1C25;
+  --color-neutral-50: #21141B;
+  --color-neutral-100: #2C1C25;
+  --color-pink-50: oklch(28.4% 0.109 3.907);
+  --color-pink-100: oklch(40.8% 0.153 2.432);
+  --color-rose-50: #2A1219;
+  --color-rose-100: #3B1520;
+  --color-emerald-50: oklch(26.2% 0.051 172.552);
+  --color-emerald-100: oklch(37.8% 0.077 168.94);
+  --color-amber-50: oklch(27.9% 0.077 45.635);
+  --color-amber-100: oklch(41.4% 0.112 45.904);
+  --color-blue-50: oklch(28.2% 0.091 267.935);
+  --color-blue-100: oklch(37.9% 0.146 265.522);
+  --color-orange-50: oklch(26.6% 0.079 36.259);
+  --color-orange-100: oklch(40.8% 0.123 38.172);
+  --color-teal-50: oklch(27.7% 0.046 192.524);
+  --color-teal-100: oklch(38.6% 0.063 188.416);
+  --color-yellow-50: oklch(28.6% 0.066 53.813);
+  --color-yellow-100: oklch(42.1% 0.095 57.708);
+  --color-green-50: oklch(26.6% 0.065 152.934);
+  --color-green-100: oklch(39.3% 0.095 152.535);
+  --color-red-50: oklch(25.8% 0.092 26.042);
+  --color-red-100: oklch(39.6% 0.141 25.723);
+  --color-sky-50: oklch(29.3% 0.066 243.157);
+  --color-sky-100: oklch(39.1% 0.09 240.876);
+  --color-cyan-50: oklch(30.2% 0.056 229.695);
+  --color-cyan-100: oklch(39.8% 0.07 227.392);
+  --color-lime-50: oklch(27.4% 0.072 132.109);
+  --color-lime-100: oklch(40.5% 0.101 131.063);
+}
+
 /* Lantern Festival Night — Lanterns lifting off a still lake, with their reflections below. */
 :root[data-theme="lantern"],
 [data-theme="lantern"] {
@@ -4345,6 +4866,51 @@
   --color-accent: #F0D8B7;
   --color-line: #E2CEB0;
   --color-focus: #E7B96D;
+
+  --color-purple-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-purple-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-violet-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-violet-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-indigo-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-indigo-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-fuchsia-50: color-mix(in srgb, #2E1824 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-fuchsia-100: color-mix(in srgb, #3A1D2D var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-slate-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-slate-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-gray-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-gray-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-zinc-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-zinc-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-stone-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-stone-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-neutral-50: color-mix(in srgb, #21141B var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-neutral-100: color-mix(in srgb, #2C1C25 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-pink-50: color-mix(in srgb, oklch(28.4% 0.109 3.907) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-pink-100: color-mix(in srgb, oklch(40.8% 0.153 2.432) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-rose-50: color-mix(in srgb, #2A1219 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-rose-100: color-mix(in srgb, #3B1520 var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-emerald-50: color-mix(in srgb, oklch(26.2% 0.051 172.552) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-emerald-100: color-mix(in srgb, oklch(37.8% 0.077 168.94) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-amber-50: color-mix(in srgb, oklch(27.9% 0.077 45.635) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-amber-100: color-mix(in srgb, oklch(41.4% 0.112 45.904) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-blue-50: color-mix(in srgb, oklch(28.2% 0.091 267.935) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-blue-100: color-mix(in srgb, oklch(37.9% 0.146 265.522) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-orange-50: color-mix(in srgb, oklch(26.6% 0.079 36.259) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-orange-100: color-mix(in srgb, oklch(40.8% 0.123 38.172) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-teal-50: color-mix(in srgb, oklch(27.7% 0.046 192.524) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-teal-100: color-mix(in srgb, oklch(38.6% 0.063 188.416) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-yellow-50: color-mix(in srgb, oklch(28.6% 0.066 53.813) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-yellow-100: color-mix(in srgb, oklch(42.1% 0.095 57.708) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-green-50: color-mix(in srgb, oklch(26.6% 0.065 152.934) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-green-100: color-mix(in srgb, oklch(39.3% 0.095 152.535) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-red-50: color-mix(in srgb, oklch(25.8% 0.092 26.042) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-red-100: color-mix(in srgb, oklch(39.6% 0.141 25.723) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-sky-50: color-mix(in srgb, oklch(29.3% 0.066 243.157) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-sky-100: color-mix(in srgb, oklch(39.1% 0.09 240.876) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-cyan-50: color-mix(in srgb, oklch(30.2% 0.056 229.695) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-cyan-100: color-mix(in srgb, oklch(39.8% 0.07 227.392) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-lime-50: color-mix(in srgb, oklch(27.4% 0.072 132.109) var(--ourdiary-panel-opacity, 55%), transparent);
+  --color-lime-100: color-mix(in srgb, oklch(40.5% 0.101 131.063) var(--ourdiary-panel-opacity, 55%), transparent);
 
   --font-display-face: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
   --font-body: var(--font-body-rose), 'DM Sans', ui-sans-serif, system-ui, sans-serif;
@@ -4633,6 +5199,64 @@
   --color-on-primary: #F7E9D2;
   --color-accent: #7D551A;
   --color-focus: #454A70;
+}
+
+/* Anything floating ABOVE the page goes back to a solid surface.
+   A dropdown or modal is a different plane, not a window onto the scenery:
+   when it was translucent you could read the card underneath through it,
+   which is the one place see-through is actively confusing.
+
+   Keyed on Tailwind's own position classes rather than on each component,
+   so every modal, menu and sheet in the app is covered without eighteen
+   files having to remember. Variables inherit, so declaring it on the
+   overlay root reaches everything inside it. */
+:root[data-theme="lantern"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]),
+[data-theme="lantern"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) {
+  --color-surface: #F7E9D2;
+  --color-purple-50: #2E1824;
+  --color-purple-100: #3A1D2D;
+  --color-violet-50: #2E1824;
+  --color-violet-100: #3A1D2D;
+  --color-indigo-50: #2E1824;
+  --color-indigo-100: #3A1D2D;
+  --color-fuchsia-50: #2E1824;
+  --color-fuchsia-100: #3A1D2D;
+  --color-slate-50: #21141B;
+  --color-slate-100: #2C1C25;
+  --color-gray-50: #21141B;
+  --color-gray-100: #2C1C25;
+  --color-zinc-50: #21141B;
+  --color-zinc-100: #2C1C25;
+  --color-stone-50: #21141B;
+  --color-stone-100: #2C1C25;
+  --color-neutral-50: #21141B;
+  --color-neutral-100: #2C1C25;
+  --color-pink-50: oklch(28.4% 0.109 3.907);
+  --color-pink-100: oklch(40.8% 0.153 2.432);
+  --color-rose-50: #2A1219;
+  --color-rose-100: #3B1520;
+  --color-emerald-50: oklch(26.2% 0.051 172.552);
+  --color-emerald-100: oklch(37.8% 0.077 168.94);
+  --color-amber-50: oklch(27.9% 0.077 45.635);
+  --color-amber-100: oklch(41.4% 0.112 45.904);
+  --color-blue-50: oklch(28.2% 0.091 267.935);
+  --color-blue-100: oklch(37.9% 0.146 265.522);
+  --color-orange-50: oklch(26.6% 0.079 36.259);
+  --color-orange-100: oklch(40.8% 0.123 38.172);
+  --color-teal-50: oklch(27.7% 0.046 192.524);
+  --color-teal-100: oklch(38.6% 0.063 188.416);
+  --color-yellow-50: oklch(28.6% 0.066 53.813);
+  --color-yellow-100: oklch(42.1% 0.095 57.708);
+  --color-green-50: oklch(26.6% 0.065 152.934);
+  --color-green-100: oklch(39.3% 0.095 152.535);
+  --color-red-50: oklch(25.8% 0.092 26.042);
+  --color-red-100: oklch(39.6% 0.141 25.723);
+  --color-sky-50: oklch(29.3% 0.066 243.157);
+  --color-sky-100: oklch(39.1% 0.09 240.876);
+  --color-cyan-50: oklch(30.2% 0.056 229.695);
+  --color-cyan-100: oklch(39.8% 0.07 227.392);
+  --color-lime-50: oklch(27.4% 0.072 132.109);
+  --color-lime-100: oklch(40.5% 0.101 131.063);
 }
 
 /* === END GENERATED === */
