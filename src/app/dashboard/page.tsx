@@ -414,7 +414,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Remember — colour-blocked section */}
-        <section className="rounded-[2rem] bg-rose-50 p-5 sm:p-8">
+        <section className="rounded-[2rem] bg-rose-50/50 p-5 sm:p-8">
           <SectionHeading eyebrow="Remember" title="Moments worth keeping" />
           <div className="space-y-5">
             <OnThisDayCard />

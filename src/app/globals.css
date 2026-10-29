@@ -14,7 +14,7 @@
    scripts/generate-theme-css.mjs will not overwrite it.
 --------------------------------------------------------------------------- */
 :root {
-  --ourdiary-card-opacity: 85%;
+  --ourdiary-card-opacity: 70%;
 }
 
 /* Rose Quartz Romance — tokens generated from a contrast-checked palette.
