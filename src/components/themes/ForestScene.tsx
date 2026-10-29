@@ -31,12 +31,12 @@ const vars = (v: Record<string, string | number>) => v as CSSProperties;
 // is the sway amplitude in degrees. Durations are deliberately unrelated and
 // delays negative so no two fronds share a phase.
 const FERNS = [
-  { x: 96, y: 806, s: 1.3, dur: 9.4, delay: -2.1, tilt: 1.7 },
-  { x: 248, y: 792, s: 0.95, dur: 12.1, delay: -5.3, tilt: 1.2 },
-  { x: 452, y: 814, s: 1.1, dur: 8.6, delay: -0.9, tilt: 1.5 },
-  { x: 742, y: 804, s: 0.9, dur: 13.4, delay: -6.6, tilt: 1.1 },
-  { x: 962, y: 794, s: 1.15, dur: 10.3, delay: -3.8, tilt: 1.6 },
-  { x: 1112, y: 812, s: 1.35, dur: 11.7, delay: -8.2, tilt: 1.3 },
+  { x: 86, y: 812, s: 2.1, dur: 9.4, delay: -2.1, tilt: 1.7 },
+  { x: 262, y: 798, s: 1.5, dur: 12.1, delay: -5.3, tilt: 1.2 },
+  { x: 446, y: 818, s: 1.7, dur: 8.6, delay: -0.9, tilt: 1.5 },
+  { x: 752, y: 806, s: 1.4, dur: 13.4, delay: -6.6, tilt: 1.1 },
+  { x: 958, y: 800, s: 1.8, dur: 10.3, delay: -3.8, tilt: 1.6 },
+  { x: 1120, y: 816, s: 2.2, dur: 11.7, delay: -8.2, tilt: 1.3 },
 ] as const;
 
 // Eight is the ceiling for fireflies and it is already generous; six keeps the
@@ -69,22 +69,25 @@ const RIGHT_LEAVES = [
 // own cycle, so the clearing never pulses as a single unit.
 const LEFT_LANTERNS = [
   { x: 176, y: 206, dur: 6.4, delay: -1.3 },
-  { x: 182, y: 420, dur: 8.7, delay: -4.6 },
+  { x: 110, y: 390, dur: 8.7, delay: -4.6 },
 ] as const;
 
 const RIGHT_LANTERNS = [
   { x: 122, y: 262, dur: 7.6, delay: -2.8 },
-  { x: 152, y: 486, dur: 9.9, delay: -6.2 },
+  { x: 190, y: 469, dur: 9.9, delay: -6.2 },
 ] as const;
 
 // One glyph, drawn once in <defs> and instanced with <use>: five lanterns and
 // eight ferns cost one node each this way, and per-instance custom properties
 // still inherit into the shadow tree.
 const FERN_GLYPH =
-  'M0 0 C-3 -30 -3 -58 0 -92 M0 -14 C-10 -22 -16 -30 -20 -40 M0 -14 C10 -22 16 -30 20 -40 ' +
-  'M0 -34 C-9 -42 -15 -50 -18 -60 M0 -34 C9 -42 15 -50 18 -60 ' +
-  'M0 -52 C-7 -60 -12 -66 -14 -76 M0 -52 C7 -60 12 -66 14 -76 ' +
-  'M0 -68 C-5 -76 -8 -80 -9 -88 M0 -68 C5 -76 8 -80 9 -88';
+  'M0 0 C-3 -30 -3 -58 0 -92 ' +
+  'M0 -8 C-11 -15 -18 -23 -23 -34 M0 -8 C11 -15 18 -23 23 -34 ' +
+  'M0 -22 C-10 -29 -17 -36 -21 -47 M0 -22 C10 -29 17 -36 21 -47 ' +
+  'M0 -36 C-9 -43 -15 -50 -18 -59 M0 -36 C9 -43 15 -50 18 -59 ' +
+  'M0 -49 C-8 -55 -12 -62 -15 -70 M0 -49 C8 -55 12 -62 15 -70 ' +
+  'M0 -61 C-6 -67 -10 -72 -11 -80 M0 -61 C6 -67 10 -72 11 -80 ' +
+  'M0 -73 C-4 -79 -6 -83 -7 -89 M0 -73 C4 -79 6 -83 7 -89';
 
 export function ForestScene() {
   return (
@@ -159,6 +162,7 @@ export function ForestScene() {
           <rect className="fr-near" x="726" y="356" width="12" height="24" />
           <rect className="fr-window" x="668" y="408" width="22" height="18" rx="2" style={vars({ '--dur': '13s' })} />
           <rect className="fr-door" x="708" y="414" width="16" height="40" rx="2" />
+          <ellipse className="fr-halo" cx="700" cy="462" rx="68" ry="13" style={vars({ '--dur': '9.4s', '--delay': '-5.1s' })} />
         </g>
 
         <g className="fr-drift-mid" style={vars({ '--dur': '29s', '--drift': 4 })}>
@@ -186,7 +190,7 @@ export function ForestScene() {
             band is the one place the floor catches sky light. */}
         <path
           className="fr-brook"
-          d="M-20 664 C180 638 360 652 520 628 C700 602 900 624 1220 604 L1220 698 C900 722 700 698 520 720 C360 740 180 726 -20 750 Z"
+          d="M-20 640 C170 612 350 628 512 602 C690 574 900 596 1220 576 L1220 672 C900 696 700 670 520 692 C356 712 174 698 -20 722 Z"
         />
 
         {/* The trail: wide at the reader's feet, narrowing to the cottage door.
@@ -198,16 +202,20 @@ export function ForestScene() {
 
         <g className="fr-drift-near" style={vars({ '--dur': '23s', '--drift': 2.5 })}>
           <g>
-            <path className="fr-deck" d="M466 690 C560 648 700 634 804 612 L808 632 C706 652 566 668 470 708 Z" />
-            <path className="fr-rail" d="M470 654 C566 612 702 598 804 578" />
-            <line className="fr-post" x1="500" y1="680" x2="500" y2="640" />
-            <line className="fr-post" x1="636" y1="652" x2="636" y2="612" />
-            <line className="fr-post" x1="776" y1="624" x2="776" y2="584" />
-            <line className="fr-plank" x1="540" y1="676" x2="536" y2="654" />
-            <line className="fr-plank" x1="624" y1="658" x2="620" y2="636" />
-            <line className="fr-plank" x1="712" y1="642" x2="708" y2="620" />
+            <path className="fr-deck" d="M482 724 C534 716 598 710 650 704 L632 602 C588 608 548 612 514 616 Z" />
+            <path className="fr-plank" d="M492 702 C540 696 598 692 646 688" />
+            <path className="fr-plank" d="M502 668 C548 664 600 660 641 656" />
+            <path className="fr-plank" d="M510 638 C552 634 598 630 636 627" />
+            <path className="fr-rail" d="M478 660 C492 632 502 606 510 582" />
+            <path className="fr-rail" d="M652 648 C648 622 642 600 636 576" />
+            <line className="fr-post" x1="482" y1="722" x2="478" y2="660" />
+            <line className="fr-post" x1="514" y1="616" x2="510" y2="582" />
+            <line className="fr-post" x1="648" y1="706" x2="652" y2="648" />
+            <line className="fr-post" x1="630" y1="606" x2="636" y2="576" />
           </g>
-          <use href="#fr-lantern" x="500" y="634" style={vars({ '--dur': '7.1s', '--delay': '-3.4s' })} />
+          {/* Hung from the near post, where the trail meets the span: the one
+              warm point at the reader's end of the composition. */}
+          <use href="#fr-lantern" x="478" y="692" style={vars({ '--dur': '7.1s', '--delay': '-3.4s' })} />
 
           {/* Undergrowth. The dark band at the bottom is what gives the trail
               somewhere to start and keeps the lower edge from floating. */}
@@ -267,7 +275,7 @@ export function ForestScene() {
         ))}
         <use
           href="#fr-fern"
-          transform="translate(168 792) scale(1.2)"
+          transform="translate(176 796) scale(1.9)"
           style={vars({ '--dur': '10.6s', '--delay': '-4.1s', '--tilt': 1.6 })}
         />
       </svg>
@@ -300,7 +308,7 @@ export function ForestScene() {
         ))}
         <use
           href="#fr-fern"
-          transform="translate(142 794) scale(1.25)"
+          transform="translate(132 798) scale(2)"
           style={vars({ '--dur': '12.8s', '--delay': '-2.7s', '--tilt': 1.4 })}
         />
       </svg>

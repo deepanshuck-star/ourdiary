@@ -10,6 +10,20 @@ const STYLES = (id) => path.join(process.cwd(), 'src', 'styles', 'themes', `${id
 
 const read = (file) => fs.readFileSync(file, 'utf8');
 
+/**
+ * Source with comments removed.
+ *
+ * The checks below look for things the code must not DO. Grepping raw text
+ * also hits the comments that explain why those things are banned, which
+ * pushed one scene into rewording an accurate comment to satisfy a test —
+ * exactly backwards.
+ */
+function code(file) {
+  return read(file)
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+}
+
 test('every immersive theme has a scene component and a stylesheet', () => {
   for (const theme of IMMERSIVE_THEMES) {
     assert.ok(fs.existsSync(COMPONENT(theme.id)), `missing component for ${theme.id}`);
@@ -41,7 +55,7 @@ test('no scene rolls dice while React is rendering', () => {
   // react-hooks/purity fails the build on these, and a scene that reshuffles
   // itself on every render would also flicker. Positions must be literals.
   for (const theme of IMMERSIVE_THEMES) {
-    const src = read(COMPONENT(theme.id));
+    const src = code(COMPONENT(theme.id));
     assert.equal(/Math\.random\s*\(/.test(src), false, `${theme.id} uses Math.random`);
     assert.equal(/Date\.now\s*\(/.test(src), false, `${theme.id} uses Date.now`);
     assert.equal(/new Date\s*\(\s*\)/.test(src), false, `${theme.id} reads the clock`);
@@ -63,10 +77,17 @@ test('scenes paint with theme variables, not baked-in colours', () => {
   // A hardcoded hex here would survive a theme switch and look wrong in five
   // of the six environments.
   for (const theme of IMMERSIVE_THEMES) {
-    const src = read(COMPONENT(theme.id));
-    const hexes = src.match(/#[0-9A-Fa-f]{6}\b/g) || [];
+    const src = code(COMPONENT(theme.id));
+    const css = read(STYLES(theme.id));
+    const hexes = [...src.match(/#[0-9A-Fa-f]{6}\b/g) || [], ...css.match(/#[0-9A-Fa-f]{6}\b/g) || []];
     assert.deepEqual(hexes, [], `${theme.id} hardcodes ${hexes.join(', ')}`);
-    assert.ok(src.includes('var(--scene-'), `${theme.id} never reads a scene token`);
+    // Either place is fine: inline on the element, or on a class in the
+    // scene's own stylesheet. What matters is that the colour comes from
+    // the active theme and not from a literal.
+    assert.ok(
+      src.includes('var(--scene-') || css.includes('var(--scene-'),
+      `${theme.id} never reads a scene token`
+    );
   }
 });
 

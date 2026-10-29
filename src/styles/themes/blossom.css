@@ -1,0 +1,457 @@
+/* Cherry Blossom Dream — background scene for [data-theme="blossom"].
+ *
+ * Colour comes exclusively from the --scene-* custom properties declared in
+ * globals.css, so the file carries no palette of its own and stays correct if
+ * the theme is retuned.
+ *
+ * Motion rule for this file: every animation-* declaration lives inside the
+ * `prefers-reduced-motion: no-preference` block near the bottom. The global
+ * reduce override in globals.css is a safety net, not the mechanism — with
+ * motion suppressed nothing here is animated in the first place, and the scene
+ * resolves to a finished still picture.
+ */
+
+/* Shared across all six theme scenes; the definition is identical in each. */
+.ourdiary-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.scene-blossom {
+  background: linear-gradient(
+    to bottom,
+    var(--scene-sky) 0%,
+    var(--scene-sky) 32%,
+    color-mix(in srgb, var(--scene-sky) 58%, var(--scene-sky-low)) 58%,
+    var(--scene-sky-low) 82%
+  );
+}
+
+/* --- sky ---------------------------------------------------------------- */
+
+/* Sized in vmax so the glow keeps the same apparent softness on a phone and on
+   a wide display; positioned by its box rather than a centring transform so the
+   breathe animation owns `transform` outright. */
+.scene-blossom .blossom-sun {
+  position: absolute;
+  left: 30%;
+  top: -14%;
+  width: 46vmax;
+  height: 46vmax;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--scene-glow) 68%, transparent),
+    color-mix(in srgb, var(--scene-glow) 16%, transparent) 56%,
+    transparent 78%
+  );
+}
+
+.scene-blossom .blossom-clouds {
+  position: absolute;
+  inset: 0;
+}
+
+.scene-blossom .blossom-cloud {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--scene-glow) 46%, transparent),
+    transparent 72%
+  );
+}
+
+.scene-blossom .blossom-cloud.c1 {
+  left: 6%;
+  top: 9%;
+  width: 38%;
+  height: 16%;
+}
+.scene-blossom .blossom-cloud.c2 {
+  left: 46%;
+  top: 4%;
+  width: 30%;
+  height: 12%;
+}
+.scene-blossom .blossom-cloud.c3 {
+  left: 64%;
+  top: 19%;
+  width: 42%;
+  height: 13%;
+}
+.scene-blossom .blossom-cloud.c4 {
+  left: 22%;
+  top: 26%;
+  width: 34%;
+  height: 10%;
+  opacity: 0.7;
+}
+
+/* --- landscape ----------------------------------------------------------- */
+
+.scene-blossom .blossom-land {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.scene-blossom .blossom-ripple {
+  fill: none;
+  stroke: var(--scene-glow);
+  stroke-linecap: round;
+  opacity: 0.38;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+.scene-blossom .blossom-ripple.r1 {
+  stroke-width: 4;
+}
+.scene-blossom .blossom-ripple.r2 {
+  stroke-width: 5;
+}
+.scene-blossom .blossom-ripple.r3 {
+  stroke-width: 6;
+}
+.scene-blossom .blossom-ripple.r4 {
+  stroke-width: 7;
+}
+.scene-blossom .blossom-ripple.r5 {
+  stroke-width: 4;
+}
+
+.scene-blossom .blossom-grass path {
+  fill: none;
+  stroke: var(--scene-near);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+/* fill-box keeps the pivot at the base of each tuft; the default view-box
+   origin would swing the blades around the middle of the whole scene. */
+.scene-blossom .blossom-grass {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+/* --- framing trees -------------------------------------------------------- */
+
+/* `meet` rather than `slice`: these are edge-anchored, and slicing them on a
+   narrow viewport would crop away the branches instead of scaling them. The
+   percentage box then does the responsive work. */
+.scene-blossom .blossom-tree {
+  position: absolute;
+  top: 0;
+  width: 38%;
+  height: 78%;
+}
+.scene-blossom .blossom-tree.is-left {
+  left: 0;
+}
+.scene-blossom .blossom-tree.is-right {
+  right: 0;
+}
+
+.scene-blossom .blossom-branch path {
+  fill: none;
+  stroke: var(--scene-near);
+  stroke-linecap: round;
+}
+
+/* Branches pivot where they meet the trunk, which is the left edge of each
+   group's bounding box on the left tree and the right edge on the right one. */
+.scene-blossom .blossom-branch {
+  transform-box: fill-box;
+  transform-origin: 0% 50%;
+}
+.scene-blossom .is-right .blossom-branch {
+  transform-origin: 100% 50%;
+}
+
+/* On a phone the trees are scaled down hard, otherwise two 38%-wide canopies
+   leave no readable column between them. */
+@media (max-width: 640px) {
+  .scene-blossom .blossom-tree {
+    width: 40%;
+    height: 40%;
+  }
+}
+
+/* --- petals --------------------------------------------------------------- */
+
+.scene-blossom .blossom-petals {
+  position: absolute;
+  inset: 0;
+}
+
+/* The outer element carries the fall, the inner one the drift and spin. */
+.scene-blossom .blossom-petal {
+  position: absolute;
+}
+
+.scene-blossom .blossom-petal-i {
+  /* Irregular radii read as a petal; a plain ellipse reads as a dot. */
+  border-radius: 62% 38% 58% 42% / 58% 62% 38% 42%;
+  background: var(--scene-particle);
+  opacity: 0.8;
+}
+.scene-blossom .t1 .blossom-petal-i {
+  background: color-mix(in srgb, var(--scene-particle) 68%, var(--scene-glow));
+  opacity: 0.62;
+}
+.scene-blossom .t2 .blossom-petal-i {
+  opacity: 0.46;
+}
+
+/* --- keyframes ------------------------------------------------------------ */
+
+@keyframes blossom-sun-breathe {
+  from {
+    opacity: 0.74;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.035);
+  }
+}
+
+@keyframes blossom-drift-a {
+  from {
+    transform: translate3d(-4vw, 0, 0);
+  }
+  to {
+    transform: translate3d(5vw, 0, 0);
+  }
+}
+@keyframes blossom-drift-b {
+  from {
+    transform: translate3d(3vw, 0, 0);
+  }
+  to {
+    transform: translate3d(-4vw, 0, 0);
+  }
+}
+@keyframes blossom-drift-c {
+  from {
+    transform: translate3d(-2vw, 0, 0);
+  }
+  to {
+    transform: translate3d(3vw, 0, 0);
+  }
+}
+
+@keyframes blossom-sway-wide {
+  from {
+    transform: rotate(-1.5deg);
+  }
+  to {
+    transform: rotate(1.1deg);
+  }
+}
+@keyframes blossom-sway-mid {
+  from {
+    transform: rotate(-1.1deg);
+  }
+  to {
+    transform: rotate(0.8deg);
+  }
+}
+@keyframes blossom-sway-soft {
+  from {
+    transform: rotate(-0.7deg);
+  }
+  to {
+    transform: rotate(0.6deg);
+  }
+}
+@keyframes blossom-sway-tip {
+  from {
+    transform: rotate(-2deg);
+  }
+  to {
+    transform: rotate(1.4deg);
+  }
+}
+
+@keyframes blossom-grass-a {
+  from {
+    transform: rotate(-2deg);
+  }
+  to {
+    transform: rotate(2.4deg);
+  }
+}
+@keyframes blossom-grass-b {
+  from {
+    transform: rotate(1.8deg);
+  }
+  to {
+    transform: rotate(-2.2deg);
+  }
+}
+
+@keyframes blossom-ripple-a {
+  from {
+    transform: translateX(-9px) scaleX(0.94);
+    opacity: 0.26;
+  }
+  to {
+    transform: translateX(11px) scaleX(1.06);
+    opacity: 0.5;
+  }
+}
+@keyframes blossom-ripple-b {
+  from {
+    transform: translateX(8px) scaleX(1.05);
+    opacity: 0.46;
+  }
+  to {
+    transform: translateX(-10px) scaleX(0.95);
+    opacity: 0.22;
+  }
+}
+
+/* Starts above its resting offset and ends below the fold; with the per-petal
+   `top` in the markup, each one covers a different slice of the viewport. */
+@keyframes blossom-fall {
+  from {
+    transform: translate3d(0, -8vh, 0);
+  }
+  to {
+    transform: translate3d(0, 104vh, 0);
+  }
+}
+
+/* Drift amplitudes are capped at ~23px so a petal never wanders out of the
+   third of the screen it started in. */
+@keyframes blossom-sway-s {
+  from {
+    transform: translateX(-9px) rotate(-26deg);
+  }
+  to {
+    transform: translateX(9px) rotate(34deg);
+  }
+}
+@keyframes blossom-sway-m {
+  from {
+    transform: translateX(-15px) rotate(-48deg);
+  }
+  to {
+    transform: translateX(15px) rotate(42deg);
+  }
+}
+@keyframes blossom-sway-l {
+  from {
+    transform: translateX(-23px) rotate(-62deg);
+  }
+  to {
+    transform: translateX(23px) rotate(58deg);
+  }
+}
+
+/* --- motion ---------------------------------------------------------------
+ * Nothing above this point animates. Everything below is opt-in.
+ * ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .scene-blossom .blossom-sun {
+    animation: blossom-sun-breathe 19s ease-in-out infinite alternate;
+  }
+
+  .scene-blossom .blossom-cloud {
+    will-change: transform;
+  }
+  .scene-blossom .blossom-cloud.c1 {
+    animation: blossom-drift-a 128s ease-in-out infinite alternate;
+  }
+  .scene-blossom .blossom-cloud.c2 {
+    animation: blossom-drift-b 164s ease-in-out infinite alternate;
+  }
+  .scene-blossom .blossom-cloud.c3 {
+    animation: blossom-drift-c 142s ease-in-out infinite alternate;
+  }
+  .scene-blossom .blossom-cloud.c4 {
+    animation: blossom-drift-b 186s ease-in-out infinite alternate;
+  }
+
+  /* Rates are deliberately coprime-ish: matched periods would make the two
+     trees pulse together and read as one mechanism. */
+  .scene-blossom .is-left .blossom-branch.b1 {
+    animation: blossom-sway-wide 13.4s ease-in-out infinite alternate;
+  }
+  .scene-blossom .is-left .blossom-branch.b2 {
+    animation: blossom-sway-tip 9.7s ease-in-out infinite alternate;
+  }
+  .scene-blossom .is-left .blossom-branch.b3 {
+    animation: blossom-sway-mid 16.2s ease-in-out infinite alternate;
+  }
+  .scene-blossom .is-left .blossom-branch.b4 {
+    animation: blossom-sway-soft 11.1s ease-in-out infinite alternate;
+  }
+  .scene-blossom .is-right .blossom-branch.b1 {
+    animation: blossom-sway-wide 15.3s ease-in-out infinite alternate;
+  }
+  .scene-blossom .is-right .blossom-branch.b2 {
+    animation: blossom-sway-tip 11.8s ease-in-out infinite alternate;
+  }
+  .scene-blossom .is-right .blossom-branch.b3 {
+    animation: blossom-sway-mid 18.6s ease-in-out infinite alternate;
+  }
+  .scene-blossom .is-right .blossom-branch.b4 {
+    animation: blossom-sway-soft 12.9s ease-in-out infinite alternate;
+  }
+
+  .scene-blossom .blossom-grass.g1 {
+    animation: blossom-grass-a 7.4s ease-in-out infinite alternate;
+  }
+  .scene-blossom .blossom-grass.g2 {
+    animation: blossom-grass-b 8.9s ease-in-out infinite alternate;
+  }
+  .scene-blossom .blossom-grass.g3 {
+    animation: blossom-grass-a 6.3s ease-in-out infinite alternate;
+  }
+
+  .scene-blossom .blossom-ripple.r1 {
+    animation: blossom-ripple-a 9.2s ease-in-out infinite alternate;
+  }
+  .scene-blossom .blossom-ripple.r2 {
+    animation: blossom-ripple-b 11.7s ease-in-out infinite alternate;
+  }
+  .scene-blossom .blossom-ripple.r3 {
+    animation: blossom-ripple-a 13.5s ease-in-out infinite alternate;
+  }
+  .scene-blossom .blossom-ripple.r4 {
+    animation: blossom-ripple-b 8.6s ease-in-out infinite alternate;
+  }
+  .scene-blossom .blossom-ripple.r5 {
+    animation: blossom-ripple-a 10.4s ease-in-out infinite alternate;
+  }
+
+  /* Duration and delay for both layers come from the inline styles in
+     BlossomScene.tsx; only the name and timing live here, so without this
+     block the inline values are inert. */
+  .scene-blossom .blossom-petal {
+    animation-name: blossom-fall;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    will-change: transform;
+  }
+  .scene-blossom .blossom-petal-i {
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+  }
+  .scene-blossom .t0 .blossom-petal-i {
+    animation-name: blossom-sway-s;
+  }
+  .scene-blossom .t1 .blossom-petal-i {
+    animation-name: blossom-sway-m;
+  }
+  .scene-blossom .t2 .blossom-petal-i {
+    animation-name: blossom-sway-l;
+  }
+}

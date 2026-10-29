@@ -51,7 +51,7 @@
   position: absolute;
   top: 0;
   height: 100%;
-  width: clamp(92px, 17vw, 232px);
+  width: clamp(96px, 20vw, 220px);
   display: block;
 }
 .fr-frame-left { left: 0; }
@@ -89,9 +89,9 @@
 
 .fr-trail { fill: url(#fr-trail-grad); }
 .fr-trail-0 { stop-color: var(--scene-sky-low); stop-opacity: 0.2; }
-.fr-trail-1 { stop-color: var(--scene-sky-low); stop-opacity: 0.5; }
+.fr-trail-1 { stop-color: var(--scene-sky-low); stop-opacity: 0.34; }
 
-.fr-brook { fill: var(--scene-sky-low); opacity: 0.18; }
+.fr-brook { fill: var(--scene-sky-low); opacity: 0.34; }
 .fr-moss { fill: var(--scene-sky-low); opacity: 0.16; }
 
 .fr-frond {
@@ -106,7 +106,7 @@
 .fr-deck { fill: var(--scene-near); }
 .fr-rail { fill: none; stroke: var(--scene-near); stroke-width: 6; stroke-linecap: round; }
 .fr-post { stroke: var(--scene-near); stroke-width: 5; stroke-linecap: round; }
-.fr-plank { stroke: var(--scene-sky-low); stroke-opacity: 0.22; stroke-width: 2; }
+.fr-plank { fill: none; stroke: var(--scene-sky-low); stroke-opacity: 0.24; stroke-width: 2; }
 
 /* Lanterns and the cottage window are the only warm elements in a dark scene,
    so they carry full-strength glow with a soft halo behind them. */
