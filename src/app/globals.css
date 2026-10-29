@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   HOW MUCH OF THE SCENERY SHOWS THROUGH A CARD.
+   Only the six immersive themes use it; the four classic ones are unaffected.
+
+   100% = solid cards, the environment only visible around them.
+    88% = the default. Scenery reads behind a card, text stays crisp.
+    75% = noticeably dreamier. About as far as long text stays comfortable.
+    60% = the scene dominates. Fine for a look, tiring to read.
+
+   Edit the number below and save — the dev server picks it up immediately.
+   It is outside the generated block at the bottom of this file, so running
+   scripts/generate-theme-css.mjs will not overwrite it.
+--------------------------------------------------------------------------- */
+:root {
+  --ourdiary-card-opacity: 85%;
+}
+
 /* Rose Quartz Romance — tokens generated from a contrast-checked palette.
    Tailwind colour families used across the app (purple/indigo/violet/fuchsia, slate/gray,
    pink, rose) are folded onto the brand ramps so every screen picks up the palette. */
@@ -2015,7 +2032,10 @@
   --color-lime-950: oklch(98.6% 0.031 120.757);
 
   --color-canvas: #111A35;
-  --color-surface: #F6EFE4;
+  /* Cards let the environment through. The knob is --ourdiary-card-opacity,
+     set once near the top of globals.css and read here, so changing it
+     retunes every immersive theme at once and survives regeneration. */
+  --color-surface: color-mix(in srgb, #F6EFE4 var(--ourdiary-card-opacity, 88%), transparent);
   --color-ink: #EDE6D8;
   --color-ink-muted: #B5B2D4;
   --color-primary: #C9C7E8;
@@ -2572,7 +2592,10 @@
   --color-lime-950: oklch(98.6% 0.031 120.757);
 
   --color-canvas: #17243B;
-  --color-surface: #F7EAD6;
+  /* Cards let the environment through. The knob is --ourdiary-card-opacity,
+     set once near the top of globals.css and read here, so changing it
+     retunes every immersive theme at once and survives regeneration. */
+  --color-surface: color-mix(in srgb, #F7EAD6 var(--ourdiary-card-opacity, 88%), transparent);
   --color-ink: #F1DCC0;
   --color-ink-muted: #BBC6D3;
   --color-primary: #D9A879;
@@ -2878,7 +2901,10 @@
   --hero-gradient: linear-gradient(135deg,#F3E4DF 0%,#D9A0AD 55%,#E9CBA4 100%);
 
   --color-canvas: #F3E4DF;
-  --color-surface: #FFF9F5;
+  /* Cards let the environment through. The knob is --ourdiary-card-opacity,
+     set once near the top of globals.css and read here, so changing it
+     retunes every immersive theme at once and survives regeneration. */
+  --color-surface: color-mix(in srgb, #FFF9F5 var(--ourdiary-card-opacity, 88%), transparent);
   --color-ink: #27352F;
   --color-ink-muted: #4B5F55;
   --color-primary: #45594F;
@@ -3186,7 +3212,10 @@
   --color-lime-950: oklch(98.6% 0.031 120.757);
 
   --color-canvas: #203A32;
-  --color-surface: #EFE7D6;
+  /* Cards let the environment through. The knob is --ourdiary-card-opacity,
+     set once near the top of globals.css and read here, so changing it
+     retunes every immersive theme at once and survives regeneration. */
+  --color-surface: color-mix(in srgb, #EFE7D6 var(--ourdiary-card-opacity, 88%), transparent);
   --color-ink: #E7DCC8;
   --color-ink-muted: #A9BFA6;
   --color-primary: #D9BD8B;
@@ -3743,7 +3772,10 @@
   --color-lime-950: oklch(98.6% 0.031 120.757);
 
   --color-canvas: #354C60;
-  --color-surface: #FBF1E2;
+  /* Cards let the environment through. The knob is --ourdiary-card-opacity,
+     set once near the top of globals.css and read here, so changing it
+     retunes every immersive theme at once and survives regeneration. */
+  --color-surface: color-mix(in srgb, #FBF1E2 var(--ourdiary-card-opacity, 88%), transparent);
   --color-ink: #FBF1E2;
   --color-ink-muted: #C6D2DD;
   --color-primary: #F2B38D;
@@ -4300,7 +4332,10 @@
   --color-lime-950: oklch(98.6% 0.031 120.757);
 
   --color-canvas: #222B49;
-  --color-surface: #F7E9D2;
+  /* Cards let the environment through. The knob is --ourdiary-card-opacity,
+     set once near the top of globals.css and read here, so changing it
+     retunes every immersive theme at once and survives regeneration. */
+  --color-surface: color-mix(in srgb, #F7E9D2 var(--ourdiary-card-opacity, 88%), transparent);
   --color-ink: #F0D8B7;
   --color-ink-muted: #B3BDCA;
   --color-primary: #E7B96D;

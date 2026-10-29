@@ -146,7 +146,10 @@ ${dark ? `
 ${inherited}
 ` : ''}
   --color-canvas: ${t.canvas};
-  --color-surface: ${t.surface};
+  /* Cards let the environment through. The knob is --ourdiary-card-opacity,
+     set once near the top of globals.css and read here, so changing it
+     retunes every immersive theme at once and survives regeneration. */
+  --color-surface: color-mix(in srgb, ${t.surface} var(--ourdiary-card-opacity, 88%), transparent);
   --color-ink: ${t.onScene};
   --color-ink-muted: ${t.onSceneMuted};
   --color-primary: ${dark ? t.primaryOnScene : t.primary};
