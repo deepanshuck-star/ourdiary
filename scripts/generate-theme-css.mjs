@@ -225,6 +225,43 @@ ${[...light.entries()].filter(([n]) => !OWN.has(n)).map(([n, v]) => `  ${n}: ${v
   --color-focus: ${t.primary};
 }
 
+/* Bright white cards join in. --color-white is left alone because text-white
+   reads from it too, and a translucent text colour is a different bug; this
+   sets the background directly instead. */
+:root[data-theme="${theme.id}"] :is(.bg-white, .bg-snow),
+[data-theme="${theme.id}"] :is(.bg-white, .bg-snow) {
+  background-color: color-mix(in srgb, ${t.surface} var(--ourdiary-card-opacity, 85%), transparent);
+}
+${dark ? `
+/* An element painted with the page canvas needs the light scene ink even
+   when it sits inside a light card — a chat box is bg-canvas inside a
+   bg-surface panel, and it was inheriting the card's dark ink onto a dark
+   field, which is why typing vanished as you typed it. */
+:root[data-theme="${theme.id}"] .bg-canvas,
+[data-theme="${theme.id}"] .bg-canvas {
+  --color-ink: ${t.onScene};
+  --color-ink-muted: ${t.onSceneMuted};
+  --color-primary: ${t.primaryOnScene};
+  --color-accent: ${t.accentOnScene};
+}
+
+/* .appearance-dark forces one widget (the cassette player) to dark tokens in
+   any appearance. On a theme whose canvas is already night, that stacked into
+   near-black. Lifted toward the theme's own surface so it stays the same
+   colour, just readable. */
+:root[data-theme="${theme.id}"] .appearance-dark,
+[data-theme="${theme.id}"] .appearance-dark {
+  /* Lifted off the canvas enough to read as its own object, but still
+     clearly night: at a lighter mix the scene text on it fell under 4.5:1. */
+  --color-surface: color-mix(in srgb, ${t.canvas} 80%, ${t.surface});
+  --color-canvas: color-mix(in srgb, ${t.canvas} 90%, ${t.surface});
+  --color-ink: ${t.onScene};
+  --color-ink-muted: ${t.onSceneMuted};
+  --color-line: color-mix(in srgb, ${t.canvas} 62%, ${t.surface});
+  --color-primary: ${t.primaryOnScene};
+  --color-accent: ${t.accentOnScene};
+}
+` : ''}
 /* Anything floating ABOVE the page goes back to a solid surface.
    A dropdown or modal is a different plane, not a window onto the scenery:
    when it was translucent you could read the card underneath through it,
@@ -238,6 +275,12 @@ ${[...light.entries()].filter(([n]) => !OWN.has(n)).map(([n, v]) => `  ${n}: ${v
 [data-theme="${theme.id}"] :is(.fixed, .absolute.z-50, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) {
   --color-surface: ${t.surface};
 ${panelRule(dark ? ramp : light, true)}
+}
+
+/* ...including the white cards inside it. */
+:root[data-theme="${theme.id}"] :is(.fixed, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) :is(.bg-white, .bg-snow),
+[data-theme="${theme.id}"] :is(.fixed, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) :is(.bg-white, .bg-snow) {
+  background-color: ${t.surface};
 }`;
 }
 

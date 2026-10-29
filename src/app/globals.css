@@ -2386,6 +2386,43 @@
   --color-focus: #343A68;
 }
 
+/* Bright white cards join in. --color-white is left alone because text-white
+   reads from it too, and a translucent text colour is a different bug; this
+   sets the background directly instead. */
+:root[data-theme="moonlit"] :is(.bg-white, .bg-snow),
+[data-theme="moonlit"] :is(.bg-white, .bg-snow) {
+  background-color: color-mix(in srgb, #F6EFE4 var(--ourdiary-card-opacity, 85%), transparent);
+}
+
+/* An element painted with the page canvas needs the light scene ink even
+   when it sits inside a light card — a chat box is bg-canvas inside a
+   bg-surface panel, and it was inheriting the card's dark ink onto a dark
+   field, which is why typing vanished as you typed it. */
+:root[data-theme="moonlit"] .bg-canvas,
+[data-theme="moonlit"] .bg-canvas {
+  --color-ink: #EDE6D8;
+  --color-ink-muted: #B5B2D4;
+  --color-primary: #C9C7E8;
+  --color-accent: #E6B879;
+}
+
+/* .appearance-dark forces one widget (the cassette player) to dark tokens in
+   any appearance. On a theme whose canvas is already night, that stacked into
+   near-black. Lifted toward the theme's own surface so it stays the same
+   colour, just readable. */
+:root[data-theme="moonlit"] .appearance-dark,
+[data-theme="moonlit"] .appearance-dark {
+  /* Lifted off the canvas enough to read as its own object, but still
+     clearly night: at a lighter mix the scene text on it fell under 4.5:1. */
+  --color-surface: color-mix(in srgb, #111A35 80%, #F6EFE4);
+  --color-canvas: color-mix(in srgb, #111A35 90%, #F6EFE4);
+  --color-ink: #EDE6D8;
+  --color-ink-muted: #B5B2D4;
+  --color-line: color-mix(in srgb, #111A35 62%, #F6EFE4);
+  --color-primary: #C9C7E8;
+  --color-accent: #E6B879;
+}
+
 /* Anything floating ABOVE the page goes back to a solid surface.
    A dropdown or modal is a different plane, not a window onto the scenery:
    when it was translucent you could read the card underneath through it,
@@ -2442,6 +2479,12 @@
   --color-cyan-100: oklch(39.8% 0.07 227.392);
   --color-lime-50: oklch(27.4% 0.072 132.109);
   --color-lime-100: oklch(40.5% 0.101 131.063);
+}
+
+/* ...including the white cards inside it. */
+:root[data-theme="moonlit"] :is(.fixed, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) :is(.bg-white, .bg-snow),
+[data-theme="moonlit"] :is(.fixed, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) :is(.bg-white, .bg-snow) {
+  background-color: #F6EFE4;
 }
 
 /* Starlit Rooftop Date — A rooftop table for two, fairy lights above a quiet city. */
@@ -3049,6 +3092,43 @@
   --color-focus: #344B63;
 }
 
+/* Bright white cards join in. --color-white is left alone because text-white
+   reads from it too, and a translucent text colour is a different bug; this
+   sets the background directly instead. */
+:root[data-theme="rooftop"] :is(.bg-white, .bg-snow),
+[data-theme="rooftop"] :is(.bg-white, .bg-snow) {
+  background-color: color-mix(in srgb, #F7EAD6 var(--ourdiary-card-opacity, 85%), transparent);
+}
+
+/* An element painted with the page canvas needs the light scene ink even
+   when it sits inside a light card — a chat box is bg-canvas inside a
+   bg-surface panel, and it was inheriting the card's dark ink onto a dark
+   field, which is why typing vanished as you typed it. */
+:root[data-theme="rooftop"] .bg-canvas,
+[data-theme="rooftop"] .bg-canvas {
+  --color-ink: #F1DCC0;
+  --color-ink-muted: #BBC6D3;
+  --color-primary: #D9A879;
+  --color-accent: #F1DCC0;
+}
+
+/* .appearance-dark forces one widget (the cassette player) to dark tokens in
+   any appearance. On a theme whose canvas is already night, that stacked into
+   near-black. Lifted toward the theme's own surface so it stays the same
+   colour, just readable. */
+:root[data-theme="rooftop"] .appearance-dark,
+[data-theme="rooftop"] .appearance-dark {
+  /* Lifted off the canvas enough to read as its own object, but still
+     clearly night: at a lighter mix the scene text on it fell under 4.5:1. */
+  --color-surface: color-mix(in srgb, #17243B 80%, #F7EAD6);
+  --color-canvas: color-mix(in srgb, #17243B 90%, #F7EAD6);
+  --color-ink: #F1DCC0;
+  --color-ink-muted: #BBC6D3;
+  --color-line: color-mix(in srgb, #17243B 62%, #F7EAD6);
+  --color-primary: #D9A879;
+  --color-accent: #F1DCC0;
+}
+
 /* Anything floating ABOVE the page goes back to a solid surface.
    A dropdown or modal is a different plane, not a window onto the scenery:
    when it was translucent you could read the card underneath through it,
@@ -3105,6 +3185,12 @@
   --color-cyan-100: oklch(39.8% 0.07 227.392);
   --color-lime-50: oklch(27.4% 0.072 132.109);
   --color-lime-100: oklch(40.5% 0.101 131.063);
+}
+
+/* ...including the white cards inside it. */
+:root[data-theme="rooftop"] :is(.fixed, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) :is(.bg-white, .bg-snow),
+[data-theme="rooftop"] :is(.fixed, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) :is(.bg-white, .bg-snow) {
+  background-color: #F7EAD6;
 }
 
 /* Cherry Blossom Dream — A spring garden with a stream, a little bridge and falling petals. */
@@ -3212,6 +3298,14 @@
   --color-focus: #45594F;
 }
 
+/* Bright white cards join in. --color-white is left alone because text-white
+   reads from it too, and a translucent text colour is a different bug; this
+   sets the background directly instead. */
+:root[data-theme="blossom"] :is(.bg-white, .bg-snow),
+[data-theme="blossom"] :is(.bg-white, .bg-snow) {
+  background-color: color-mix(in srgb, #FFF9F5 var(--ourdiary-card-opacity, 85%), transparent);
+}
+
 /* Anything floating ABOVE the page goes back to a solid surface.
    A dropdown or modal is a different plane, not a window onto the scenery:
    when it was translucent you could read the card underneath through it,
@@ -3268,6 +3362,12 @@
   --color-cyan-100: oklch(95.6% 0.045 203.388);
   --color-lime-50: oklch(98.6% 0.031 120.757);
   --color-lime-100: oklch(96.7% 0.067 122.328);
+}
+
+/* ...including the white cards inside it. */
+:root[data-theme="blossom"] :is(.fixed, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) :is(.bg-white, .bg-snow),
+[data-theme="blossom"] :is(.fixed, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) :is(.bg-white, .bg-snow) {
+  background-color: #FFF9F5;
 }
 
 /* Enchanted Forest of Memories — Mossy woodland, lantern light and a path winding toward a cottage. */
@@ -3875,6 +3975,43 @@
   --color-focus: #3A5D4A;
 }
 
+/* Bright white cards join in. --color-white is left alone because text-white
+   reads from it too, and a translucent text colour is a different bug; this
+   sets the background directly instead. */
+:root[data-theme="forest"] :is(.bg-white, .bg-snow),
+[data-theme="forest"] :is(.bg-white, .bg-snow) {
+  background-color: color-mix(in srgb, #EFE7D6 var(--ourdiary-card-opacity, 85%), transparent);
+}
+
+/* An element painted with the page canvas needs the light scene ink even
+   when it sits inside a light card — a chat box is bg-canvas inside a
+   bg-surface panel, and it was inheriting the card's dark ink onto a dark
+   field, which is why typing vanished as you typed it. */
+:root[data-theme="forest"] .bg-canvas,
+[data-theme="forest"] .bg-canvas {
+  --color-ink: #E7DCC8;
+  --color-ink-muted: #A9BFA6;
+  --color-primary: #D9BD8B;
+  --color-accent: #E7DCC8;
+}
+
+/* .appearance-dark forces one widget (the cassette player) to dark tokens in
+   any appearance. On a theme whose canvas is already night, that stacked into
+   near-black. Lifted toward the theme's own surface so it stays the same
+   colour, just readable. */
+:root[data-theme="forest"] .appearance-dark,
+[data-theme="forest"] .appearance-dark {
+  /* Lifted off the canvas enough to read as its own object, but still
+     clearly night: at a lighter mix the scene text on it fell under 4.5:1. */
+  --color-surface: color-mix(in srgb, #203A32 80%, #EFE7D6);
+  --color-canvas: color-mix(in srgb, #203A32 90%, #EFE7D6);
+  --color-ink: #E7DCC8;
+  --color-ink-muted: #A9BFA6;
+  --color-line: color-mix(in srgb, #203A32 62%, #EFE7D6);
+  --color-primary: #D9BD8B;
+  --color-accent: #E7DCC8;
+}
+
 /* Anything floating ABOVE the page goes back to a solid surface.
    A dropdown or modal is a different plane, not a window onto the scenery:
    when it was translucent you could read the card underneath through it,
@@ -3931,6 +4068,12 @@
   --color-cyan-100: oklch(39.8% 0.07 227.392);
   --color-lime-50: oklch(27.4% 0.072 132.109);
   --color-lime-100: oklch(40.5% 0.101 131.063);
+}
+
+/* ...including the white cards inside it. */
+:root[data-theme="forest"] :is(.fixed, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) :is(.bg-white, .bg-snow),
+[data-theme="forest"] :is(.fixed, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) :is(.bg-white, .bg-snow) {
+  background-color: #EFE7D6;
 }
 
 /* Sunset by the Ocean — Cliffs, a long horizon and the track running down to the shore. */
@@ -4538,6 +4681,43 @@
   --color-focus: #3C566C;
 }
 
+/* Bright white cards join in. --color-white is left alone because text-white
+   reads from it too, and a translucent text colour is a different bug; this
+   sets the background directly instead. */
+:root[data-theme="ocean"] :is(.bg-white, .bg-snow),
+[data-theme="ocean"] :is(.bg-white, .bg-snow) {
+  background-color: color-mix(in srgb, #FBF1E2 var(--ourdiary-card-opacity, 85%), transparent);
+}
+
+/* An element painted with the page canvas needs the light scene ink even
+   when it sits inside a light card — a chat box is bg-canvas inside a
+   bg-surface panel, and it was inheriting the card's dark ink onto a dark
+   field, which is why typing vanished as you typed it. */
+:root[data-theme="ocean"] .bg-canvas,
+[data-theme="ocean"] .bg-canvas {
+  --color-ink: #FBF1E2;
+  --color-ink-muted: #C6D2DD;
+  --color-primary: #F2B38D;
+  --color-accent: #F2DCC0;
+}
+
+/* .appearance-dark forces one widget (the cassette player) to dark tokens in
+   any appearance. On a theme whose canvas is already night, that stacked into
+   near-black. Lifted toward the theme's own surface so it stays the same
+   colour, just readable. */
+:root[data-theme="ocean"] .appearance-dark,
+[data-theme="ocean"] .appearance-dark {
+  /* Lifted off the canvas enough to read as its own object, but still
+     clearly night: at a lighter mix the scene text on it fell under 4.5:1. */
+  --color-surface: color-mix(in srgb, #354C60 80%, #FBF1E2);
+  --color-canvas: color-mix(in srgb, #354C60 90%, #FBF1E2);
+  --color-ink: #FBF1E2;
+  --color-ink-muted: #C6D2DD;
+  --color-line: color-mix(in srgb, #354C60 62%, #FBF1E2);
+  --color-primary: #F2B38D;
+  --color-accent: #F2DCC0;
+}
+
 /* Anything floating ABOVE the page goes back to a solid surface.
    A dropdown or modal is a different plane, not a window onto the scenery:
    when it was translucent you could read the card underneath through it,
@@ -4594,6 +4774,12 @@
   --color-cyan-100: oklch(39.8% 0.07 227.392);
   --color-lime-50: oklch(27.4% 0.072 132.109);
   --color-lime-100: oklch(40.5% 0.101 131.063);
+}
+
+/* ...including the white cards inside it. */
+:root[data-theme="ocean"] :is(.fixed, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) :is(.bg-white, .bg-snow),
+[data-theme="ocean"] :is(.fixed, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) :is(.bg-white, .bg-snow) {
+  background-color: #FBF1E2;
 }
 
 /* Lantern Festival Night — Lanterns lifting off a still lake, with their reflections below. */
@@ -5201,6 +5387,43 @@
   --color-focus: #454A70;
 }
 
+/* Bright white cards join in. --color-white is left alone because text-white
+   reads from it too, and a translucent text colour is a different bug; this
+   sets the background directly instead. */
+:root[data-theme="lantern"] :is(.bg-white, .bg-snow),
+[data-theme="lantern"] :is(.bg-white, .bg-snow) {
+  background-color: color-mix(in srgb, #F7E9D2 var(--ourdiary-card-opacity, 85%), transparent);
+}
+
+/* An element painted with the page canvas needs the light scene ink even
+   when it sits inside a light card — a chat box is bg-canvas inside a
+   bg-surface panel, and it was inheriting the card's dark ink onto a dark
+   field, which is why typing vanished as you typed it. */
+:root[data-theme="lantern"] .bg-canvas,
+[data-theme="lantern"] .bg-canvas {
+  --color-ink: #F0D8B7;
+  --color-ink-muted: #B3BDCA;
+  --color-primary: #E7B96D;
+  --color-accent: #F0D8B7;
+}
+
+/* .appearance-dark forces one widget (the cassette player) to dark tokens in
+   any appearance. On a theme whose canvas is already night, that stacked into
+   near-black. Lifted toward the theme's own surface so it stays the same
+   colour, just readable. */
+:root[data-theme="lantern"] .appearance-dark,
+[data-theme="lantern"] .appearance-dark {
+  /* Lifted off the canvas enough to read as its own object, but still
+     clearly night: at a lighter mix the scene text on it fell under 4.5:1. */
+  --color-surface: color-mix(in srgb, #222B49 80%, #F7E9D2);
+  --color-canvas: color-mix(in srgb, #222B49 90%, #F7E9D2);
+  --color-ink: #F0D8B7;
+  --color-ink-muted: #B3BDCA;
+  --color-line: color-mix(in srgb, #222B49 62%, #F7E9D2);
+  --color-primary: #E7B96D;
+  --color-accent: #F0D8B7;
+}
+
 /* Anything floating ABOVE the page goes back to a solid surface.
    A dropdown or modal is a different plane, not a window onto the scenery:
    when it was translucent you could read the card underneath through it,
@@ -5257,6 +5480,12 @@
   --color-cyan-100: oklch(39.8% 0.07 227.392);
   --color-lime-50: oklch(27.4% 0.072 132.109);
   --color-lime-100: oklch(40.5% 0.101 131.063);
+}
+
+/* ...including the white cards inside it. */
+:root[data-theme="lantern"] :is(.fixed, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) :is(.bg-white, .bg-snow),
+[data-theme="lantern"] :is(.fixed, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]) :is(.bg-white, .bg-snow) {
+  background-color: #F7E9D2;
 }
 
 /* === END GENERATED === */

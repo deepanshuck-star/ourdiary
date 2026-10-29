@@ -123,6 +123,46 @@ test('brand colours used as text on the scenery are readable there', () => {
   }
 });
 
+// color-mix(in srgb, A p%, B) — the browser interpolates in linear-light
+// sRGB for `in srgb`? No: `in srgb` is gamma-encoded, so a plain weighted
+// average of the 8-bit channels matches what the browser computes.
+function mix(a, b, pct) {
+  const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const [ar, ag, ab] = hex(a);
+  const [br, bg, bb] = hex(b);
+  const w = pct / 100;
+  const ch = (x, y) => Math.round(x * w + y * (1 - w));
+  return `#${[ch(ar, br), ch(ag, bg), ch(ab, bb)]
+    .map((v) => v.toString(16).padStart(2, '0'))
+    .join('')}`;
+}
+
+test('the cassette widget stays readable after being lifted off the canvas', () => {
+  // .appearance-dark forces that one widget to dark tokens in any
+  // appearance. On a night theme it stacked into near-black, so the
+  // generated CSS lifts it toward the theme's surface — but lift it too far
+  // and the light scene ink on it drops under AA. This pins the balance.
+  // Only the dark-canvas themes get this rule; on a light theme the widget
+  // already contrasts with its page and the generator emits nothing.
+  const nightThemes = IMMERSIVE_THEMES.filter((t) => luminance(t.tokens.canvas) < 0.2);
+  assert.ok(nightThemes.length >= 4, 'expected most themes to have a dark canvas');
+
+  for (const theme of nightThemes) {
+    const { canvas, surface, onScene } = theme.tokens;
+    const lifted = mix(canvas, surface, 80);
+    const ratio = contrast(onScene, lifted);
+    assert.ok(
+      ratio >= 4.5,
+      `${theme.id}: cassette ink on lifted surface is ${ratio.toFixed(2)}:1`
+    );
+    // And it must still read as night, not as a light card.
+    assert.ok(
+      contrast(lifted, surface) > 1.8,
+      `${theme.id}: lifted surface is too close to a plain card`
+    );
+  }
+});
+
 test('the card override is emitted for every immersive theme', () => {
   const css = fs.readFileSync(path.join(process.cwd(), 'src', 'app', 'globals.css'), 'utf8');
   for (const theme of IMMERSIVE_THEMES) {
