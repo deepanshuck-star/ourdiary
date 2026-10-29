@@ -357,101 +357,126 @@
  * Nothing above this point animates. Everything below is opt-in.
  * ------------------------------------------------------------------------- */
 
-@media (prefers-reduced-motion: no-preference) {
-  .scene-blossom .blossom-sun {
+/* Keyframes stay at the top level: a style rule cannot contain them.
+   Nothing here animates until :root[data-motion="on"] is set, which
+   lib/motion.ts does from the OS preference and the viewer's own
+   choice — so "reduce" still wins unless they ask otherwise. */
+
+
+:root[data-motion="on"] .scene-blossom .blossom-sun {
     animation: blossom-sun-breathe 19s ease-in-out infinite alternate;
   }
 
-  .scene-blossom .blossom-cloud {
+:root[data-motion="on"] .scene-blossom .blossom-cloud {
     will-change: transform;
   }
-  .scene-blossom .blossom-cloud.c1 {
+
+:root[data-motion="on"] .scene-blossom .blossom-cloud.c1 {
     animation: blossom-drift-a 128s ease-in-out infinite alternate;
   }
-  .scene-blossom .blossom-cloud.c2 {
+
+:root[data-motion="on"] .scene-blossom .blossom-cloud.c2 {
     animation: blossom-drift-b 164s ease-in-out infinite alternate;
   }
-  .scene-blossom .blossom-cloud.c3 {
+
+:root[data-motion="on"] .scene-blossom .blossom-cloud.c3 {
     animation: blossom-drift-c 142s ease-in-out infinite alternate;
   }
-  .scene-blossom .blossom-cloud.c4 {
+
+:root[data-motion="on"] .scene-blossom .blossom-cloud.c4 {
     animation: blossom-drift-b 186s ease-in-out infinite alternate;
   }
 
-  /* Rates are deliberately coprime-ish: matched periods would make the two
+/* Rates are deliberately coprime-ish: matched periods would make the two
      trees pulse together and read as one mechanism. */
-  .scene-blossom .is-left .blossom-branch.b1 {
+:root[data-motion="on"] .scene-blossom .is-left .blossom-branch.b1 {
     animation: blossom-sway-wide 13.4s ease-in-out infinite alternate;
   }
-  .scene-blossom .is-left .blossom-branch.b2 {
+
+:root[data-motion="on"] .scene-blossom .is-left .blossom-branch.b2 {
     animation: blossom-sway-tip 9.7s ease-in-out infinite alternate;
   }
-  .scene-blossom .is-left .blossom-branch.b3 {
+
+:root[data-motion="on"] .scene-blossom .is-left .blossom-branch.b3 {
     animation: blossom-sway-mid 16.2s ease-in-out infinite alternate;
   }
-  .scene-blossom .is-left .blossom-branch.b4 {
+
+:root[data-motion="on"] .scene-blossom .is-left .blossom-branch.b4 {
     animation: blossom-sway-soft 11.1s ease-in-out infinite alternate;
   }
-  .scene-blossom .is-right .blossom-branch.b1 {
+
+:root[data-motion="on"] .scene-blossom .is-right .blossom-branch.b1 {
     animation: blossom-sway-wide 15.3s ease-in-out infinite alternate;
   }
-  .scene-blossom .is-right .blossom-branch.b2 {
+
+:root[data-motion="on"] .scene-blossom .is-right .blossom-branch.b2 {
     animation: blossom-sway-tip 11.8s ease-in-out infinite alternate;
   }
-  .scene-blossom .is-right .blossom-branch.b3 {
+
+:root[data-motion="on"] .scene-blossom .is-right .blossom-branch.b3 {
     animation: blossom-sway-mid 18.6s ease-in-out infinite alternate;
   }
-  .scene-blossom .is-right .blossom-branch.b4 {
+
+:root[data-motion="on"] .scene-blossom .is-right .blossom-branch.b4 {
     animation: blossom-sway-soft 12.9s ease-in-out infinite alternate;
   }
 
-  .scene-blossom .blossom-grass.g1 {
+:root[data-motion="on"] .scene-blossom .blossom-grass.g1 {
     animation: blossom-grass-a 7.4s ease-in-out infinite alternate;
   }
-  .scene-blossom .blossom-grass.g2 {
+
+:root[data-motion="on"] .scene-blossom .blossom-grass.g2 {
     animation: blossom-grass-b 8.9s ease-in-out infinite alternate;
   }
-  .scene-blossom .blossom-grass.g3 {
+
+:root[data-motion="on"] .scene-blossom .blossom-grass.g3 {
     animation: blossom-grass-a 6.3s ease-in-out infinite alternate;
   }
 
-  .scene-blossom .blossom-ripple.r1 {
+:root[data-motion="on"] .scene-blossom .blossom-ripple.r1 {
     animation: blossom-ripple-a 9.2s ease-in-out infinite alternate;
   }
-  .scene-blossom .blossom-ripple.r2 {
+
+:root[data-motion="on"] .scene-blossom .blossom-ripple.r2 {
     animation: blossom-ripple-b 11.7s ease-in-out infinite alternate;
   }
-  .scene-blossom .blossom-ripple.r3 {
+
+:root[data-motion="on"] .scene-blossom .blossom-ripple.r3 {
     animation: blossom-ripple-a 13.5s ease-in-out infinite alternate;
   }
-  .scene-blossom .blossom-ripple.r4 {
+
+:root[data-motion="on"] .scene-blossom .blossom-ripple.r4 {
     animation: blossom-ripple-b 8.6s ease-in-out infinite alternate;
   }
-  .scene-blossom .blossom-ripple.r5 {
+
+:root[data-motion="on"] .scene-blossom .blossom-ripple.r5 {
     animation: blossom-ripple-a 10.4s ease-in-out infinite alternate;
   }
 
-  /* Duration and delay for both layers come from the inline styles in
+/* Duration and delay for both layers come from the inline styles in
      BlossomScene.tsx; only the name and timing live here, so without this
      block the inline values are inert. */
-  .scene-blossom .blossom-petal {
+:root[data-motion="on"] .scene-blossom .blossom-petal {
     animation-name: blossom-fall;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
     will-change: transform;
   }
-  .scene-blossom .blossom-petal-i {
+
+:root[data-motion="on"] .scene-blossom .blossom-petal-i {
     animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
     animation-direction: alternate;
   }
-  .scene-blossom .t0 .blossom-petal-i {
+
+:root[data-motion="on"] .scene-blossom .t0 .blossom-petal-i {
     animation-name: blossom-sway-s;
   }
-  .scene-blossom .t1 .blossom-petal-i {
+
+:root[data-motion="on"] .scene-blossom .t1 .blossom-petal-i {
     animation-name: blossom-sway-m;
   }
-  .scene-blossom .t2 .blossom-petal-i {
+
+:root[data-motion="on"] .scene-blossom .t2 .blossom-petal-i {
     animation-name: blossom-sway-l;
   }
-}

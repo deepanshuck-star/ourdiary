@@ -200,34 +200,11 @@
  * at rest beneath them. The global reduce-override in globals.css is a safety
  * net, not the mechanism.
  */
-@media (prefers-reduced-motion: no-preference) {
-  .lantern-cloud {
-    animation: lantern-drift var(--dur) ease-in-out var(--delay) infinite;
-  }
-
-  .lantern-ripple {
-    animation: lantern-ripple var(--dur) ease-in-out var(--delay) infinite;
-  }
-
-  .lantern-reflection {
-    animation: lantern-shimmer var(--dur) ease-in-out var(--delay) infinite;
-  }
-
-  .lantern {
-    /* Linear: a paper lantern has no acceleration worth seeing over a minute. */
-    animation: lantern-rise var(--dur) linear var(--delay) infinite;
-  }
-
-  .lantern-drift {
-    animation: lantern-sway var(--sway) ease-in-out var(--sway-delay) infinite;
-  }
-
-  .lantern-halo {
-    animation: lantern-flicker var(--flicker) ease-in-out var(--flicker-delay)
-      infinite;
-  }
-
-  @keyframes lantern-drift {
+/* Keyframes stay at the top level: a style rule cannot contain them.
+   Nothing here animates until :root[data-motion="on"] is set, which
+   lib/motion.ts does from the OS preference and the viewer's own
+   choice — so "reduce" still wins unless they ask otherwise. */
+@keyframes lantern-drift {
     0%,
     100% {
       transform: translate3d(calc(var(--amp) * -1), 0, 0);
@@ -237,7 +214,7 @@
     }
   }
 
-  @keyframes lantern-ripple {
+@keyframes lantern-ripple {
     0%,
     100% {
       transform: translate3d(calc(var(--amp) * -1), 0, 0) scaleX(1);
@@ -247,7 +224,7 @@
     }
   }
 
-  @keyframes lantern-shimmer {
+@keyframes lantern-shimmer {
     0%,
     100% {
       transform: scaleY(1) scaleX(1);
@@ -263,12 +240,12 @@
     }
   }
 
-  /*
+/*
    * Rise and fade. The lantern is fully out before the top of its travel, which
    * is what keeps a bright object from parking over the dashboard: combined
    * with edge-only x positions, nothing lit ever crosses the centre.
    */
-  @keyframes lantern-rise {
+@keyframes lantern-rise {
     0% {
       transform: translate3d(0, 0, 0);
       opacity: 0;
@@ -285,7 +262,7 @@
     }
   }
 
-  @keyframes lantern-sway {
+@keyframes lantern-sway {
     0%,
     100% {
       transform: translate3d(calc(var(--size) * -5px), 0, 0);
@@ -295,7 +272,7 @@
     }
   }
 
-  @keyframes lantern-flicker {
+@keyframes lantern-flicker {
     0%,
     100% {
       opacity: 0.8;
@@ -310,4 +287,29 @@
       transform: scale(0.97);
     }
   }
-}
+
+:root[data-motion="on"] .lantern-cloud {
+    animation: lantern-drift var(--dur) ease-in-out var(--delay) infinite;
+  }
+
+:root[data-motion="on"] .lantern-ripple {
+    animation: lantern-ripple var(--dur) ease-in-out var(--delay) infinite;
+  }
+
+:root[data-motion="on"] .lantern-reflection {
+    animation: lantern-shimmer var(--dur) ease-in-out var(--delay) infinite;
+  }
+
+:root[data-motion="on"] .lantern {
+    /* Linear: a paper lantern has no acceleration worth seeing over a minute. */
+    animation: lantern-rise var(--dur) linear var(--delay) infinite;
+  }
+
+:root[data-motion="on"] .lantern-drift {
+    animation: lantern-sway var(--sway) ease-in-out var(--sway-delay) infinite;
+  }
+
+:root[data-motion="on"] .lantern-halo {
+    animation: lantern-flicker var(--flicker) ease-in-out var(--flicker-delay)
+      infinite;
+  }

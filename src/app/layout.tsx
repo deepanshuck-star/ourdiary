@@ -87,8 +87,10 @@ const interFont = Inter({
 // Applies the saved appearance (light / dark / system), palette (rose / peach) and
 // couple theme before first paint so there is no flash of the other look. The theme
 // is mirrored to localStorage by AppShell; the couple row stays the source of truth,
-// this is only the cache that avoids a flash while that row loads.
-const preferencesScript = `try{var d=document.documentElement,a=localStorage.getItem('ourdiary-appearance');d.dataset.appearance=a==='dark'||a==='system'?a:'light';var p=localStorage.getItem('ourdiary-palette')==='peach'?'peach':'rose';d.dataset.palette=p;var t=localStorage.getItem('ourdiary-theme');if(t&&/^[a-z]+$/.test(t))d.dataset.theme=t;var c=p==='peach'?['#FFF8F3','#1C130E']:['#FFF7FA','#1A1015'];[['light',c[0]],['dark',c[1]]].forEach(function(e){var m=document.createElement('meta');m.name='theme-color';m.media='(prefers-color-scheme: '+e[0]+')';m.content=e[1];document.head.appendChild(m)})}catch(e){}`;
+// this is only the cache that avoids a flash while that row loads. data-motion is
+// resolved here too, so the scenery is either moving or still from the first frame
+// rather than starting and then stopping.
+const preferencesScript = `try{var d=document.documentElement,a=localStorage.getItem('ourdiary-appearance');d.dataset.appearance=a==='dark'||a==='system'?a:'light';var p=localStorage.getItem('ourdiary-palette')==='peach'?'peach':'rose';d.dataset.palette=p;var t=localStorage.getItem('ourdiary-theme');if(t&&/^[a-z]+$/.test(t))d.dataset.theme=t;var mo=localStorage.getItem('ourdiary-motion');d.dataset.motion=(mo==='on')||(mo!=='off'&&!matchMedia('(prefers-reduced-motion: reduce)').matches)?'on':'off';var c=p==='peach'?['#FFF8F3','#1C130E']:['#FFF7FA','#1A1015'];[['light',c[0]],['dark',c[1]]].forEach(function(e){var m=document.createElement('meta');m.name='theme-color';m.media='(prefers-color-scheme: '+e[0]+')';m.content=e[1];document.head.appendChild(m)})}catch(e){}`;
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ourdiary.app';
 

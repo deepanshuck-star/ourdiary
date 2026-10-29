@@ -161,10 +161,13 @@
    inside this query, so a reduced-motion user gets the static scene and never
    an overridden-but-still-declared animation. */
 
-@media (prefers-reduced-motion: no-preference) {
-  /* --sway is a unitless degree amount supplied per element; the delays are
+/* Keyframes stay at the top level: a style rule cannot contain them.
+   Nothing here animates until :root[data-motion="on"] is set, which
+   lib/motion.ts does from the OS preference and the viewer's own
+   choice — so "reduce" still wins unless they ask otherwise. */
+/* --sway is a unitless degree amount supplied per element; the delays are
      negative so each element enters its cycle already in progress. */
-  @keyframes od-moonlit-sway {
+@keyframes od-moonlit-sway {
     0%,
     100% {
       transform: rotate(calc(var(--sway) * -1deg));
@@ -174,7 +177,7 @@
     }
   }
 
-  @keyframes od-moonlit-twinkle {
+@keyframes od-moonlit-twinkle {
     0%,
     100% {
       opacity: var(--o, 0.5);
@@ -184,7 +187,7 @@
     }
   }
 
-  @keyframes od-moonlit-breathe {
+@keyframes od-moonlit-breathe {
     0%,
     100% {
       transform: scale(1);
@@ -196,7 +199,7 @@
     }
   }
 
-  @keyframes od-moonlit-drift {
+@keyframes od-moonlit-drift {
     from {
       transform: translateX(0);
     }
@@ -205,9 +208,9 @@
     }
   }
 
-  /* The three firefly paths begin and end at opacity 0, which is what hides the
+/* The three firefly paths begin and end at opacity 0, which is what hides the
      jump back to the start position when the loop restarts. */
-  @keyframes od-moonlit-wander-a {
+@keyframes od-moonlit-wander-a {
     0% {
       transform: translate(0, 0);
       opacity: 0;
@@ -228,7 +231,7 @@
     }
   }
 
-  @keyframes od-moonlit-wander-b {
+@keyframes od-moonlit-wander-b {
     0% {
       transform: translate(0, 0);
       opacity: 0;
@@ -249,7 +252,7 @@
     }
   }
 
-  @keyframes od-moonlit-wander-c {
+@keyframes od-moonlit-wander-c {
     0% {
       transform: translate(0, 0);
       opacity: 0;
@@ -270,48 +273,53 @@
     }
   }
 
-  .scene-moonlit .od-blade,
-  .scene-moonlit .od-flower {
+:root[data-motion="on"] .scene-moonlit .od-blade,
+:root[data-motion="on"] .scene-moonlit .od-flower {
     animation: od-moonlit-sway var(--dur, 10s) ease-in-out var(--delay, 0s) infinite;
   }
 
-  .scene-moonlit .od-star {
+:root[data-motion="on"] .scene-moonlit .od-star {
     animation: od-moonlit-twinkle var(--dur, 6s) ease-in-out var(--delay, 0s) infinite;
   }
 
-  .scene-moonlit .od-moon-halo {
+:root[data-motion="on"] .scene-moonlit .od-moon-halo {
     transform-box: fill-box;
     transform-origin: 50% 50%;
     animation: od-moonlit-breathe 18s ease-in-out infinite;
   }
-  /* The outer halo runs on a longer, offset clock so the two glows never peak
+
+/* The outer halo runs on a longer, offset clock so the two glows never peak
      together, which keeps the pulse from reading as a throb. */
-  .scene-moonlit .od-moon-halo-wide {
+:root[data-motion="on"] .scene-moonlit .od-moon-halo-wide {
     animation-duration: 26s;
     animation-delay: -9s;
   }
 
-  .scene-moonlit .od-cloud-band {
+:root[data-motion="on"] .scene-moonlit .od-cloud-band {
     will-change: transform;
   }
-  .scene-moonlit .od-cloud-far {
+
+:root[data-motion="on"] .scene-moonlit .od-cloud-far {
     animation: od-moonlit-drift 150s linear infinite;
   }
-  .scene-moonlit .od-cloud-near {
+
+:root[data-motion="on"] .scene-moonlit .od-cloud-near {
     animation: od-moonlit-drift 92s linear infinite;
   }
 
-  .scene-moonlit .od-firefly {
+:root[data-motion="on"] .scene-moonlit .od-firefly {
     transform-box: fill-box;
     will-change: transform;
   }
-  .scene-moonlit .od-firefly-a {
+
+:root[data-motion="on"] .scene-moonlit .od-firefly-a {
     animation: od-moonlit-wander-a var(--dur, 10s) ease-in-out var(--delay, 0s) infinite;
   }
-  .scene-moonlit .od-firefly-b {
+
+:root[data-motion="on"] .scene-moonlit .od-firefly-b {
     animation: od-moonlit-wander-b var(--dur, 10s) ease-in-out var(--delay, 0s) infinite;
   }
-  .scene-moonlit .od-firefly-c {
+
+:root[data-motion="on"] .scene-moonlit .od-firefly-c {
     animation: od-moonlit-wander-c var(--dur, 10s) ease-in-out var(--delay, 0s) infinite;
   }
-}

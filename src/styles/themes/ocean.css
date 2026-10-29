@@ -47,10 +47,13 @@
 
   Only transform and opacity are touched, so nothing here can trigger layout.
 */
-@media (prefers-reduced-motion: no-preference) {
-  /* -1600 is exactly one copy of the cloud layer, so the second <use> lands on
+/* Keyframes stay at the top level: a style rule cannot contain them.
+   Nothing here animates until :root[data-motion="on"] is set, which
+   lib/motion.ts does from the OS preference and the viewer's own
+   choice — so "reduce" still wins unless they ask otherwise. */
+/* -1600 is exactly one copy of the cloud layer, so the second <use> lands on
      the first's start and the wrap is invisible. */
-  @keyframes ocean-cloud-drift {
+@keyframes ocean-cloud-drift {
     from {
       transform: translateX(0);
     }
@@ -59,9 +62,9 @@
     }
   }
 
-  /* Both halves of the swing are small — this is a shifting band of water, not
+/* Both halves of the swing are small — this is a shifting band of water, not
      a wave travelling across the screen. */
-  @keyframes ocean-sway {
+@keyframes ocean-sway {
     from {
       transform: translateX(calc(var(--ocean-shift) * -1));
     }
@@ -70,7 +73,7 @@
     }
   }
 
-  @keyframes ocean-shimmer-pulse {
+@keyframes ocean-shimmer-pulse {
     0%,
     100% {
       opacity: 0.12;
@@ -80,9 +83,9 @@
     }
   }
 
-  /* Relative to each pool's resting opacity, so the near pool does not jump to
+/* Relative to each pool's resting opacity, so the near pool does not jump to
      the far pool's weight the moment motion is allowed. */
-  @keyframes ocean-reflection-breathe {
+@keyframes ocean-reflection-breathe {
     0%,
     100% {
       opacity: calc(var(--ocean-base) * 0.84);
@@ -92,9 +95,9 @@
     }
   }
 
-  /* Fades in and out well inside the frame edges, so the boat is never seen
+/* Fades in and out well inside the frame edges, so the boat is never seen
      arriving or leaving — it is simply out there, further along. */
-  @keyframes ocean-boat-cross {
+@keyframes ocean-boat-cross {
     0% {
       transform: translateX(-300px);
       opacity: 0;
@@ -109,7 +112,7 @@
     }
   }
 
-  .scene-ocean .ocean-clouds {
+:root[data-motion="on"] .scene-ocean .ocean-clouds {
     /* The only two elements that move continuously across the full width, and
        so the only two worth promoting. */
     will-change: transform;
@@ -118,17 +121,17 @@
     animation-iteration-count: infinite;
   }
 
-  .scene-ocean .ocean-clouds-high {
+:root[data-motion="on"] .scene-ocean .ocean-clouds-high {
     animation-duration: 240s;
   }
 
-  .scene-ocean .ocean-clouds-low {
+:root[data-motion="on"] .scene-ocean .ocean-clouds-low {
     animation-duration: 165s;
   }
 
-  /* Durations and the negative delays come from the component, per band, so the
+/* Durations and the negative delays come from the component, per band, so the
      bands never line up into a single pulse. */
-  .scene-ocean .ocean-wave {
+:root[data-motion="on"] .scene-ocean .ocean-wave {
     animation-name: ocean-sway;
     animation-duration: var(--ocean-dur);
     animation-delay: var(--ocean-delay);
@@ -137,7 +140,7 @@
     animation-iteration-count: infinite;
   }
 
-  .scene-ocean .ocean-shimmer {
+:root[data-motion="on"] .scene-ocean .ocean-shimmer {
     animation-name: ocean-shimmer-pulse;
     animation-duration: var(--ocean-dur);
     animation-delay: var(--ocean-delay);
@@ -145,7 +148,7 @@
     animation-iteration-count: infinite;
   }
 
-  .scene-ocean .ocean-reflection {
+:root[data-motion="on"] .scene-ocean .ocean-reflection {
     animation-name: ocean-reflection-breathe;
     animation-duration: 26s;
     animation-delay: var(--ocean-delay, 0s);
@@ -153,10 +156,9 @@
     animation-iteration-count: infinite;
   }
 
-  .scene-ocean .ocean-boat-drift {
+:root[data-motion="on"] .scene-ocean .ocean-boat-drift {
     animation-name: ocean-boat-cross;
     animation-duration: 190s;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
   }
-}

@@ -1767,11 +1767,19 @@
   background: var(--color-secondary);
 }
 
-/* Static fallback for every animation when the user asks for less motion. */
+/* Static fallback for every animation when the user asks for less motion.
+
+   The scenery is excluded, not because it ignores the preference but because
+   it already honours it by a better route: lib/motion.ts resolves the device
+   preference together with the viewer's own choice and writes the answer to
+   data-motion, which is the only thing the scene stylesheets animate on. So
+   by default a device asking for less motion still gets a still scene — and
+   someone who asks for the scenery anyway can have it, which this blanket
+   !important rule would otherwise make impossible. */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *:not(.ourdiary-scene, .ourdiary-scene *),
+  *:not(.ourdiary-scene, .ourdiary-scene *)::before,
+  *:not(.ourdiary-scene, .ourdiary-scene *)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

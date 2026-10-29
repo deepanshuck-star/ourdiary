@@ -137,66 +137,31 @@
  * Everything below is opt-in: with reduced motion the scene renders as the
  * static picture above. Only transform and opacity are animated.
  */
-@media (prefers-reduced-motion: no-preference) {
-  /* Parallax. A few user units of horizontal drift, slowest at the back — the
-     intent is that it reads as air moving, not as a panning camera. */
-  .fr-drift-far,
-  .fr-drift-mid,
-  .fr-drift-near {
-    animation: fr-drift var(--dur, 30s) ease-in-out infinite alternate;
-  }
-
-  /* Promotion is only worth its memory while something actually moves, so the
-     hint lives in here and only on the two large groups that translate. */
-  .fr-drift-mid,
-  .fr-drift-near {
-    will-change: transform;
-  }
-
-  /* Ferns and leaf clusters share the keyframes and differ by --dur/--delay
-     per instance. Negative delays start each one part-way through its cycle,
-     which is what stops the undergrowth breathing in unison. */
-  .fr-frond,
-  .fr-leaf {
-    animation: fr-sway var(--dur, 10s) ease-in-out var(--delay, 0s) infinite alternate;
-  }
-
-  .fr-halo {
-    animation: fr-halo var(--dur, 7s) ease-in-out var(--delay, 0s) infinite alternate;
-  }
-
-  .fr-lantern-core,
-  .fr-window {
-    animation: fr-ember var(--dur, 9s) ease-in-out var(--delay, 0s) infinite alternate;
-  }
-
-  /* Non-alternating, because a firefly should not retrace its path. Both ends
-     of the cycle sit at opacity 0, which hides the jump back to the start. */
-  .fr-firefly {
-    animation: fr-firefly var(--dur, 26s) linear var(--delay, 0s) infinite;
-  }
-
-  @keyframes fr-drift {
+/* Keyframes stay at the top level: a style rule cannot contain them.
+   Nothing here animates until :root[data-motion="on"] is set, which
+   lib/motion.ts does from the OS preference and the viewer's own
+   choice — so "reduce" still wins unless they ask otherwise. */
+@keyframes fr-drift {
     from { transform: translate3d(calc(var(--drift, 3) * -1px), 0, 0); }
     to { transform: translate3d(calc(var(--drift, 3) * 1px), 0, 0); }
   }
 
-  @keyframes fr-sway {
+@keyframes fr-sway {
     from { transform: rotate(calc(var(--tilt, 1.4) * -1deg)); }
     to { transform: rotate(calc(var(--tilt, 1.4) * 1deg)); }
   }
 
-  @keyframes fr-halo {
+@keyframes fr-halo {
     from { opacity: 0.38; transform: scale(0.93); }
     to { opacity: 0.72; transform: scale(1.07); }
   }
 
-  @keyframes fr-ember {
+@keyframes fr-ember {
     from { opacity: 0.72; }
     to { opacity: 1; }
   }
 
-  @keyframes fr-firefly {
+@keyframes fr-firefly {
     0% { transform: translate(0, 0); opacity: 0; }
     15% { opacity: 0.6; }
     50% {
@@ -209,4 +174,41 @@
       opacity: 0;
     }
   }
-}
+
+/* Parallax. A few user units of horizontal drift, slowest at the back — the
+     intent is that it reads as air moving, not as a panning camera. */
+:root[data-motion="on"] .fr-drift-far,
+:root[data-motion="on"] .fr-drift-mid,
+:root[data-motion="on"] .fr-drift-near {
+    animation: fr-drift var(--dur, 30s) ease-in-out infinite alternate;
+  }
+
+/* Promotion is only worth its memory while something actually moves, so the
+     hint lives in here and only on the two large groups that translate. */
+:root[data-motion="on"] .fr-drift-mid,
+:root[data-motion="on"] .fr-drift-near {
+    will-change: transform;
+  }
+
+/* Ferns and leaf clusters share the keyframes and differ by --dur/--delay
+     per instance. Negative delays start each one part-way through its cycle,
+     which is what stops the undergrowth breathing in unison. */
+:root[data-motion="on"] .fr-frond,
+:root[data-motion="on"] .fr-leaf {
+    animation: fr-sway var(--dur, 10s) ease-in-out var(--delay, 0s) infinite alternate;
+  }
+
+:root[data-motion="on"] .fr-halo {
+    animation: fr-halo var(--dur, 7s) ease-in-out var(--delay, 0s) infinite alternate;
+  }
+
+:root[data-motion="on"] .fr-lantern-core,
+:root[data-motion="on"] .fr-window {
+    animation: fr-ember var(--dur, 9s) ease-in-out var(--delay, 0s) infinite alternate;
+  }
+
+/* Non-alternating, because a firefly should not retrace its path. Both ends
+     of the cycle sit at opacity 0, which hides the jump back to the start. */
+:root[data-motion="on"] .fr-firefly {
+    animation: fr-firefly var(--dur, 26s) linear var(--delay, 0s) infinite;
+  }

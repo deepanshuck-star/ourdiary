@@ -32,22 +32,40 @@ test('every immersive theme has a scene component and a stylesheet', () => {
 });
 
 test('no scene animates unless the viewer allows motion', () => {
-  // The global reduced-motion rule in globals.css neutralises durations, but
-  // the elements would still be told to animate and the compositor would
-  // still wake for them. Gating at the source means a viewer who asked for
-  // less motion gets a still picture, not a fast one.
+  // Motion is gated on an attribute rather than a media query. A media query
+  // is resolved by the browser and nothing on the page can re-open it, so a
+  // viewer whose OS asks for less motion could never choose to see the
+  // scenery move. lib/motion.ts resolves the OS preference together with
+  // their own choice and writes the answer to data-motion, so "reduce" still
+  // wins by default.
   for (const theme of IMMERSIVE_THEMES) {
     const css = read(STYLES(theme.id));
-    const guard = '@media (prefers-reduced-motion: no-preference)';
-    const guarded = css.slice(css.indexOf(guard));
-    const before = css.slice(0, css.indexOf(guard));
-    assert.ok(css.includes(guard), `${theme.id}.css has no reduced-motion guard`);
-    // `animation:` and `animation-name:` outside the guard are the problem;
-    // `animation-delay` on a static element is harmless but pointless, so
-    // catch the shorthand and the name specifically.
-    const stray = before.match(/animation(-name)?\s*:/g) || [];
-    assert.deepEqual(stray, [], `${theme.id}.css animates outside the guard`);
-    assert.ok(guarded.length > 0);
+    const gate = ':root[data-motion="on"]';
+    assert.ok(css.includes(gate), `${theme.id}.css has no motion gate`);
+
+    // Every rule that sets an animation must sit behind the gate. Split on
+    // rule boundaries and check each one that animates.
+    for (const rule of css.split('}')) {
+      if (!/animation(-name)?\s*:/.test(rule)) continue;
+      if (/@keyframes/.test(rule)) continue; // a keyframe step, not a rule
+      assert.ok(
+        rule.includes(gate),
+        `${theme.id}.css animates outside the gate:\n${rule.trim().slice(0, 160)}`
+      );
+    }
+  }
+});
+
+test('keyframes are not trapped inside a style rule', () => {
+  // @keyframes is only legal at the top level or inside @media. Nesting it
+  // under the gate selector would silently drop every animation.
+  for (const theme of IMMERSIVE_THEMES) {
+    const css = read(STYLES(theme.id));
+    const at = css.indexOf('@keyframes');
+    if (at === -1) continue;
+    const before = css.slice(0, at);
+    const depth = (before.match(/\{/g) || []).length - (before.match(/\}/g) || []).length;
+    assert.equal(depth, 0, `${theme.id}.css nests @keyframes ${depth} level(s) deep`);
   }
 });
 

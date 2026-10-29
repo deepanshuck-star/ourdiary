@@ -102,64 +102,66 @@
   transform-origin: 50% 0%;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  /* Each bulb gets its own duration and a negative delay, so the strand is already
+/* Keyframes stay at the top level: a style rule cannot contain them.
+   Nothing here animates until :root[data-motion="on"] is set, which
+   lib/motion.ts does from the OS preference and the viewer's own
+   choice — so "reduce" still wins unless they ask otherwise. */
+/* Each bulb gets its own duration and a negative delay, so the strand is already
      mid-breath on first paint and no two bulbs share a phase. */
-  @keyframes rooftop-breathe {
+@keyframes rooftop-breathe {
     from { opacity: 0.55; }
     to { opacity: 1; }
   }
 
-  @keyframes rooftop-sway {
+@keyframes rooftop-sway {
     from { transform: rotate(-2.4deg); }
     to { transform: rotate(2.4deg); }
   }
 
-  @keyframes rooftop-drift {
+@keyframes rooftop-drift {
     from { transform: translateX(-26px); }
     to { transform: translateX(26px); }
   }
 
-  /* Long, mostly-flat cycle: a window sits at its resting value for the bulk of the
+/* Long, mostly-flat cycle: a window sits at its resting value for the bulk of the
      period and only drifts near the end, which reads as "someone turned a lamp on"
      rather than a blinking skyline. */
-  @keyframes rooftop-window-shift {
+@keyframes rooftop-window-shift {
     0%, 46% { opacity: 0.6; }
     58%, 88% { opacity: 0.16; }
     100% { opacity: 0.6; }
   }
 
-  @keyframes rooftop-lamp-pulse {
+@keyframes rooftop-lamp-pulse {
     from { opacity: 0.46; }
     to { opacity: 0.68; }
   }
 
-  @keyframes rooftop-blanket {
+@keyframes rooftop-blanket {
     from { transform: rotate(-1.1deg); }
     to { transform: rotate(1.6deg); }
   }
 
-  .rooftop-bulb {
+:root[data-motion="on"] .rooftop-bulb {
     animation: rooftop-breathe var(--d) var(--delay) ease-in-out infinite alternate;
   }
 
-  .rooftop-leaf {
+:root[data-motion="on"] .rooftop-leaf {
     animation: rooftop-sway var(--d) var(--delay) ease-in-out infinite alternate;
   }
 
-  .rooftop-cloud {
+:root[data-motion="on"] .rooftop-cloud {
     animation: rooftop-drift var(--d) ease-in-out infinite alternate;
   }
 
-  .rooftop-window-lit {
+:root[data-motion="on"] .rooftop-window-lit {
     animation: rooftop-window-shift var(--d) var(--delay) ease-in-out infinite;
   }
 
-  .rooftop-lampglow {
+:root[data-motion="on"] .rooftop-lampglow {
     animation: rooftop-lamp-pulse 7.5s ease-in-out infinite alternate;
   }
 
-  .rooftop-blanket-corner {
+:root[data-motion="on"] .rooftop-blanket-corner {
     animation: rooftop-blanket 9.5s ease-in-out infinite alternate;
   }
-}

@@ -9,6 +9,7 @@ import { useDiary } from '@/store/DiaryContext';
 import { OnThisDayNotifier } from '../widgets/OnThisDayNotifier';
 import { ThemeScene } from '../themes/ThemeScene';
 import { themeById } from '@/lib/themes';
+import { applyMotion, getMotionPreference } from '@/lib/motion';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { data, isHydrated } = useDiary();
@@ -33,6 +34,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       // Private mode or blocked storage: the theme still applies this visit.
     }
   }, [isHydrated, theme.id]);
+
+  // Keep the resolved motion answer in step with the device. Someone who
+  // turns their OS animation setting off while the app is open should see
+  // the scenery settle, without reloading.
+  React.useEffect(() => {
+    applyMotion(getMotionPreference());
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onChange = () => applyMotion(getMotionPreference());
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   // The diary and "today" only exist in the browser: the server render uses seed data and a
   // fixed demo date, so rendering the shell before hydration caused text mismatches on every page.

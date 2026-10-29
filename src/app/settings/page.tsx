@@ -30,6 +30,12 @@ import { SecureImage } from '@/components/ui/SecureImage';
 import { getAppearance, setAppearance, type Appearance } from '@/lib/appearance';
 import { getPalette, setPalette, PALETTES, type Palette } from '@/lib/palette';
 import { ThemeSelector } from '@/components/themes/ThemeSelector';
+import {
+  MOTION_OPTIONS,
+  getMotionPreference,
+  setMotionPreference,
+  type MotionPreference,
+} from '@/lib/motion';
 import type { ThemeId } from '@/lib/themes';
 
 export default function SettingsPage() {
@@ -48,11 +54,13 @@ export default function SettingsPage() {
 
   const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
   const [appearance, setAppearanceState] = useState<Appearance>('light');
+  const [motion, setMotionState] = useState<MotionPreference>('system');
   const [palette, setPaletteState] = useState<Palette>('rose');
 
   useEffect(() => {
     setPushPermission(getNotificationPermission());
     setAppearanceState(getAppearance());
+    setMotionState(getMotionPreference());
     setPaletteState(getPalette());
   }, []);
 
@@ -430,6 +438,39 @@ export default function SettingsPage() {
                 }`}
               >
                 {option}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Background motion — per-device, applied instantly */}
+        <div className="rounded-3xl bg-white border border-line p-6 shadow-sm">
+          <h3 className="font-extrabold text-base text-slate-900 mb-1">Background motion</h3>
+          <p className="text-xs text-slate-500 mb-4">
+            Whether the scenery behind your diary moves — the grass, the water, the
+            lanterns. Only applies to the six environments. Saved on this device only.
+          </p>
+          <div role="radiogroup" aria-label="Background motion" className="grid sm:grid-cols-3 gap-2">
+            {MOTION_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                role="radio"
+                aria-checked={motion === option.id}
+                onClick={() => {
+                  setMotionPreference(option.id);
+                  setMotionState(option.id);
+                }}
+                className={`p-3 rounded-2xl border text-left transition-colors ${
+                  motion === option.id
+                    ? 'border-primary ring-2 ring-primary/30 bg-purple-50'
+                    : 'border-line hover:border-purple-300 bg-surface'
+                }`}
+              >
+                <span className="block text-xs font-semibold text-ink">{option.name}</span>
+                <span className="mt-0.5 block text-[11px] leading-snug text-ink-muted">
+                  {option.description}
+                </span>
               </button>
             ))}
           </div>
