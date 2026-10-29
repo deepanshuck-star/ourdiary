@@ -74,9 +74,17 @@ function readThemeColors(): ThemeColors {
   const css = getComputedStyle(root);
   const get = (name: string, fb: string) => css.getPropertyValue(name).trim() || fb;
   const appearance = root.dataset.appearance;
+  // An immersive theme declares its own color-scheme, and most of them are
+  // night scenes. Without this, picking Moonlit Garden while the device is in
+  // light mode left the 3D journey lighting the model for daylight against a
+  // midnight sky.
+  const themeScheme = css.getPropertyValue('color-scheme').trim();
   const dark =
-    appearance === 'dark' ||
-    (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    themeScheme === 'dark' ||
+    (themeScheme !== 'light' &&
+      (appearance === 'dark' ||
+        (appearance === 'system' &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches)));
   const value: ThemeColors = {
     primary: get('--color-primary', LIGHT_FALLBACK.primary),
     secondary: get('--color-secondary', LIGHT_FALLBACK.secondary),

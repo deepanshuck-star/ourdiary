@@ -1,0 +1,159 @@
+/* Starlit Rooftop Date — scene styles.
+ *
+ * Contract notes:
+ * - Every `animation` declaration (and every @keyframes block) lives inside the
+ *   `prefers-reduced-motion: no-preference` query. The reduced-motion fallback is
+ *   therefore the plain cascade below, which is authored to be a finished picture
+ *   rather than a frozen frame. Resting opacities and transforms are the values
+ *   each keyframe set starts from.
+ * - Only transform/opacity/filter are animated; nothing here can trigger layout.
+ * - Per-element timing arrives as --d / --delay custom properties set inline from a
+ *   module-scope table in the component, so no value is generated at render time.
+ */
+
+/* Shared shell for every theme scene. Identical copies in sibling theme files are
+   intentional: each scene file is self-contained and imported by its own component. */
+.ourdiary-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* The sky is a CSS gradient rather than SVG geometry so it always fills the viewport
+   regardless of how the SVG layers above it crop. */
+.scene-rooftop {
+  background: linear-gradient(
+    to bottom,
+    var(--scene-sky) 0%,
+    var(--scene-sky) 30%,
+    color-mix(in srgb, var(--scene-sky) 55%, var(--scene-sky-low)) 62%,
+    var(--scene-sky-low) 88%,
+    var(--scene-sky-low) 100%
+  );
+}
+
+/* Main plate: anchored to the bottom edge so the rooftop and skyline survive the crop
+   on short/wide viewports; the sky gradient behind covers whatever is cut from the top. */
+.rooftop-stage {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The garland is a separate top-anchored plate. If it lived in the main viewBox it would
+   be the first thing cropped away on a wide desktop viewport, and the brief requires it
+   to stay visible everywhere. Height scales with viewport width so that `slice` never
+   eats the lowest point of the swag (y=86 + bulb glow in a 220-unit box). */
+.rooftop-garland {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: clamp(100px, 11vw, 280px);
+}
+
+/* --- Resting appearance (also the complete reduced-motion picture) --- */
+
+.rooftop-star { opacity: 0.55; }
+
+.rooftop-cloud {
+  opacity: 0.45;
+  /* Clouds are the only long-running transform in the scene; promoting just these
+     three keeps the compositor layer count low. */
+  will-change: transform;
+}
+
+.rooftop-window { opacity: 0.42; }
+
+/* Windows that change are parked mid-cycle so the static frame still reads as a city
+   with a mix of brightnesses rather than a uniform grid. */
+.rooftop-window-lit { opacity: 0.6; }
+
+/* One shared drop-shadow for the whole strand instead of a filter per bulb. */
+.rooftop-bulbs {
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--scene-glow) 65%, transparent));
+}
+
+.rooftop-bulb { opacity: 0.88; }
+
+.rooftop-lampglow { opacity: 0.55; }
+
+/* Leaves pivot at the base of the blade: fill-box makes each path's own bounding box
+   the reference, so one rule serves blades pointing in different directions. */
+.rooftop-leaf {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+/* The blanket corner hangs from the chair back, so it swings from its top edge. */
+.rooftop-blanket-corner {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Each bulb gets its own duration and a negative delay, so the strand is already
+     mid-breath on first paint and no two bulbs share a phase. */
+  @keyframes rooftop-breathe {
+    from { opacity: 0.55; }
+    to { opacity: 1; }
+  }
+
+  @keyframes rooftop-sway {
+    from { transform: rotate(-2.4deg); }
+    to { transform: rotate(2.4deg); }
+  }
+
+  @keyframes rooftop-drift {
+    from { transform: translateX(-26px); }
+    to { transform: translateX(26px); }
+  }
+
+  /* Long, mostly-flat cycle: a window sits at its resting value for the bulk of the
+     period and only drifts near the end, which reads as "someone turned a lamp on"
+     rather than a blinking skyline. */
+  @keyframes rooftop-window-shift {
+    0%, 46% { opacity: 0.6; }
+    58%, 88% { opacity: 0.16; }
+    100% { opacity: 0.6; }
+  }
+
+  @keyframes rooftop-lamp-pulse {
+    from { opacity: 0.46; }
+    to { opacity: 0.68; }
+  }
+
+  @keyframes rooftop-blanket {
+    from { transform: rotate(-1.1deg); }
+    to { transform: rotate(1.6deg); }
+  }
+
+  .rooftop-bulb {
+    animation: rooftop-breathe var(--d) var(--delay) ease-in-out infinite alternate;
+  }
+
+  .rooftop-leaf {
+    animation: rooftop-sway var(--d) var(--delay) ease-in-out infinite alternate;
+  }
+
+  .rooftop-cloud {
+    animation: rooftop-drift var(--d) ease-in-out infinite alternate;
+  }
+
+  .rooftop-window-lit {
+    animation: rooftop-window-shift var(--d) var(--delay) ease-in-out infinite;
+  }
+
+  .rooftop-lampglow {
+    animation: rooftop-lamp-pulse 7.5s ease-in-out infinite alternate;
+  }
+
+  .rooftop-blanket-corner {
+    animation: rooftop-blanket 9.5s ease-in-out infinite alternate;
+  }
+}

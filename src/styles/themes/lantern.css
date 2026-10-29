@@ -1,0 +1,313 @@
+/*
+ * Lantern Festival Night — lakeside garden at dusk.
+ *
+ * Layout model: the scene is split into viewport-percentage bands rather than
+ * one full-bleed SVG. A single `slice` SVG stretched over the whole viewport
+ * crops to roughly its middle third at 360px wide, which would throw away the
+ * left/right edges — exactly where the lanterns have to live. So only the
+ * treeline (a band whose horizontal detail repeats and crops harmlessly) is
+ * SVG; sky, water, clouds, lanterns and reflections are percentage-positioned
+ * divs, which keeps them pinned to the viewport edges and to the waterline at
+ * every width.
+ */
+
+/* Shared by every theme scene. Duplicated per theme file by design — the
+ * definitions are identical, so last-loaded wins with no visual difference. */
+.ourdiary-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.scene-lantern {
+  /* Single source of truth for the waterline: the treeline band sits on it and
+   * the reflections hang from it, so they can never drift apart. */
+  --horizon: 58%;
+  background: var(--scene-sky);
+}
+
+/* ---------------------------------------------------------------- sky ---- */
+
+.lantern-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--scene-sky) 0%,
+    var(--scene-sky) 30%,
+    var(--scene-sky-low) var(--horizon)
+  );
+}
+
+/* ------------------------------------------------------------- clouds ---- */
+
+/* Radial gradients instead of blurred SVG shapes: soft edges for free, with no
+ * filter region to rasterise on low-end phones. */
+.lantern-cloud {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side ellipse,
+    var(--scene-sky-low) 0%,
+    transparent 100%
+  );
+  opacity: 0.4;
+}
+
+.lantern-cloud-low {
+  background: radial-gradient(
+    closest-side ellipse,
+    var(--scene-far) 0%,
+    transparent 100%
+  );
+  opacity: 0.55;
+}
+
+/* ----------------------------------------------------------- treeline ---- */
+
+.lantern-treeline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* Baseline of the silhouette lands exactly on the waterline. */
+  bottom: calc(100% - var(--horizon));
+  height: 13%;
+  display: block;
+}
+
+/* -------------------------------------------------------------- water ---- */
+
+.lantern-water {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: var(--horizon);
+  background: linear-gradient(
+    to bottom,
+    var(--scene-sky-low) 0%,
+    var(--scene-mid) 18%,
+    var(--scene-near) 72%,
+    var(--scene-near) 100%
+  );
+}
+
+.lantern-ripple {
+  position: absolute;
+  height: 2px;
+  border-radius: 50%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--scene-particle) 50%,
+    transparent 100%
+  );
+  opacity: 0.1;
+}
+
+/* ------------------------------------------------- lanterns + mirrors ---- */
+
+/* The lights are the only bright thing in a dark scene, so they get their own
+ * layer: at phone width the lanterns unavoidably sit behind app content, and
+ * dimming one wrapper keeps the text legible without touching the keyframes. */
+.lantern-lights {
+  position: absolute;
+  inset: 0;
+}
+
+.lantern-reflection {
+  position: absolute;
+  top: calc(var(--horizon) + 1%);
+  left: var(--x);
+  width: calc(var(--size) * 22px);
+  height: calc(var(--size) * 180px);
+  margin-left: calc(var(--size) * -3px);
+  /* Anchored at the waterline so the shimmer stretches downward, the way a
+   * reflection smears across moving water. */
+  transform-origin: top center;
+  border-radius: 46% 46% 50% 50% / 6% 6% 94% 94%;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--scene-glow) 34%, transparent) 0%,
+    color-mix(in srgb, var(--scene-glow) 14%, transparent) 42%,
+    transparent 100%
+  );
+  opacity: 0.62;
+}
+
+.lantern {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  /* Only the seven risers get a layer hint; everything else is cheap enough. */
+  will-change: transform;
+}
+
+.lantern-drift {
+  position: relative;
+  width: calc(var(--size) * 18px);
+  height: calc(var(--size) * 24px);
+}
+
+.lantern-halo {
+  position: absolute;
+  /* inset + auto margins centre the halo on the body without spending the
+   * transform, which the flicker animation needs. */
+  inset: 0;
+  margin: auto;
+  width: calc(var(--size) * 120px);
+  height: calc(var(--size) * 120px);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle closest-side,
+    color-mix(in srgb, var(--scene-glow) 30%, transparent) 0%,
+    color-mix(in srgb, var(--scene-glow) 11%, transparent) 42%,
+    transparent 100%
+  );
+  opacity: 0.88;
+}
+
+.lantern-body {
+  position: absolute;
+  inset: 0;
+  border-radius: 46% 46% 44% 44% / 40% 40% 52% 52%;
+  /* Hot candle core, warm paper, edge fading to the sky — keeps the glow
+   * reading as light rather than a flat blown-out disc. */
+  background: radial-gradient(
+    58% 52% at 50% 64%,
+    var(--scene-particle) 0%,
+    var(--scene-glow) 52%,
+    color-mix(in srgb, var(--scene-glow) 45%, transparent) 100%
+  );
+}
+
+/* Phone width: app content spans nearly the full viewport, so the edges are no
+ * longer "out of the way". Pull the lights back rather than move them. */
+@media (max-width: 640px) {
+  .lantern-lights {
+    opacity: 0.66;
+  }
+}
+
+/* ------------------------------------------------------------- motion ---- */
+
+/*
+ * Every animation in this file lives inside this block. With reduced motion
+ * preferred, nothing below applies and the scene renders as a finished still:
+ * lanterns rest at their authored positions, halos at full opacity, reflections
+ * at rest beneath them. The global reduce-override in globals.css is a safety
+ * net, not the mechanism.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .lantern-cloud {
+    animation: lantern-drift var(--dur) ease-in-out var(--delay) infinite;
+  }
+
+  .lantern-ripple {
+    animation: lantern-ripple var(--dur) ease-in-out var(--delay) infinite;
+  }
+
+  .lantern-reflection {
+    animation: lantern-shimmer var(--dur) ease-in-out var(--delay) infinite;
+  }
+
+  .lantern {
+    /* Linear: a paper lantern has no acceleration worth seeing over a minute. */
+    animation: lantern-rise var(--dur) linear var(--delay) infinite;
+  }
+
+  .lantern-drift {
+    animation: lantern-sway var(--sway) ease-in-out var(--sway-delay) infinite;
+  }
+
+  .lantern-halo {
+    animation: lantern-flicker var(--flicker) ease-in-out var(--flicker-delay)
+      infinite;
+  }
+
+  @keyframes lantern-drift {
+    0%,
+    100% {
+      transform: translate3d(calc(var(--amp) * -1), 0, 0);
+    }
+    50% {
+      transform: translate3d(var(--amp), 0, 0);
+    }
+  }
+
+  @keyframes lantern-ripple {
+    0%,
+    100% {
+      transform: translate3d(calc(var(--amp) * -1), 0, 0) scaleX(1);
+    }
+    50% {
+      transform: translate3d(var(--amp), 0, 0) scaleX(1.05);
+    }
+  }
+
+  @keyframes lantern-shimmer {
+    0%,
+    100% {
+      transform: scaleY(1) scaleX(1);
+      opacity: 0.6;
+    }
+    34% {
+      transform: scaleY(1.07) scaleX(0.93);
+      opacity: 0.76;
+    }
+    67% {
+      transform: scaleY(0.95) scaleX(1.06);
+      opacity: 0.52;
+    }
+  }
+
+  /*
+   * Rise and fade. The lantern is fully out before the top of its travel, which
+   * is what keeps a bright object from parking over the dashboard: combined
+   * with edge-only x positions, nothing lit ever crosses the centre.
+   */
+  @keyframes lantern-rise {
+    0% {
+      transform: translate3d(0, 0, 0);
+      opacity: 0;
+    }
+    14% {
+      opacity: 1;
+    }
+    70% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate3d(0, calc(var(--rise) * -1vh), 0);
+      opacity: 0;
+    }
+  }
+
+  @keyframes lantern-sway {
+    0%,
+    100% {
+      transform: translate3d(calc(var(--size) * -5px), 0, 0);
+    }
+    50% {
+      transform: translate3d(calc(var(--size) * 5px), 0, 0);
+    }
+  }
+
+  @keyframes lantern-flicker {
+    0%,
+    100% {
+      opacity: 0.8;
+      transform: scale(1);
+    }
+    38% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    64% {
+      opacity: 0.7;
+      transform: scale(0.97);
+    }
+  }
+}

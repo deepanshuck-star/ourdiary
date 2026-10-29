@@ -1,5 +1,15 @@
 import type { Metadata, Viewport } from 'next';
-import { Playfair_Display, DM_Sans, Fraunces, Plus_Jakarta_Sans } from 'next/font/google';
+import {
+  Playfair_Display,
+  DM_Sans,
+  Fraunces,
+  Plus_Jakarta_Sans,
+  Cormorant_Garamond,
+  DM_Serif_Display,
+  Manrope,
+  Nunito_Sans,
+  Inter,
+} from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers/Providers';
 
@@ -32,9 +42,53 @@ const peachBodyFont = Plus_Jakarta_Sans({
   display: 'swap',
 });
 
-// Applies the saved appearance (light / dark / system) and palette (rose / peach)
-// before first paint so there is no flash of the other look.
-const preferencesScript = `try{var d=document.documentElement,a=localStorage.getItem('ourdiary-appearance');d.dataset.appearance=a==='dark'||a==='system'?a:'light';var p=localStorage.getItem('ourdiary-palette')==='peach'?'peach':'rose';d.dataset.palette=p;var c=p==='peach'?['#FFF8F3','#1C130E']:['#FFF7FA','#1A1015'];[['light',c[0]],['dark',c[1]]].forEach(function(e){var m=document.createElement('meta');m.name='theme-color';m.media='(prefers-color-scheme: '+e[0]+')';m.content=e[1];document.head.appendChild(m)})}catch(e){}`;
+// The immersive themes bring their own typography, so these five faces exist
+// only for them. preload is off deliberately: preloading would fetch all five
+// on every page for every visitor, when any one couple ever sees two. Nothing
+// references a variable unless that theme is active, so the browser fetches
+// the pair it needs and skips the rest.
+const cormorantFont = Cormorant_Garamond({
+  variable: '--font-cormorant',
+  subsets: ['latin'],
+  weight: ['400', '600'],
+  display: 'swap',
+  preload: false,
+});
+
+const dmSerifFont = DM_Serif_Display({
+  variable: '--font-dm-serif',
+  subsets: ['latin'],
+  weight: '400',
+  display: 'swap',
+  preload: false,
+});
+
+const manropeFont = Manrope({
+  variable: '--font-manrope',
+  subsets: ['latin'],
+  display: 'swap',
+  preload: false,
+});
+
+const nunitoFont = Nunito_Sans({
+  variable: '--font-nunito',
+  subsets: ['latin'],
+  display: 'swap',
+  preload: false,
+});
+
+const interFont = Inter({
+  variable: '--font-inter',
+  subsets: ['latin'],
+  display: 'swap',
+  preload: false,
+});
+
+// Applies the saved appearance (light / dark / system), palette (rose / peach) and
+// couple theme before first paint so there is no flash of the other look. The theme
+// is mirrored to localStorage by AppShell; the couple row stays the source of truth,
+// this is only the cache that avoids a flash while that row loads.
+const preferencesScript = `try{var d=document.documentElement,a=localStorage.getItem('ourdiary-appearance');d.dataset.appearance=a==='dark'||a==='system'?a:'light';var p=localStorage.getItem('ourdiary-palette')==='peach'?'peach':'rose';d.dataset.palette=p;var t=localStorage.getItem('ourdiary-theme');if(t&&/^[a-z]+$/.test(t))d.dataset.theme=t;var c=p==='peach'?['#FFF8F3','#1C130E']:['#FFF7FA','#1A1015'];[['light',c[0]],['dark',c[1]]].forEach(function(e){var m=document.createElement('meta');m.name='theme-color';m.media='(prefers-color-scheme: '+e[0]+')';m.content=e[1];document.head.appendChild(m)})}catch(e){}`;
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ourdiary.app';
 
@@ -130,7 +184,7 @@ export default function RootLayout({
       data-appearance="light"
       data-palette="rose"
       suppressHydrationWarning
-      className={`${roseDisplayFont.variable} ${roseBodyFont.variable} ${peachDisplayFont.variable} ${peachBodyFont.variable} h-full antialiased`}
+      className={`${roseDisplayFont.variable} ${roseBodyFont.variable} ${peachDisplayFont.variable} ${peachBodyFont.variable} ${cormorantFont.variable} ${dmSerifFont.variable} ${manropeFont.variable} ${nunitoFont.variable} ${interFont.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: preferencesScript }} />

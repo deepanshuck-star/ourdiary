@@ -1,0 +1,212 @@
+/*
+ * Enchanted Forest of Memories — styles for <ForestScene />.
+ *
+ * Two rules shape this file:
+ *
+ * 1. No colour literals. Every paint resolves to one of the --scene-* tokens
+ *    defined per theme in globals.css, so the scene follows the token set it
+ *    is rendered under instead of pinning its own palette.
+ * 2. Every `animation` declaration lives in the single
+ *    `prefers-reduced-motion: no-preference` block at the bottom. The global
+ *    reduce override in globals.css only shortens animations; a scene that
+ *    builds its composition out of motion would still be wrong there, so this
+ *    file never starts an animation that reduced motion has to undo. The
+ *    resting values (halo opacity, firefly opacity, element positions) are the
+ *    static picture, and the keyframes only depart from them.
+ */
+
+/* Shared by every theme scene. Duplicated verbatim in each theme stylesheet so
+   a scene never depends on a sibling theme's file being loaded. */
+.ourdiary-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.scene-forest {
+  /* The SVG layers cover the viewport; this only guards the first paint and
+     any sub-pixel seam at the edges from flashing the page background. */
+  background-color: var(--scene-sky);
+}
+
+/* === layout ============================================================== */
+
+.fr-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* The framing trunks are separate SVGs pinned to the viewport edges rather
+   than drawn into the backdrop's viewBox. With `slice`, a 360px-wide viewport
+   keeps only the middle ~360 user units of a 1200-unit composition, so trunks
+   drawn at its left and right edges would be cropped away exactly where they
+   are needed most. Each frame therefore crops from its own outer edge
+   (xMin / xMax) so the trunk stays against the screen edge at any width. */
+.fr-frame {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: clamp(92px, 17vw, 232px);
+  display: block;
+}
+.fr-frame-left { left: 0; }
+.fr-frame-right { right: 0; }
+
+/* === palette ============================================================= */
+
+.fr-sky { fill: url(#fr-sky-grad); }
+.fr-sky-0 { stop-color: var(--scene-sky); }
+.fr-sky-1 { stop-color: var(--scene-sky); }
+.fr-sky-2 { stop-color: var(--scene-sky-low); }
+
+/* The clearing behind the cottage. A wide, weak pool of the moss-lit tone is
+   what makes the middle of the frame read as depth rather than as a flat wall
+   of trees, and it is also what the cottage silhouette sits against. */
+.fr-clearing { fill: url(#fr-clearing-grad); }
+.fr-clearing-0 { stop-color: var(--scene-sky-low); stop-opacity: 0.55; }
+.fr-clearing-1 { stop-color: var(--scene-sky-low); stop-opacity: 0.16; }
+.fr-clearing-2 { stop-color: var(--scene-sky-low); stop-opacity: 0; }
+
+.fr-halo-0 { stop-color: var(--scene-glow); stop-opacity: 0.5; }
+.fr-halo-1 { stop-color: var(--scene-glow); stop-opacity: 0.17; }
+.fr-halo-2 { stop-color: var(--scene-glow); stop-opacity: 0; }
+
+.fr-far { fill: var(--scene-far); }
+.fr-canopy { fill: var(--scene-mid); opacity: 0.85; }
+.fr-mid { fill: var(--scene-mid); }
+.fr-near { fill: var(--scene-near); }
+
+/* Floor lightens toward the horizon, which separates the clearing from the
+   trunks standing on it without needing an outline. */
+.fr-ground { fill: url(#fr-ground-grad); }
+.fr-ground-0 { stop-color: var(--scene-far); }
+.fr-ground-1 { stop-color: var(--scene-near); }
+
+.fr-trail { fill: url(#fr-trail-grad); }
+.fr-trail-0 { stop-color: var(--scene-sky-low); stop-opacity: 0.2; }
+.fr-trail-1 { stop-color: var(--scene-sky-low); stop-opacity: 0.5; }
+
+.fr-brook { fill: var(--scene-sky-low); opacity: 0.18; }
+.fr-moss { fill: var(--scene-sky-low); opacity: 0.16; }
+
+.fr-frond {
+  fill: none;
+  stroke: var(--scene-near);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+}
+.fr-branch { fill: none; stroke: var(--scene-near); stroke-linecap: round; }
+.fr-leaf { fill: var(--scene-near); }
+
+.fr-deck { fill: var(--scene-near); }
+.fr-rail { fill: none; stroke: var(--scene-near); stroke-width: 6; stroke-linecap: round; }
+.fr-post { stroke: var(--scene-near); stroke-width: 5; stroke-linecap: round; }
+.fr-plank { stroke: var(--scene-sky-low); stroke-opacity: 0.22; stroke-width: 2; }
+
+/* Lanterns and the cottage window are the only warm elements in a dark scene,
+   so they carry full-strength glow with a soft halo behind them. */
+.fr-halo { fill: url(#fr-halo-grad); opacity: 0.55; }
+.fr-hook { stroke: var(--scene-near); stroke-width: 2; }
+.fr-lantern-body { fill: var(--scene-glow); fill-opacity: 0.8; }
+.fr-lantern-cap { fill: none; stroke: var(--scene-near); stroke-width: 3; stroke-linecap: round; }
+.fr-lantern-core { fill: var(--scene-glow); }
+.fr-window { fill: var(--scene-glow); }
+.fr-door { fill: var(--scene-glow); fill-opacity: 0.35; }
+.fr-firefly { fill: var(--scene-particle); opacity: 0.5; }
+
+/* === motion pivots ======================================================= */
+
+/* Static geometry, so it stays outside the motion query. `fill-box` makes each
+   element pivot on its own bounding box; without it an SVG rotation would
+   swing around the viewBox origin and throw the element across the scene. */
+.fr-frond,
+.fr-leaf,
+.fr-halo {
+  transform-box: fill-box;
+}
+.fr-frond { transform-origin: 50% 100%; }   /* ferns bend from the root */
+.fr-leaf { transform-origin: 50% 8%; }      /* clusters hang from the branch */
+.fr-halo { transform-origin: 50% 50%; }
+
+/* === motion ==============================================================
+ * Everything below is opt-in: with reduced motion the scene renders as the
+ * static picture above. Only transform and opacity are animated.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  /* Parallax. A few user units of horizontal drift, slowest at the back — the
+     intent is that it reads as air moving, not as a panning camera. */
+  .fr-drift-far,
+  .fr-drift-mid,
+  .fr-drift-near {
+    animation: fr-drift var(--dur, 30s) ease-in-out infinite alternate;
+  }
+
+  /* Promotion is only worth its memory while something actually moves, so the
+     hint lives in here and only on the two large groups that translate. */
+  .fr-drift-mid,
+  .fr-drift-near {
+    will-change: transform;
+  }
+
+  /* Ferns and leaf clusters share the keyframes and differ by --dur/--delay
+     per instance. Negative delays start each one part-way through its cycle,
+     which is what stops the undergrowth breathing in unison. */
+  .fr-frond,
+  .fr-leaf {
+    animation: fr-sway var(--dur, 10s) ease-in-out var(--delay, 0s) infinite alternate;
+  }
+
+  .fr-halo {
+    animation: fr-halo var(--dur, 7s) ease-in-out var(--delay, 0s) infinite alternate;
+  }
+
+  .fr-lantern-core,
+  .fr-window {
+    animation: fr-ember var(--dur, 9s) ease-in-out var(--delay, 0s) infinite alternate;
+  }
+
+  /* Non-alternating, because a firefly should not retrace its path. Both ends
+     of the cycle sit at opacity 0, which hides the jump back to the start. */
+  .fr-firefly {
+    animation: fr-firefly var(--dur, 26s) linear var(--delay, 0s) infinite;
+  }
+
+  @keyframes fr-drift {
+    from { transform: translate3d(calc(var(--drift, 3) * -1px), 0, 0); }
+    to { transform: translate3d(calc(var(--drift, 3) * 1px), 0, 0); }
+  }
+
+  @keyframes fr-sway {
+    from { transform: rotate(calc(var(--tilt, 1.4) * -1deg)); }
+    to { transform: rotate(calc(var(--tilt, 1.4) * 1deg)); }
+  }
+
+  @keyframes fr-halo {
+    from { opacity: 0.38; transform: scale(0.93); }
+    to { opacity: 0.72; transform: scale(1.07); }
+  }
+
+  @keyframes fr-ember {
+    from { opacity: 0.72; }
+    to { opacity: 1; }
+  }
+
+  @keyframes fr-firefly {
+    0% { transform: translate(0, 0); opacity: 0; }
+    15% { opacity: 0.6; }
+    50% {
+      transform: translate(calc(var(--dx, 14) * 1px), calc(var(--dy, -22) * 1px));
+      opacity: 0.35;
+    }
+    85% { opacity: 0.55; }
+    100% {
+      transform: translate(calc(var(--dx, 14) * -0.4px), calc(var(--dy, -22) * 2px));
+      opacity: 0;
+    }
+  }
+}

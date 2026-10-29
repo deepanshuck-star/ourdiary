@@ -1,3 +1,6 @@
+// ThemeId lives in lib/themes so the theme data stays import-free and testable.
+import type { ThemeId } from '@/lib/themes';
+
 export type ProfileId = 'user_1' | 'user_2';
 
 export interface DemoProfile {
@@ -16,7 +19,7 @@ export interface Couple {
   user2: DemoProfile;
   startDate: string; // YYYY-MM-DD
   anniversaryDate: string; // YYYY-MM-DD
-  theme: 'candy' | 'sunset' | 'lavender' | 'mint';
+  theme: ThemeId;
   animationsEnabled: boolean;
   inviteCode?: string;
   isLocked?: boolean;

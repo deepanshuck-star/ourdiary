@@ -29,6 +29,8 @@ import { packEncryptedUrl, uploadEncryptedImage } from '@/lib/cloudinary/upload'
 import { SecureImage } from '@/components/ui/SecureImage';
 import { getAppearance, setAppearance, type Appearance } from '@/lib/appearance';
 import { getPalette, setPalette, PALETTES, type Palette } from '@/lib/palette';
+import { ThemeSelector } from '@/components/themes/ThemeSelector';
+import type { ThemeId } from '@/lib/themes';
 
 export default function SettingsPage() {
   const {
@@ -80,7 +82,7 @@ export default function SettingsPage() {
   const [coupleName, setCoupleName] = useState(data.couple.name);
   const [startDate, setStartDate] = useState(data.couple.startDate);
   const [anniversaryDate, setAnniversaryDate] = useState(data.couple.anniversaryDate);
-  const [theme, setTheme] = useState(data.couple.theme);
+  const [theme, setTheme] = useState<ThemeId>(data.couple.theme);
   const [animationsEnabled, setAnimationsEnabled] = useState(data.couple.animationsEnabled);
   const [notificationPreviews, setNotificationPreviews] = useState(
     data.couple.notificationPreviews === true
@@ -345,35 +347,9 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Couple theme — tints the header gradient within the chosen palette */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                Header tint
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { id: 'candy', name: 'Classic' },
-                  { id: 'sunset', name: 'Dusk' },
-                  { id: 'lavender', name: 'Soft' },
-                  { id: 'mint', name: 'Deep' },
-                ].map((th) => (
-                  <button
-                    key={th.id}
-                    type="button"
-                    aria-pressed={theme === th.id}
-                    onClick={() => setTheme(th.id as any)}
-                    className={`p-3 rounded-2xl border text-left transition-colors ${
-                      theme === th.id
-                        ? 'border-primary ring-2 ring-primary/30 bg-purple-50'
-                        : 'border-line hover:border-purple-300 bg-surface'
-                    }`}
-                  >
-                    <div data-theme={th.id} className="h-8 rounded-full bg-hero mb-2" />
-                    <span className="text-xs font-semibold text-ink">{th.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Couple theme — the environment, palette and typography. Stored on
+                the couple row, so both partners see the same world. */}
+            <ThemeSelector value={theme} onChange={setTheme} />
 
             <div className="flex items-center justify-between pt-2">
               <label className="flex items-center gap-2 cursor-pointer">

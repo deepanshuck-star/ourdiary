@@ -1,0 +1,317 @@
+/* Moonlit Lovers' Garden — background scene for [data-theme="moonlit"].
+   Every colour here comes from the --scene-* tokens in globals.css, which are
+   redefined per theme; nothing in this file hardcodes a colour value. */
+
+/* Shared shell for all theme scenes. Each theme stylesheet repeats this block
+   verbatim so a scene can be loaded on its own; the declarations are identical. */
+.ourdiary-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.scene-moonlit {
+  /* Matches the top of the sky gradient so there is no flash before the SVG
+     paints, and no seam if the viewport ever out-runs the slice. */
+  background: var(--scene-sky);
+}
+
+.scene-moonlit svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- sky ------------------------------------------------------------------ */
+
+.scene-moonlit .od-sky {
+  fill: url(#od-moonlit-sky);
+}
+.scene-moonlit .od-sky-0 {
+  stop-color: var(--scene-sky);
+}
+.scene-moonlit .od-sky-1 {
+  stop-color: color-mix(in srgb, var(--scene-sky) 55%, var(--scene-sky-low));
+}
+.scene-moonlit .od-sky-2 {
+  stop-color: var(--scene-sky-low);
+}
+
+.scene-moonlit .od-star {
+  fill: var(--scene-glow);
+  opacity: var(--o, 0.5);
+}
+
+/* --- moon ----------------------------------------------------------------- */
+
+.scene-moonlit .od-moon {
+  fill: var(--scene-glow);
+}
+
+/* Craters are the moon colour pulled a little toward the far-mountain blue, so
+   they stay legible without turning grey. */
+.scene-moonlit .od-mare {
+  fill: color-mix(in srgb, var(--scene-glow) 88%, var(--scene-far));
+  opacity: 0.55;
+}
+
+.scene-moonlit .od-moon-halo {
+  fill: url(#od-moonlit-halo);
+}
+/* --halo-o is the resting opacity and the ceiling the pulse works up to, so the
+   outer halo stays the fainter of the two whether or not it animates. */
+.scene-moonlit .od-moon-halo {
+  opacity: var(--halo-o, 1);
+}
+.scene-moonlit .od-halo-0 {
+  stop-color: color-mix(in srgb, var(--scene-glow) 38%, transparent);
+}
+.scene-moonlit .od-halo-1 {
+  stop-color: color-mix(in srgb, var(--scene-glow) 14%, transparent);
+}
+.scene-moonlit .od-halo-2 {
+  stop-color: color-mix(in srgb, var(--scene-glow) 0%, transparent);
+}
+
+.scene-moonlit .od-horizon-glow {
+  fill: url(#od-moonlit-halo);
+  opacity: 0.5;
+}
+
+/* --- clouds --------------------------------------------------------------- */
+
+/* Cloud colour is set on the element inside <defs> and, identically, on the
+   band that instantiates it: a <use> clone takes the referenced element's own
+   style when it has one and inherits from the <use> otherwise. */
+.scene-moonlit .od-puff,
+.scene-moonlit .od-cloud-band {
+  fill: color-mix(in srgb, var(--scene-glow) 12%, transparent);
+}
+.scene-moonlit .od-cloud-far {
+  opacity: 0.5;
+}
+.scene-moonlit .od-cloud-near {
+  opacity: 0.75;
+}
+
+/* --- land ----------------------------------------------------------------- */
+
+.scene-moonlit .od-far {
+  fill: var(--scene-far);
+}
+.scene-moonlit .od-mid {
+  fill: var(--scene-mid);
+}
+.scene-moonlit .od-near {
+  fill: var(--scene-near);
+}
+.scene-moonlit .od-figure {
+  fill: var(--scene-near);
+}
+
+/* --- garden --------------------------------------------------------------- */
+
+/* Grass sits in front of the near hill, which shares its token, so the blades
+   are lifted a few percent toward the moonlight to keep a readable silhouette. */
+.scene-moonlit .od-blade {
+  fill: color-mix(in srgb, var(--scene-near) 82%, var(--scene-glow));
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.scene-moonlit .od-flower {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.scene-moonlit .od-stem {
+  fill: none;
+  stroke: color-mix(in srgb, var(--scene-near) 70%, var(--scene-glow));
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.scene-moonlit .od-leaf {
+  fill: color-mix(in srgb, var(--scene-near) 72%, var(--scene-glow));
+}
+.scene-moonlit .od-petal {
+  fill: color-mix(in srgb, var(--scene-glow) 62%, transparent);
+}
+.scene-moonlit .od-core {
+  fill: color-mix(in srgb, var(--scene-particle) 85%, transparent);
+}
+
+.scene-moonlit .od-firefly {
+  fill: url(#od-moonlit-spark);
+  /* Resting state, which is also the reduced-motion state. */
+  opacity: 0.8;
+}
+.scene-moonlit .od-spark-0 {
+  stop-color: var(--scene-particle);
+}
+.scene-moonlit .od-spark-1 {
+  stop-color: color-mix(in srgb, var(--scene-particle) 45%, transparent);
+}
+.scene-moonlit .od-spark-2 {
+  stop-color: color-mix(in srgb, var(--scene-particle) 0%, transparent);
+}
+
+/* --- motion ---------------------------------------------------------------
+   Everything above renders a finished picture on its own. All animation lives
+   inside this query, so a reduced-motion user gets the static scene and never
+   an overridden-but-still-declared animation. */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* --sway is a unitless degree amount supplied per element; the delays are
+     negative so each element enters its cycle already in progress. */
+  @keyframes od-moonlit-sway {
+    0%,
+    100% {
+      transform: rotate(calc(var(--sway) * -1deg));
+    }
+    50% {
+      transform: rotate(calc(var(--sway) * 1deg));
+    }
+  }
+
+  @keyframes od-moonlit-twinkle {
+    0%,
+    100% {
+      opacity: var(--o, 0.5);
+    }
+    50% {
+      opacity: calc(var(--o, 0.5) * 1.9);
+    }
+  }
+
+  @keyframes od-moonlit-breathe {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: calc(var(--halo-o, 1) * 0.82);
+    }
+    50% {
+      transform: scale(1.045);
+      opacity: var(--halo-o, 1);
+    }
+  }
+
+  @keyframes od-moonlit-drift {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-1200px);
+    }
+  }
+
+  /* The three firefly paths begin and end at opacity 0, which is what hides the
+     jump back to the start position when the loop restarts. */
+  @keyframes od-moonlit-wander-a {
+    0% {
+      transform: translate(0, 0);
+      opacity: 0;
+    }
+    18% {
+      opacity: 0.9;
+    }
+    50% {
+      transform: translate(26px, -20px);
+      opacity: 0.5;
+    }
+    78% {
+      opacity: 0.85;
+    }
+    100% {
+      transform: translate(-8px, -38px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes od-moonlit-wander-b {
+    0% {
+      transform: translate(0, 0);
+      opacity: 0;
+    }
+    22% {
+      opacity: 0.8;
+    }
+    55% {
+      transform: translate(-24px, -16px);
+      opacity: 0.45;
+    }
+    80% {
+      opacity: 0.9;
+    }
+    100% {
+      transform: translate(14px, -34px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes od-moonlit-wander-c {
+    0% {
+      transform: translate(0, 0);
+      opacity: 0;
+    }
+    20% {
+      opacity: 0.85;
+    }
+    48% {
+      transform: translate(18px, -26px);
+      opacity: 0.55;
+    }
+    76% {
+      opacity: 0.75;
+    }
+    100% {
+      transform: translate(-20px, -30px);
+      opacity: 0;
+    }
+  }
+
+  .scene-moonlit .od-blade,
+  .scene-moonlit .od-flower {
+    animation: od-moonlit-sway var(--dur, 10s) ease-in-out var(--delay, 0s) infinite;
+  }
+
+  .scene-moonlit .od-star {
+    animation: od-moonlit-twinkle var(--dur, 6s) ease-in-out var(--delay, 0s) infinite;
+  }
+
+  .scene-moonlit .od-moon-halo {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    animation: od-moonlit-breathe 18s ease-in-out infinite;
+  }
+  /* The outer halo runs on a longer, offset clock so the two glows never peak
+     together, which keeps the pulse from reading as a throb. */
+  .scene-moonlit .od-moon-halo-wide {
+    animation-duration: 26s;
+    animation-delay: -9s;
+  }
+
+  .scene-moonlit .od-cloud-band {
+    will-change: transform;
+  }
+  .scene-moonlit .od-cloud-far {
+    animation: od-moonlit-drift 150s linear infinite;
+  }
+  .scene-moonlit .od-cloud-near {
+    animation: od-moonlit-drift 92s linear infinite;
+  }
+
+  .scene-moonlit .od-firefly {
+    transform-box: fill-box;
+    will-change: transform;
+  }
+  .scene-moonlit .od-firefly-a {
+    animation: od-moonlit-wander-a var(--dur, 10s) ease-in-out var(--delay, 0s) infinite;
+  }
+  .scene-moonlit .od-firefly-b {
+    animation: od-moonlit-wander-b var(--dur, 10s) ease-in-out var(--delay, 0s) infinite;
+  }
+  .scene-moonlit .od-firefly-c {
+    animation: od-moonlit-wander-c var(--dur, 10s) ease-in-out var(--delay, 0s) infinite;
+  }
+}

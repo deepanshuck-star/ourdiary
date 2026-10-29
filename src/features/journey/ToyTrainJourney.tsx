@@ -268,11 +268,13 @@ export function ToyTrainJourney() {
                 <filter id="bubble-shadow" x="-20%" y="-20%" width="140%" height="140%">
                   <feDropShadow dx="0" dy="5" stdDeviation="5" floodColor="#292538" floodOpacity="0.18" />
                 </filter>
-                {/* Candy Track Gradient */}
+                {/* Track gradient. The --track-* variables are set only by the immersive
+                    themes; the fallbacks are the original candy colours, so the four
+                    classic themes render exactly as they always did. */}
                 <linearGradient id="railroad-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#F8C8D8" />
-                  <stop offset="50%" stopColor="#CBBEF4" />
-                  <stop offset="100%" stopColor="#B6DDF4" />
+                  <stop offset="0%" stopColor="var(--station-active, #F8C8D8)" />
+                  <stop offset="50%" stopColor="var(--track-rail, #CBBEF4)" />
+                  <stop offset="100%" stopColor="var(--track-rail, #B6DDF4)" />
                 </linearGradient>
               </defs>
 
@@ -280,7 +282,7 @@ export function ToyTrainJourney() {
               <path
                 d={pathD}
                 fill="none"
-                stroke="#E2D4F8"
+                stroke="var(--track-rail, #E2D4F8)"
                 strokeWidth="28"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -291,7 +293,7 @@ export function ToyTrainJourney() {
               <path
                 d={pathD}
                 fill="none"
-                stroke="#B8A7E0"
+                stroke="var(--track-tie, #B8A7E0)"
                 strokeWidth="18"
                 strokeDasharray="4 14"
                 strokeLinecap="round"
@@ -323,7 +325,7 @@ export function ToyTrainJourney() {
                       <circle
                         r="44"
                         fill="none"
-                        stroke="#F5A3A3"
+                        stroke="var(--station-active, #F5A3A3)"
                         strokeWidth="4"
                         strokeDasharray="6 6"
                         className="animate-spin-slow opacity-80"
@@ -333,8 +335,8 @@ export function ToyTrainJourney() {
                     {/* Outer Glow Halo */}
                     <circle
                       r={isActive ? '36' : '30'}
-                      fill={isActive ? '#FFFFFF' : '#FFF9F4'}
-                      stroke={isActive ? '#F5A3A3' : '#CBBEF4'}
+                      fill={isActive ? 'var(--station-fill, #FFFFFF)' : 'var(--station-fill, #FFF9F4)'}
+                      stroke={isActive ? 'var(--station-active, #F5A3A3)' : 'var(--station-stroke, #CBBEF4)'}
                       strokeWidth={isActive ? '4' : '3'}
                       filter="url(#bubble-shadow)"
                       className="transition-all duration-300 group-hover:scale-110"
@@ -343,7 +345,13 @@ export function ToyTrainJourney() {
                     {/* Inner Colored Core */}
                     <circle
                       r={isActive ? '28' : '22'}
-                      fill={isActive ? '#F5A3A3' : isPast ? '#CBBEF4' : '#E8E2F7'}
+                      fill={
+                        isActive
+                          ? 'var(--station-active, #F5A3A3)'
+                          : isPast
+                            ? 'var(--track-rail, #CBBEF4)'
+                            : 'var(--station-stroke, #E8E2F7)'
+                      }
                       className="transition-colors duration-300"
                     />
 

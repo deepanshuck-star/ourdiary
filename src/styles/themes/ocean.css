@@ -1,0 +1,159 @@
+/*
+  Sunset by the Ocean — styles for <OceanScene />.
+
+  Shared with the other theme scenes: .ourdiary-scene is declared here rather
+  than in globals.css so each scene file stands alone and can be loaded on its
+  own. The declaration is identical in every theme file, so whichever ones end
+  up in the bundle, the result is the same.
+*/
+.ourdiary-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/*
+  Insurance only. The SVG covers the element ("slice" scales to cover), but this
+  keeps the fold-to-fold colour right during the first paint and behind any
+  sub-pixel seam at the edges.
+*/
+.scene-ocean {
+  background: linear-gradient(
+    180deg,
+    var(--scene-sky) 0%,
+    var(--scene-sky-low) 34%,
+    var(--scene-mid) 46%,
+    var(--scene-near) 100%
+  );
+}
+
+.scene-ocean .ocean-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+  Motion is opt-in, not opt-out. Every rule that starts something is inside this
+  block — the global reduce override in globals.css is a safety net for other
+  people's CSS, not a licence to declare motion unconditionally here. Outside
+  this block the scene is a finished still: the sun sits on the horizon, the
+  shimmer strokes hold a mid opacity, both boats are placed, both cloud layers
+  are where they were drawn.
+
+  Only transform and opacity are touched, so nothing here can trigger layout.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  /* -1600 is exactly one copy of the cloud layer, so the second <use> lands on
+     the first's start and the wrap is invisible. */
+  @keyframes ocean-cloud-drift {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-1600px);
+    }
+  }
+
+  /* Both halves of the swing are small — this is a shifting band of water, not
+     a wave travelling across the screen. */
+  @keyframes ocean-sway {
+    from {
+      transform: translateX(calc(var(--ocean-shift) * -1));
+    }
+    to {
+      transform: translateX(var(--ocean-shift));
+    }
+  }
+
+  @keyframes ocean-shimmer-pulse {
+    0%,
+    100% {
+      opacity: 0.12;
+    }
+    50% {
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes ocean-reflection-breathe {
+    0%,
+    100% {
+      opacity: 0.24;
+    }
+    50% {
+      opacity: 0.34;
+    }
+  }
+
+  /* Fades in and out well inside the frame edges, so the boat is never seen
+     arriving or leaving — it is simply out there, further along. */
+  @keyframes ocean-boat-cross {
+    0% {
+      transform: translateX(-300px);
+      opacity: 0;
+    }
+    12%,
+    88% {
+      opacity: 0.45;
+    }
+    100% {
+      transform: translateX(620px);
+      opacity: 0;
+    }
+  }
+
+  .scene-ocean .ocean-clouds {
+    /* The only two elements that move continuously across the full width, and
+       so the only two worth promoting. */
+    will-change: transform;
+    animation-name: ocean-cloud-drift;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  .scene-ocean .ocean-clouds-high {
+    animation-duration: 240s;
+  }
+
+  .scene-ocean .ocean-clouds-low {
+    animation-duration: 165s;
+  }
+
+  /* Durations and the negative delays come from the component, per band, so the
+     bands never line up into a single pulse. */
+  .scene-ocean .ocean-wave {
+    animation-name: ocean-sway;
+    animation-duration: var(--ocean-dur);
+    animation-delay: var(--ocean-delay);
+    animation-timing-function: ease-in-out;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+  }
+
+  .scene-ocean .ocean-shimmer {
+    animation-name: ocean-shimmer-pulse;
+    animation-duration: var(--ocean-dur);
+    animation-delay: var(--ocean-delay);
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+
+  .scene-ocean .ocean-reflection {
+    animation-name: ocean-reflection-breathe;
+    animation-duration: 26s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+
+  .scene-ocean .ocean-boat-drift {
+    animation-name: ocean-boat-cross;
+    animation-duration: 190s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+}

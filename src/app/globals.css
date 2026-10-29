@@ -1755,3 +1755,297 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* === GENERATED: immersive theme tokens — scripts/generate-theme-css.mjs === */
+
+/* Moonlit Lovers' Garden — A hillside garden under an enormous moon, with fireflies in the grass. */
+:root[data-theme="moonlit"],
+[data-theme="moonlit"] {
+  --hero-gradient: linear-gradient(135deg,#111A35 0%,#343A68 55%,#1B2444 100%);
+
+  --color-canvas: #111A35;
+  --color-surface: #F6EFE4;
+  --color-ink: #EDE6D8;
+  --color-ink-muted: #B5B2D4;
+  --color-primary: #343A68;
+  --color-primary-hover: #262B50;
+  --color-on-primary: #F6EFE4;
+  --color-secondary: #9B9ACB;
+  --color-accent: #7A5418;
+  --color-line: #D6CDE2;
+  --color-focus: #343A68;
+
+  --font-display-face: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
+  --font-body: var(--font-body-rose), 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --scene-sky: #111A35;
+  --scene-sky-low: #343A68;
+  --scene-far: #2A3157;
+  --scene-mid: #1E2745;
+  --scene-near: #141C33;
+  --scene-glow: #E7D9C2;
+  --scene-particle: #E6B879;
+
+  --track-rail: #9B9ACB;
+  --track-tie: #343A68;
+  --station-fill: #E7D9C2;
+  --station-stroke: #9B9ACB;
+  --station-active: #E6B879;
+
+  color-scheme: dark;
+}
+
+/* Inside anything with a card background, ink goes back to the value tuned
+   for that card. Declaring it on the element rather than on each piece of
+   text means every heading, label and paragraph below it inherits the right
+   colour without the page knowing a theme exists. */
+:root[data-theme="moonlit"] :is(.bg-surface, .bg-white, .bg-snow, .bg-canvas),
+[data-theme="moonlit"] :is(.bg-surface, .bg-white, .bg-snow, .bg-canvas) {
+  --color-ink: #141C33;
+  --color-ink-muted: #434D74;
+}
+
+/* Starlit Rooftop Date — A rooftop table for two, fairy lights above a quiet city. */
+:root[data-theme="rooftop"],
+[data-theme="rooftop"] {
+  --hero-gradient: linear-gradient(135deg,#17243B 0%,#344B63 55%,#1D2C45 100%);
+
+  --color-canvas: #17243B;
+  --color-surface: #F7EAD6;
+  --color-ink: #F1DCC0;
+  --color-ink-muted: #BBC6D3;
+  --color-primary: #344B63;
+  --color-primary-hover: #243A52;
+  --color-on-primary: #F7EAD6;
+  --color-secondary: #C9A8C9;
+  --color-accent: #7E4F14;
+  --color-line: #E3CDB0;
+  --color-focus: #344B63;
+
+  --font-display-face: var(--font-dm-serif), 'DM Serif Display', Georgia, serif;
+  --font-body: var(--font-manrope), Manrope, ui-sans-serif, system-ui, sans-serif;
+
+  --scene-sky: #17243B;
+  --scene-sky-low: #344B63;
+  --scene-far: #2A3E55;
+  --scene-mid: #1F3049;
+  --scene-near: #16202F;
+  --scene-glow: #D9A879;
+  --scene-particle: #F1DCC0;
+
+  --track-rail: #C9A8C9;
+  --track-tie: #344B63;
+  --station-fill: #F1DCC0;
+  --station-stroke: #D9A879;
+  --station-active: #D9A879;
+
+  color-scheme: dark;
+}
+
+/* Inside anything with a card background, ink goes back to the value tuned
+   for that card. Declaring it on the element rather than on each piece of
+   text means every heading, label and paragraph below it inherits the right
+   colour without the page knowing a theme exists. */
+:root[data-theme="rooftop"] :is(.bg-surface, .bg-white, .bg-snow, .bg-canvas),
+[data-theme="rooftop"] :is(.bg-surface, .bg-white, .bg-snow, .bg-canvas) {
+  --color-ink: #1B2A42;
+  --color-ink-muted: #425469;
+}
+
+/* Cherry Blossom Dream — A spring garden with a stream, a little bridge and falling petals. */
+:root[data-theme="blossom"],
+[data-theme="blossom"] {
+  --hero-gradient: linear-gradient(135deg,#F3E4DF 0%,#D9A0AD 55%,#E9CBA4 100%);
+
+  --color-canvas: #F3E4DF;
+  --color-surface: #FFF9F5;
+  --color-ink: #27352F;
+  --color-ink-muted: #4B5F55;
+  --color-primary: #45594F;
+  --color-primary-hover: #2F3F37;
+  --color-on-primary: #FFF9F5;
+  --color-secondary: #D9A0AD;
+  --color-accent: #9A4356;
+  --color-line: #D9E2D6;
+  --color-focus: #45594F;
+
+  --font-display-face: var(--font-display-peach), Fraunces, Georgia, serif;
+  --font-body: var(--font-body-rose), 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --scene-sky: #F3E4DF;
+  --scene-sky-low: #E9CBA4;
+  --scene-far: #AFC6AD;
+  --scene-mid: #8FB091;
+  --scene-near: #526B62;
+  --scene-glow: #E9CBA4;
+  --scene-particle: #D9A0AD;
+
+  --track-rail: #526B62;
+  --track-tie: #AFC6AD;
+  --station-fill: #FFF9F5;
+  --station-stroke: #526B62;
+  --station-active: #D9A0AD;
+
+  color-scheme: light;
+}
+
+/* Inside anything with a card background, ink goes back to the value tuned
+   for that card. Declaring it on the element rather than on each piece of
+   text means every heading, label and paragraph below it inherits the right
+   colour without the page knowing a theme exists. */
+:root[data-theme="blossom"] :is(.bg-surface, .bg-white, .bg-snow, .bg-canvas),
+[data-theme="blossom"] :is(.bg-surface, .bg-white, .bg-snow, .bg-canvas) {
+  --color-ink: #27352F;
+  --color-ink-muted: #4B5F55;
+}
+
+/* Enchanted Forest of Memories — Mossy woodland, lantern light and a path winding toward a cottage. */
+:root[data-theme="forest"],
+[data-theme="forest"] {
+  --hero-gradient: linear-gradient(135deg,#203A32 0%,#426955 55%,#1A2F28 100%);
+
+  --color-canvas: #203A32;
+  --color-surface: #EFE7D6;
+  --color-ink: #E7DCC8;
+  --color-ink-muted: #A9BFA6;
+  --color-primary: #3A5D4A;
+  --color-primary-hover: #28412F;
+  --color-on-primary: #EFE7D6;
+  --color-secondary: #8CA98A;
+  --color-accent: #6E561E;
+  --color-line: #D2C8AF;
+  --color-focus: #3A5D4A;
+
+  --font-display-face: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
+  --font-body: var(--font-nunito), 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --scene-sky: #203A32;
+  --scene-sky-low: #426955;
+  --scene-far: #2F5244;
+  --scene-mid: #244137;
+  --scene-near: #172A24;
+  --scene-glow: #D9BD8B;
+  --scene-particle: #D9BD8B;
+
+  --track-rail: #8CA98A;
+  --track-tie: #426955;
+  --station-fill: #E7DCC8;
+  --station-stroke: #426955;
+  --station-active: #D9BD8B;
+
+  color-scheme: dark;
+}
+
+/* Inside anything with a card background, ink goes back to the value tuned
+   for that card. Declaring it on the element rather than on each piece of
+   text means every heading, label and paragraph below it inherits the right
+   colour without the page knowing a theme exists. */
+:root[data-theme="forest"] :is(.bg-surface, .bg-white, .bg-snow, .bg-canvas),
+[data-theme="forest"] :is(.bg-surface, .bg-white, .bg-snow, .bg-canvas) {
+  --color-ink: #1C3328;
+  --color-ink-muted: #3C5947;
+}
+
+/* Sunset by the Ocean — Cliffs, a long horizon and the track running down to the shore. */
+:root[data-theme="ocean"],
+[data-theme="ocean"] {
+  --hero-gradient: linear-gradient(135deg,#F2B38D 0%,#D77F76 50%,#687F93 100%);
+
+  --color-canvas: #354C60;
+  --color-surface: #FBF1E2;
+  --color-ink: #FBF1E2;
+  --color-ink-muted: #C6D2DD;
+  --color-primary: #3C566C;
+  --color-primary-hover: #2A3E4F;
+  --color-on-primary: #FBF1E2;
+  --color-secondary: #F2B38D;
+  --color-accent: #9C3F35;
+  --color-line: #E6D3BA;
+  --color-focus: #3C566C;
+
+  --font-display-face: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
+  --font-body: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+
+  --scene-sky: #F2B38D;
+  --scene-sky-low: #D77F76;
+  --scene-far: #687F93;
+  --scene-mid: #4A6278;
+  --scene-near: #354C60;
+  --scene-glow: #F2DCC0;
+  --scene-particle: #F2DCC0;
+
+  --track-rail: #F2DCC0;
+  --track-tie: #687F93;
+  --station-fill: #FBF1E2;
+  --station-stroke: #354C60;
+  --station-active: #D77F76;
+
+  color-scheme: light;
+}
+
+/* Inside anything with a card background, ink goes back to the value tuned
+   for that card. Declaring it on the element rather than on each piece of
+   text means every heading, label and paragraph below it inherits the right
+   colour without the page knowing a theme exists. */
+:root[data-theme="ocean"] :is(.bg-surface, .bg-white, .bg-snow, .bg-canvas),
+[data-theme="ocean"] :is(.bg-surface, .bg-white, .bg-snow, .bg-canvas) {
+  --color-ink: #243646;
+  --color-ink-muted: #475D72;
+}
+
+/* Lantern Festival Night — Lanterns lifting off a still lake, with their reflections below. */
+:root[data-theme="lantern"],
+[data-theme="lantern"] {
+  --hero-gradient: linear-gradient(135deg,#222B49 0%,#56567A 55%,#1C2440 100%);
+
+  --color-canvas: #222B49;
+  --color-surface: #F7E9D2;
+  --color-ink: #F0D8B7;
+  --color-ink-muted: #B3BDCA;
+  --color-primary: #454A70;
+  --color-primary-hover: #2F3454;
+  --color-on-primary: #F7E9D2;
+  --color-secondary: #9AABB2;
+  --color-accent: #7D551A;
+  --color-line: #E2CEB0;
+  --color-focus: #454A70;
+
+  --font-display-face: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
+  --font-body: var(--font-body-rose), 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --scene-sky: #222B49;
+  --scene-sky-low: #56567A;
+  --scene-far: #3C3F63;
+  --scene-mid: #2A3052;
+  --scene-near: #1A2039;
+  --scene-glow: #E7B96D;
+  --scene-particle: #F0D8B7;
+
+  --track-rail: #9AABB2;
+  --track-tie: #56567A;
+  --station-fill: #F0D8B7;
+  --station-stroke: #56567A;
+  --station-active: #E7B96D;
+
+  color-scheme: dark;
+}
+
+/* Inside anything with a card background, ink goes back to the value tuned
+   for that card. Declaring it on the element rather than on each piece of
+   text means every heading, label and paragraph below it inherits the right
+   colour without the page knowing a theme exists. */
+:root[data-theme="lantern"] :is(.bg-surface, .bg-white, .bg-snow, .bg-canvas),
+[data-theme="lantern"] :is(.bg-surface, .bg-white, .bg-snow, .bg-canvas) {
+  --color-ink: #1E2743;
+  --color-ink-muted: #474C6E;
+}
+
+/* === END GENERATED === */
+
+/* Reading and viewing pages keep their environment but turn it down, so a
+   long letter or a wall of photographs is never competing with the weather.
+   Opacity only — the scene keeps animating, just faintly, and the global
+   reduced-motion rule still stops it for anyone who asked. */
+.ourdiary-scene-quiet .ourdiary-scene {
+  opacity: 0.38;
+}
