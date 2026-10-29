@@ -118,7 +118,7 @@ export function OceanScene() {
           {/* Deliberately weak and warm-sand rather than orange: the brief is a
               low sun, not a bloom. */}
           <radialGradient id="ocean-sunglow">
-            <stop offset="0" stopColor="var(--scene-glow)" stopOpacity="0.38" />
+            <stop offset="0" stopColor="var(--scene-glow)" stopOpacity="0.32" />
             <stop offset="0.55" stopColor="var(--scene-glow)" stopOpacity="0.12" />
             <stop offset="1" stopColor="var(--scene-glow)" stopOpacity="0" />
           </radialGradient>
@@ -202,18 +202,18 @@ export function OceanScene() {
           rx="84"
           ry="52"
           fill="url(#ocean-reflection)"
-          opacity="0.55"
-          style={vars({ '--ocean-base': '0.55' })}
+          opacity="0.42"
+          style={vars({ '--ocean-base': '0.42' })}
         />
         <ellipse
           className="ocean-reflection"
           cx="880"
-          cy="470"
-          rx="126"
-          ry="168"
+          cy="462"
+          rx="108"
+          ry="150"
           fill="url(#ocean-reflection)"
-          opacity="0.3"
-          style={vars({ '--ocean-base': '0.3', '--ocean-delay': '-9s' })}
+          opacity="0.2"
+          style={vars({ '--ocean-base': '0.2', '--ocean-delay': '-9s' })}
         />
 
         {WAVE_BANDS.map((band) => (
