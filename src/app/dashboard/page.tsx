@@ -414,7 +414,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Remember — colour-blocked section */}
-        <section className="rounded-[2rem] bg-rose-50 p-5 sm:p-8">
+        <section className="rounded-[2rem]  p-5 sm:p-8">
           <SectionHeading eyebrow="Remember" title="Moments worth keeping" />
           <div className="space-y-5">
             <OnThisDayCard />
@@ -563,7 +563,7 @@ export default function DashboardPage() {
         </section>
 
         {/* Play & plan — colour-blocked section */}
-        <section className="rounded-[2rem] bg-slate-100 p-5 sm:p-8">
+        <section className="rounded-[2rem]  p-5 sm:p-8">
           <SectionHeading eyebrow="Play & plan" title="Something to look forward to" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
             <div className="lg:col-span-2 space-y-5">
