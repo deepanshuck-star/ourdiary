@@ -69,6 +69,19 @@ export interface ThemeTokens {
    */
   onScene: string;
   onSceneMuted: string;
+  /**
+   * Primary and accent as they appear ON the scenery.
+   *
+   * `primary` is tuned as a button fill with a light label, which makes it
+   * dark on five of these themes. But the app also writes text-primary for
+   * section labels and inline links, and those sit on the canvas — where a
+   * dark fill colour measured around 1.5:1. The app's own dark mode has the
+   * same split (a light primary with a dark label), so these follow it: the
+   * theme root uses these values, and the card override puts the fill
+   * values back for anything on a surface.
+   */
+  primaryOnScene: string;
+  accentOnScene: string;
 }
 
 /** Colours the background scene draws with. Decorative, never text. */
@@ -202,6 +215,8 @@ export const THEMES: Theme[] = [
       line: '#D6CDE2',
       onScene: '#EDE6D8',
       onSceneMuted: '#B5B2D4',
+      primaryOnScene: '#C9C7E8',
+      accentOnScene: '#E6B879',
     },
     sceneTokens: {
       sky: '#111A35',
@@ -243,6 +258,8 @@ export const THEMES: Theme[] = [
       line: '#E3CDB0',
       onScene: '#F1DCC0',
       onSceneMuted: '#BBC6D3',
+      primaryOnScene: '#D9A879',
+      accentOnScene: '#F1DCC0',
     },
     sceneTokens: {
       sky: '#17243B',
@@ -286,6 +303,8 @@ export const THEMES: Theme[] = [
       line: '#D9E2D6',
       onScene: '#27352F',
       onSceneMuted: '#4B5F55',
+      primaryOnScene: '#45594F',
+      accentOnScene: '#9A4356',
     },
     sceneTokens: {
       sky: '#F3E4DF',
@@ -329,6 +348,8 @@ export const THEMES: Theme[] = [
       line: '#D2C8AF',
       onScene: '#E7DCC8',
       onSceneMuted: '#A9BFA6',
+      primaryOnScene: '#D9BD8B',
+      accentOnScene: '#E7DCC8',
     },
     sceneTokens: {
       sky: '#203A32',
@@ -370,6 +391,8 @@ export const THEMES: Theme[] = [
       line: '#E6D3BA',
       onScene: '#FBF1E2',
       onSceneMuted: '#C6D2DD',
+      primaryOnScene: '#F2B38D',
+      accentOnScene: '#F2DCC0',
     },
     sceneTokens: {
       sky: '#F2B38D',
@@ -411,6 +434,8 @@ export const THEMES: Theme[] = [
       line: '#E2CEB0',
       onScene: '#F0D8B7',
       onSceneMuted: '#B3BDCA',
+      primaryOnScene: '#E7B96D',
+      accentOnScene: '#F0D8B7',
     },
     sceneTokens: {
       sky: '#222B49',

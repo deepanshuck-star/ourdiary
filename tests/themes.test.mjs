@@ -110,14 +110,51 @@ test('text on the scenery itself is readable', () => {
   }
 });
 
+test('brand colours used as text on the scenery are readable there', () => {
+  for (const theme of IMMERSIVE_THEMES) {
+    const { primaryOnScene, accentOnScene, canvas } = theme.tokens;
+    // text-primary and text-accent are written throughout the app for
+    // section labels and inline links, which sit on the canvas rather than
+    // on a card. The button-fill value measured about 1.5:1 there.
+    const prim = contrast(primaryOnScene, canvas);
+    assert.ok(prim >= 4.5, `${theme.id}: primary on scene is ${prim.toFixed(2)}:1`);
+    const acc = contrast(accentOnScene, canvas);
+    assert.ok(acc >= 4.5, `${theme.id}: accent on scene is ${acc.toFixed(2)}:1`);
+  }
+});
+
 test('the card override is emitted for every immersive theme', () => {
   const css = fs.readFileSync(path.join(process.cwd(), 'src', 'app', 'globals.css'), 'utf8');
   for (const theme of IMMERSIVE_THEMES) {
     // Without this rule, flipping ink light for the scene would make every
     // card unreadable instead.
     assert.ok(
-      css.includes(`[data-theme="${theme.id}"] :is(.bg-surface, .bg-white, .bg-snow, .bg-canvas)`),
+      css.includes(`[data-theme="${theme.id}"] :is(.bg-surface, .bg-white, .bg-snow, .bg-hero-soft`),
       `${theme.id} has no card ink override`
+    );
+    // Tailwind writes bg-surface/90 as a class named `bg-surface/90`, which
+    // .bg-surface does not match. Those elements were light ink on a
+    // near-white pill.
+    for (const variant of ['bg-surface/', 'bg-white/', 'bg-snow/']) {
+      assert.ok(
+        css.includes(`[class^="${variant}"]`) && css.includes(`[class*=" ${variant}"]`),
+        `${theme.id} misses the ${variant}* opacity variants`
+      );
+      // The bare substring form also matches hover:bg-surface/70, which is a
+      // dark sidebar link, not a light card.
+      assert.equal(
+        css.includes(`[class*="${variant}"]`),
+        false,
+        `${theme.id} matches ${variant} with a prefix like hover:`
+      );
+    }
+    // bg-canvas is the PAGE colour — the dark sky on most of these themes.
+    // It once sat in that list, which put dark navy text on the dark navy
+    // sidebar at roughly 1:1. Measured in a browser, invisible in review.
+    assert.equal(
+      /:is\([^)]*\.bg-canvas/.test(css),
+      false,
+      `${theme.id} treats the page canvas as a card again`
     );
   }
 });
@@ -126,7 +163,7 @@ test('every immersive theme is fully specified', () => {
   const tokenKeys = [
     'canvas', 'surface', 'ink', 'inkMuted', 'primary',
     'primaryHover', 'onPrimary', 'secondary', 'accent', 'line',
-    'onScene', 'onSceneMuted',
+    'onScene', 'onSceneMuted', 'primaryOnScene', 'accentOnScene',
   ];
   const sceneKeys = ['sky', 'skyLow', 'far', 'mid', 'near', 'glow', 'particle'];
   const trackKeys = ['rail', 'tie', 'stationFill', 'stationStroke', 'stationActive'];

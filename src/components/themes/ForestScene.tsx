@@ -114,7 +114,7 @@ export function ForestScene() {
 
           <linearGradient id="fr-ground-grad" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
             <stop className="fr-ground-0" offset="0%" />
-            <stop className="fr-ground-1" offset="46%" />
+            <stop className="fr-ground-1" offset="72%" />
           </linearGradient>
 
           <linearGradient id="fr-trail-grad" x1="0" y1="0" x2="0" y2="1">
