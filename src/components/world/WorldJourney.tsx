@@ -27,6 +27,9 @@ import { WorldControls } from './WorldControls';
 const SEGMENT = 420;
 const TRACK_Y = 420;
 const TRAIN_X = VIEW_W / 2;
+// Every stretch of ground starts and ends at this height, so the joins
+// between stretches are invisible instead of little cliffs.
+const EDGE = TRACK_Y - 30;
 
 const KIND_LABEL: Record<Station['kind'], string> = {
   begin: 'Where it began',
@@ -52,7 +55,7 @@ function Stretch({ scenery, x, s }: { scenery: Scenery; x: number; s: WorldState
     <g transform={`translate(${x} 0)`}>
       {scenery === 'fields' && (
         <g>
-          <path d={`M0,${TRACK_Y - 20} C120,${TRACK_Y - 60} 260,${TRACK_Y - 40} ${SEGMENT},${TRACK_Y - 56} L${SEGMENT},${VIEW_H} L0,${VIEW_H} Z`} fill={grass} />
+          <path d={`M0,${EDGE} C120,${TRACK_Y - 60} 260,${TRACK_Y - 40} ${SEGMENT},${EDGE} L${SEGMENT},${VIEW_H} L0,${VIEW_H} Z`} fill={grass} />
           {[40, 90, 140, 300, 350].map((fx) => (
             <rect key={fx} x={fx} y={TRACK_Y + 30} width={36} height={4} rx={2} fill={s.season === 'autumn' ? '#D9A05B' : '#C9B26A'} opacity={0.7} />
           ))}
@@ -60,7 +63,7 @@ function Stretch({ scenery, x, s }: { scenery: Scenery; x: number; s: WorldState
       )}
       {scenery === 'village' && (
         <g>
-          <path d={`M0,${TRACK_Y - 30} L${SEGMENT},${TRACK_Y - 34} L${SEGMENT},${VIEW_H} L0,${VIEW_H} Z`} fill={grass} />
+          <path d={`M0,${EDGE} L${SEGMENT},${EDGE} L${SEGMENT},${VIEW_H} L0,${VIEW_H} Z`} fill={grass} />
           {[60, 150, 260].map((hx, i) => (
             <g key={hx} transform={`translate(${hx} ${TRACK_Y - 30})`}>
               <rect x={-22} y={-34} width={44} height={34} fill={W.paper} />
@@ -73,7 +76,7 @@ function Stretch({ scenery, x, s }: { scenery: Scenery; x: number; s: WorldState
       )}
       {scenery === 'forest' && (
         <g>
-          <path d={`M0,${TRACK_Y - 26} L${SEGMENT},${TRACK_Y - 30} L${SEGMENT},${VIEW_H} L0,${VIEW_H} Z`} fill={grass} />
+          <path d={`M0,${EDGE} L${SEGMENT},${EDGE} L${SEGMENT},${VIEW_H} L0,${VIEW_H} Z`} fill={grass} />
           {[30, 80, 130, 200, 250, 300, 370].map((px, i) => (
             <Pine key={px} x={px} base={TRACK_Y - 24 + (i % 2) * 6} scale={1.1 + (i % 3) * 0.2} season={s.season} />
           ))}
@@ -81,7 +84,7 @@ function Stretch({ scenery, x, s }: { scenery: Scenery; x: number; s: WorldState
       )}
       {scenery === 'river' && (
         <g>
-          <path d={`M0,${TRACK_Y - 26} L${SEGMENT},${TRACK_Y - 26} L${SEGMENT},${VIEW_H} L0,${VIEW_H} Z`} fill={grass} />
+          <path d={`M0,${EDGE} L${SEGMENT},${EDGE} L${SEGMENT},${VIEW_H} L0,${VIEW_H} Z`} fill={grass} />
           <path d={`M140,${VIEW_H} C150,${TRACK_Y + 40} 170,${TRACK_Y} 180,${TRACK_Y - 40} L260,${TRACK_Y - 40} C270,${TRACK_Y} 290,${TRACK_Y + 40} 300,${VIEW_H} Z`} fill={W.teal} />
           {/* The track crosses on a bridge. */}
           <path d={`M150,${TRACK_Y + 4} Q220,${TRACK_Y + 44} 290,${TRACK_Y + 4}`} fill="none" stroke={W.wood} strokeWidth={6} />
@@ -92,7 +95,7 @@ function Stretch({ scenery, x, s }: { scenery: Scenery; x: number; s: WorldState
       )}
       {scenery === 'hills' && (
         <g>
-          <path d={`M0,${TRACK_Y - 40} C100,${TRACK_Y - 110} 200,${TRACK_Y - 30} 280,${TRACK_Y - 90} C340,${TRACK_Y - 130} 400,${TRACK_Y - 60} ${SEGMENT},${TRACK_Y - 70} L${SEGMENT},${VIEW_H} L0,${VIEW_H} Z`} fill={grass} />
+          <path d={`M0,${EDGE} C100,${TRACK_Y - 110} 200,${TRACK_Y - 30} 280,${TRACK_Y - 90} C340,${TRACK_Y - 130} 400,${TRACK_Y - 60} ${SEGMENT},${EDGE} L${SEGMENT},${VIEW_H} L0,${VIEW_H} Z`} fill={grass} />
           {[90, 230, 330].map((sx) => (
             <g key={sx} transform={`translate(${sx} ${TRACK_Y - 46})`}>
               <ellipse rx={9} ry={6} fill={W.paper} />
@@ -106,14 +109,14 @@ function Stretch({ scenery, x, s }: { scenery: Scenery; x: number; s: WorldState
           <polygon points={`0,${TRACK_Y - 20} 110,${TRACK_Y - 210} 210,${TRACK_Y - 80} 300,${TRACK_Y - 240} ${SEGMENT},${TRACK_Y - 40} ${SEGMENT},${VIEW_H} 0,${VIEW_H}`} fill="#7E968F" />
           <polygon points={`280,${TRACK_Y - 214} 300,${TRACK_Y - 240} 320,${TRACK_Y - 214} 310,${TRACK_Y - 218} 300,${TRACK_Y - 210} 290,${TRACK_Y - 218}`} fill={W.paper} />
           <polygon points={`94,${TRACK_Y - 188} 110,${TRACK_Y - 210} 126,${TRACK_Y - 188} 118,${TRACK_Y - 192} 110,${TRACK_Y - 184} 102,${TRACK_Y - 192}`} fill={W.paper} />
-          <path d={`M0,${TRACK_Y - 20} L${SEGMENT},${TRACK_Y - 30} L${SEGMENT},${VIEW_H} L0,${VIEW_H} Z`} fill={grass} />
+          <path d={`M0,${EDGE} L${SEGMENT},${EDGE} L${SEGMENT},${VIEW_H} L0,${VIEW_H} Z`} fill={grass} />
         </g>
       )}
       {scenery === 'sunset' && (
         <g>
           {/* A warm glow on the horizon — the sky already has its sun. */}
           <ellipse cx={SEGMENT / 2} cy={TRACK_Y - 46} rx={230} ry={70} fill="url(#lw-sunglow)" />
-          <path d={`M0,${TRACK_Y - 30} C140,${TRACK_Y - 60} 280,${TRACK_Y - 40} ${SEGMENT},${TRACK_Y - 50} L${SEGMENT},${VIEW_H} L0,${VIEW_H} Z`} fill={grass} />
+          <path d={`M0,${EDGE} C140,${TRACK_Y - 60} 280,${TRACK_Y - 40} ${SEGMENT},${EDGE} L${SEGMENT},${VIEW_H} L0,${VIEW_H} Z`} fill={grass} />
         </g>
       )}
     </g>
