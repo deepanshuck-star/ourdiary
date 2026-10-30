@@ -189,7 +189,7 @@ test('every place in the world goes somewhere real', () => {
   for (const place of WORLD_PLACES) {
     assert.ok(!ids.has(place.id), `duplicate ${place.id}`);
     ids.add(place.id);
-    assert.match(place.href, /^\/[a-z-]+$/);
+    assert.match(place.href, /^\/[a-z-]+(\/[a-z-]+)?$/);
     assert.ok(place.label && place.description);
   }
 });

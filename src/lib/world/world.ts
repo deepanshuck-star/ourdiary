@@ -303,6 +303,9 @@ export function memorySaplings(memoryCount: number): number {
   return Math.max(0, Math.min(6, Math.floor(memoryCount)));
 }
 
+/** The five peaks on Today's far range, where finished dreams plant a flag. */
+export const PEAKS_HOME: [number, number][] = [[230, 140], [410, 160], [590, 150], [760, 130], [940, 165]];
+
 // --------------------------------------------------------------- places ---
 
 export interface WorldPlace {
@@ -320,6 +323,9 @@ export const WORLD_PLACES: WorldPlace[] = [
   { id: 'frames', label: 'Photo frames', description: 'Your memories', href: '/memories' },
   { id: 'bench', label: 'The bench', description: 'Talk to each other', href: '/chat' },
   { id: 'train', label: 'The train', description: 'Your journey', href: '/journey' },
-  { id: 'hills', label: 'Far hills', description: 'Dreams and plans', href: '/bucket-list' },
+  { id: 'hills', label: 'Dream Mountains', description: 'Dreams and plans', href: '/world/mountains' },
+  { id: 'forest', label: 'Memory Forest', description: 'Memories on the trees', href: '/world/forest' },
+  { id: 'river', label: 'Love River', description: 'Messages on the water', href: '/world/river' },
+  { id: 'starlight', label: 'Starlight Hill', description: 'Letters and quiet moments', href: '/world/starlight' },
   { id: 'calendar', label: 'Calendar', description: 'Dates that matter', href: '/calendar' },
 ];

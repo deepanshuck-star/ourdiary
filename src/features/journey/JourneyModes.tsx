@@ -8,8 +8,9 @@ import { formatDate, getMilestones, parseDate } from '@/lib/date-utils';
 import { usePrefersReducedMotion, useWebGLSupport } from '@/components/three/capabilities';
 import { ThreeFallback, ThreeLoading } from '@/components/three/ThreeFallback';
 import type { TrainStation } from '@/components/three/TrainScene';
+import { WorldJourney } from '@/components/world/WorldJourney';
 import { ToyTrainJourney } from './ToyTrainJourney';
-import { Box, CalendarHeart, Check, Map as MapIcon } from 'lucide-react';
+import { TrainFront, Box, CalendarHeart, Check, Map as MapIcon } from 'lucide-react';
 
 const TrainScene = dynamic(() => import('@/components/three/TrainScene'), {
   ssr: false,
@@ -24,11 +25,13 @@ const SplineTrain = dynamic(() => import('@/components/three/SplineTrain'), {
 // Optional custom Spline scene (https://prod.spline.design/.../scene.splinecode). Inlined at build time.
 const SPLINE_SCENE = (process.env.NEXT_PUBLIC_SPLINE_TRAIN_SCENE ?? '').trim();
 
-type JourneyView = '2d' | '3d';
+type JourneyView = 'world' | '2d' | '3d';
 
 export function JourneyModes() {
   const { data } = useDiary();
-  const [view, setView] = useLocalState<JourneyView>(`journey-view:${data.couple.id}`, '2d');
+  // 'world' is the default only for someone who has never picked a view;
+  // a couple who chose 2D or 3D keep what they chose.
+  const [view, setView] = useLocalState<JourneyView>(`journey-view:${data.couple.id}`, 'world');
 
   return (
     <div className="space-y-4">
@@ -40,6 +43,7 @@ export function JourneyModes() {
         >
           {(
             [
+              { id: 'world', label: 'World', Icon: TrainFront },
               { id: '2d', label: '2D', Icon: MapIcon },
               { id: '3d', label: '3D', Icon: Box },
             ] as const
@@ -60,7 +64,13 @@ export function JourneyModes() {
         </div>
       </div>
 
-      {view === '3d' ? <Journey3D startDate={data.couple.startDate} /> : <ToyTrainJourney />}
+      {view === 'world' ? (
+        <WorldJourney />
+      ) : view === '3d' ? (
+        <Journey3D startDate={data.couple.startDate} />
+      ) : (
+        <ToyTrainJourney />
+      )}
     </div>
   );
 }

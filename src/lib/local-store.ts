@@ -71,6 +71,9 @@ const SYNCED_SHARED_PREFIXES = [
   'trips:',
   'photoOfDay:',
   'morningMail:',
+  // The little world's two figures and the pet. Shared, because both partners
+  // must see the same two people on the bench.
+  'world:',
 ];
 const SYNCED_OWNED_PREFIX = 'quiz:';
 

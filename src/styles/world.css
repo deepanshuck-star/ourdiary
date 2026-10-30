@@ -10,7 +10,9 @@
    element's transform rather than composing with it, so placement always
    lives on the wrapper and only the inner group moves. */
 
-.living-world .lw-handwritten {
+/* Global, not scoped to the scene: the paper panels under each place use
+   the same handwriting for their headings. */
+.lw-handwritten {
   font-family: var(--font-hand), 'Caveat', 'Segoe Print', cursive;
 }
 
@@ -30,6 +32,14 @@
 .living-world .lw-wings,
 .living-world .lw-wings-x { transform-box: fill-box; transform-origin: 50% 50%; }
 .living-world .lw-ripple { transform-box: fill-box; transform-origin: 50% 50%; }
+.living-world .lw-graze { transform-box: fill-box; transform-origin: 100% 100%; }
+.living-world .lw-rock { transform-box: fill-box; transform-origin: 50% 100%; }
+.living-world .lw-boat-hit { cursor: pointer; }
+/* Hanging things swing from where they hang, not from their middle. */
+.living-world .lw-hang { transform-box: fill-box; transform-origin: 50% 0%; }
+/* At rest a jumping fish is under the water, not frozen mid-air. */
+.living-world .lw-jump { opacity: 0; }
+.living-world .lw-shooting { opacity: 0; }
 
 /* Scrolled out of view: everything holds still and costs nothing. */
 .living-world[data-onscreen="false"] * { animation-play-state: paused !important; }
@@ -119,6 +129,38 @@
   from { transform: scale(0.2); opacity: 0.95; }
   to { transform: scale(2.6); opacity: 0; }
 }
+@keyframes lw-sunbeam {
+  0%, 100% { opacity: 0.04; }
+  50% { opacity: 0.11; }
+}
+@keyframes lw-graze {
+  0%, 100% { transform: rotate(0deg); }
+  40%, 60% { transform: rotate(18deg); }
+}
+@keyframes lw-boat {
+  from { transform: translate(var(--from, -100px), 0); }
+  to { transform: translate(var(--to, 1100px), 0); }
+}
+@keyframes lw-rock {
+  0%, 100% { transform: rotate(-3deg) translateY(0); }
+  50% { transform: rotate(3deg) translateY(-1.5px); }
+}
+@keyframes lw-jump {
+  0%, 70%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  76% { opacity: 1; }
+  82% { transform: translate(14px, -22px) rotate(-30deg); opacity: 1; }
+  90% { transform: translate(28px, 0) rotate(40deg); opacity: 0.9; }
+  94% { opacity: 0; }
+}
+@keyframes lw-shooting {
+  0%, 92% { transform: translate(0, 0); opacity: 0; }
+  93% { opacity: 1; }
+  100% { transform: translate(-180px, 90px); opacity: 0; }
+}
+@keyframes lw-chug {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.5px); }
+}
 @keyframes lw-startle {
   0% { transform: translate(0, 0); }
   35% { transform: translate(70px, -60px); }
@@ -151,3 +193,14 @@
 :root[data-motion="on"] .living-world .lw-fog { animation: lw-fog ease-in-out infinite; }
 :root[data-motion="on"] .living-world .lw-ripple { animation: lw-ripple 1.4s ease-out forwards; }
 :root[data-motion="on"] .living-world .lw-startled { animation: lw-startle 2.2s ease-in-out; }
+/* The ride: the landscape glides to the next stop. A transition, not an
+   animation, so it is gated the same way — off, and the train simply arrives. */
+:root[data-motion="on"] .living-world .lw-ride { transition: transform 1.6s cubic-bezier(0.45, 0, 0.2, 1); }
+:root[data-motion="on"] .living-world .lw-chug { animation: lw-chug 0.32s ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-hang { animation: lw-sway ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-sunbeam { animation: lw-sunbeam ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-graze { animation: lw-graze ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-boat { animation: lw-boat linear infinite; }
+:root[data-motion="on"] .living-world .lw-rock { animation: lw-rock 3.4s ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-jump { animation: lw-jump ease-out infinite; }
+:root[data-motion="on"] .living-world .lw-shooting { animation: lw-shooting linear infinite; }

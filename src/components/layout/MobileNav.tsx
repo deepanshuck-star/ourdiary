@@ -19,15 +19,20 @@ import {
   Dices,
   Ticket,
   LogOut,
+  HeartHandshake,
+  Gamepad2,
+  Mountain,
 } from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
 import { exploreItems } from './exploreNav';
 
+// Today · Us · Memories · Play · More, as the little world's brief asks.
+// Journey and Calendar moved into More rather than disappearing.
 const mainMobileItems = [
-  { name: 'Home', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Journey', href: '/journey', icon: Compass },
+  { name: 'Today', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Us', href: '/us', icon: HeartHandshake },
   { name: 'Memories', href: '/memories', icon: BookHeart },
-  { name: 'Calendar', href: '/calendar', icon: CalendarDays },
+  { name: 'Play', href: '/games', icon: Gamepad2 },
 ];
 
 export function MobileNav() {
@@ -36,6 +41,9 @@ export function MobileNav() {
   const { isLiveUser, logout } = useDiary();
 
   const moreItems = [
+    { name: 'Our World', href: '/world', icon: Mountain },
+    { name: 'Train Journey', href: '/journey', icon: Compass },
+    { name: 'Calendar', href: '/calendar', icon: CalendarDays },
     { name: 'Daily Spark', href: '/daily-spark', icon: Sparkles },
     { name: 'Date Wheel', href: '/spin-wheel', icon: Dices },
     { name: 'Love Coupons', href: '/coupons', icon: Ticket },

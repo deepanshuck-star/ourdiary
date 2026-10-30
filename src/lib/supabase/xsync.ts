@@ -43,7 +43,12 @@ export async function upsertFeatureStateRemote(
   ownerUserId: string | null,
   value: unknown
 ): Promise<void> {
-  const onConflict = ownerUserId === null ? 'couple_id,feature_key' : 'couple_id,feature_key,owner_user_id';
+  // Always all three columns: migration 21 replaced the two partial unique
+  // indexes with one NULLS NOT DISTINCT index over (couple_id, feature_key,
+  // owner_user_id). Postgres cannot resolve ON CONFLICT against a partial
+  // index without repeating its WHERE clause, which upsert() cannot send, so
+  // naming two columns for shared rows failed on every save.
+  const onConflict = 'couple_id,feature_key,owner_user_id';
   const { error } = await supabase.from('feature_state').upsert(
     {
       couple_id: coupleId,

@@ -20,6 +20,8 @@ import {
   Dices,
   Ticket,
   LogOut,
+  Mountain,
+  Users,
 } from 'lucide-react';
 import { exploreItems } from './exploreNav';
 
@@ -31,6 +33,22 @@ export const navItems = [
     badge: null,
     color: 'text-amber-500',
     bg: 'bg-amber-50',
+  },
+  {
+    name: 'Our World',
+    href: '/world',
+    icon: Mountain,
+    badge: 'New',
+    color: 'text-teal-600',
+    bg: 'bg-emerald-50',
+  },
+  {
+    name: 'Us',
+    href: '/us',
+    icon: Users,
+    badge: null,
+    color: 'text-rose-500',
+    bg: 'bg-rose-50',
   },
   {
     name: 'Train Journey',
