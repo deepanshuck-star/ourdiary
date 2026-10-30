@@ -66,10 +66,10 @@
      a wave travelling across the screen. */
 @keyframes ocean-sway {
     from {
-      transform: translateX(calc(var(--ocean-shift) * -1));
+      transform: translateX(calc((calc(var(--ocean-shift) * -1)) * var(--ourdiary-motion-strength, 1)));
     }
     to {
-      transform: translateX(var(--ocean-shift));
+      transform: translateX(calc((var(--ocean-shift)) * var(--ourdiary-motion-strength, 1)));
     }
   }
 

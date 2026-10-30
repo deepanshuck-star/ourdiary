@@ -142,35 +142,35 @@
    lib/motion.ts does from the OS preference and the viewer's own
    choice — so "reduce" still wins unless they ask otherwise. */
 @keyframes fr-drift {
-    from { transform: translate3d(calc(var(--drift, 3) * -1px), 0, 0); }
-    to { transform: translate3d(calc(var(--drift, 3) * 1px), 0, 0); }
+    from { transform: translate3d(calc((calc(var(--drift, 3) * -1px)) * var(--ourdiary-motion-strength, 1)),  0,  0); }
+    to { transform: translate3d(calc((calc(var(--drift, 3) * 1px)) * var(--ourdiary-motion-strength, 1)),  0,  0); }
   }
 
 @keyframes fr-sway {
-    from { transform: rotate(calc(var(--tilt, 1.4) * -1deg)); }
-    to { transform: rotate(calc(var(--tilt, 1.4) * 1deg)); }
+    from { transform: rotate(calc((calc(var(--tilt, 1.4) * -1deg)) * var(--ourdiary-motion-strength, 1))); }
+    to { transform: rotate(calc((calc(var(--tilt, 1.4) * 1deg)) * var(--ourdiary-motion-strength, 1))); }
   }
 
 @keyframes fr-halo {
-    from { opacity: 0.38; transform: scale(0.93); }
+    from { opacity: calc(0.72 - 0.34 * var(--ourdiary-motion-strength, 1)); transform: scale(0.93); }
     to { opacity: 0.72; transform: scale(1.07); }
   }
 
 @keyframes fr-ember {
-    from { opacity: 0.72; }
+    from { opacity: calc(1.0 - 0.28 * var(--ourdiary-motion-strength, 1)); }
     to { opacity: 1; }
   }
 
 @keyframes fr-firefly {
-    0% { transform: translate(0, 0); opacity: 0; }
+    0% { transform: translate(0,   0); opacity: 0; }
     15% { opacity: 0.6; }
     50% {
-      transform: translate(calc(var(--dx, 14) * 1px), calc(var(--dy, -22) * 1px));
+      transform: translate(calc((calc(var(--dx, 14) * 1px)) * var(--ourdiary-motion-strength, 1)),  calc((calc(var(--dy, -22) * 1px)) * var(--ourdiary-motion-strength, 1)));
       opacity: 0.35;
     }
     85% { opacity: 0.55; }
     100% {
-      transform: translate(calc(var(--dx, 14) * -0.4px), calc(var(--dy, -22) * 2px));
+      transform: translate(calc((calc(var(--dx, 14) * -0.4px)) * var(--ourdiary-motion-strength, 1)),  calc((calc(var(--dy, -22) * 2px)) * var(--ourdiary-motion-strength, 1)));
       opacity: 0;
     }
   }

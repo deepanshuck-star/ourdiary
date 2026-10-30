@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { useDiary } from '@/store/DiaryContext';
 import { themeById } from '@/lib/themes';
+import { applyPlaybackRate, motionSpeed } from '@/lib/motion';
 
 // Each environment is loaded only when its theme is the one in use. A couple
 // sees one scene, so shipping all six in the main bundle would cost every
@@ -54,11 +55,29 @@ export function ThemeScene() {
   const { data } = useDiary();
   const pathname = usePathname();
   const theme = themeById(data.couple?.theme);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  // The speed knob. Scenes are loaded on demand, so their animations appear
+  // after this wrapper has rendered — watch for them arriving rather than
+  // applying the rate once and missing the whole scene.
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const apply = () => applyPlaybackRate(el, motionSpeed());
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(el, { childList: true, subtree: true });
+    // Turning motion on in Settings creates the animations without adding
+    // any element, so watch the switch itself as well.
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-motion'] });
+    return () => observer.disconnect();
+  }, [theme.scene]);
+
   if (!theme.scene) return null;
   const Scene = SCENES[theme.scene];
   if (!Scene) return null;
   return (
-    <div className={isQuiet(pathname) ? 'ourdiary-scene-quiet' : undefined}>
+    <div ref={ref} className={isQuiet(pathname) ? 'ourdiary-scene-quiet' : undefined}>
       <Scene />
     </div>
   );

@@ -221,96 +221,96 @@
 
 @keyframes blossom-drift-a {
   from {
-    transform: translate3d(-4vw, 0, 0);
+    transform: translate3d(calc(-4vw * var(--ourdiary-motion-strength, 1)),  0,  0);
   }
   to {
-    transform: translate3d(5vw, 0, 0);
+    transform: translate3d(calc(5vw * var(--ourdiary-motion-strength, 1)),  0,  0);
   }
 }
 @keyframes blossom-drift-b {
   from {
-    transform: translate3d(3vw, 0, 0);
+    transform: translate3d(calc(3vw * var(--ourdiary-motion-strength, 1)),  0,  0);
   }
   to {
-    transform: translate3d(-4vw, 0, 0);
+    transform: translate3d(calc(-4vw * var(--ourdiary-motion-strength, 1)),  0,  0);
   }
 }
 @keyframes blossom-drift-c {
   from {
-    transform: translate3d(-2vw, 0, 0);
+    transform: translate3d(calc(-2vw * var(--ourdiary-motion-strength, 1)),  0,  0);
   }
   to {
-    transform: translate3d(3vw, 0, 0);
+    transform: translate3d(calc(3vw * var(--ourdiary-motion-strength, 1)),  0,  0);
   }
 }
 
 @keyframes blossom-sway-wide {
   from {
-    transform: rotate(-1.5deg);
+    transform: rotate(calc(-1.5deg * var(--ourdiary-motion-strength, 1)));
   }
   to {
-    transform: rotate(1.1deg);
+    transform: rotate(calc(1.1deg * var(--ourdiary-motion-strength, 1)));
   }
 }
 @keyframes blossom-sway-mid {
   from {
-    transform: rotate(-1.1deg);
+    transform: rotate(calc(-1.1deg * var(--ourdiary-motion-strength, 1)));
   }
   to {
-    transform: rotate(0.8deg);
+    transform: rotate(calc(0.8deg * var(--ourdiary-motion-strength, 1)));
   }
 }
 @keyframes blossom-sway-soft {
   from {
-    transform: rotate(-0.7deg);
+    transform: rotate(calc(-0.7deg * var(--ourdiary-motion-strength, 1)));
   }
   to {
-    transform: rotate(0.6deg);
+    transform: rotate(calc(0.6deg * var(--ourdiary-motion-strength, 1)));
   }
 }
 @keyframes blossom-sway-tip {
   from {
-    transform: rotate(-2deg);
+    transform: rotate(calc(-2deg * var(--ourdiary-motion-strength, 1)));
   }
   to {
-    transform: rotate(1.4deg);
+    transform: rotate(calc(1.4deg * var(--ourdiary-motion-strength, 1)));
   }
 }
 
 @keyframes blossom-grass-a {
   from {
-    transform: rotate(-2deg);
+    transform: rotate(calc(-2deg * var(--ourdiary-motion-strength, 1)));
   }
   to {
-    transform: rotate(2.4deg);
+    transform: rotate(calc(2.4deg * var(--ourdiary-motion-strength, 1)));
   }
 }
 @keyframes blossom-grass-b {
   from {
-    transform: rotate(1.8deg);
+    transform: rotate(calc(1.8deg * var(--ourdiary-motion-strength, 1)));
   }
   to {
-    transform: rotate(-2.2deg);
+    transform: rotate(calc(-2.2deg * var(--ourdiary-motion-strength, 1)));
   }
 }
 
 @keyframes blossom-ripple-a {
   from {
-    transform: translateX(-9px) scaleX(0.94);
+    transform: translateX(calc(-9px * var(--ourdiary-motion-strength, 1))) scaleX(0.94);
     opacity: 0.26;
   }
   to {
-    transform: translateX(11px) scaleX(1.06);
+    transform: translateX(calc(11px * var(--ourdiary-motion-strength, 1))) scaleX(1.06);
     opacity: 0.5;
   }
 }
 @keyframes blossom-ripple-b {
   from {
-    transform: translateX(8px) scaleX(1.05);
+    transform: translateX(calc(8px * var(--ourdiary-motion-strength, 1))) scaleX(1.05);
     opacity: 0.46;
   }
   to {
-    transform: translateX(-10px) scaleX(0.95);
+    transform: translateX(calc(-10px * var(--ourdiary-motion-strength, 1))) scaleX(0.95);
     opacity: 0.22;
   }
 }
@@ -330,26 +330,26 @@
    third of the screen it started in. */
 @keyframes blossom-sway-s {
   from {
-    transform: translateX(-9px) rotate(-26deg);
+    transform: translateX(calc(-9px * var(--ourdiary-motion-strength, 1))) rotate(calc(-26deg * var(--ourdiary-motion-strength, 1)));
   }
   to {
-    transform: translateX(9px) rotate(34deg);
+    transform: translateX(calc(9px * var(--ourdiary-motion-strength, 1))) rotate(calc(34deg * var(--ourdiary-motion-strength, 1)));
   }
 }
 @keyframes blossom-sway-m {
   from {
-    transform: translateX(-15px) rotate(-48deg);
+    transform: translateX(calc(-15px * var(--ourdiary-motion-strength, 1))) rotate(calc(-48deg * var(--ourdiary-motion-strength, 1)));
   }
   to {
-    transform: translateX(15px) rotate(42deg);
+    transform: translateX(calc(15px * var(--ourdiary-motion-strength, 1))) rotate(calc(42deg * var(--ourdiary-motion-strength, 1)));
   }
 }
 @keyframes blossom-sway-l {
   from {
-    transform: translateX(-23px) rotate(-62deg);
+    transform: translateX(calc(-23px * var(--ourdiary-motion-strength, 1))) rotate(calc(-62deg * var(--ourdiary-motion-strength, 1)));
   }
   to {
-    transform: translateX(23px) rotate(58deg);
+    transform: translateX(calc(23px * var(--ourdiary-motion-strength, 1))) rotate(calc(58deg * var(--ourdiary-motion-strength, 1)));
   }
 }
 

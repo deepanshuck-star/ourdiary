@@ -21,6 +21,24 @@
      like "Moments worth keeping" on the dashboard. Lower than the cards
      because these carry less text and cover more of the screen. */
   --ourdiary-panel-opacity: 75%;
+
+  /* ---------------------------------------------------------------------
+     HOW LIVELY THE SCENERY IS — the six theme backgrounds and the little
+     world alike.
+
+     Speed: how often things move. 1 = the original, gentle pace.
+       1.35 = the default now. 2 = twice as fast, busy.
+       (Read once when a scene appears — reload the page after changing it.)
+
+     Strength: how far things sway, bob and wander. 1 = the original.
+       1.6 = the default now. 2.5 = very noticeable.
+       Things that TRAVEL — clouds crossing, lanterns rising, petals
+       falling, boats — keep their distance; only their pace follows the
+       speed. Their distances were chosen so nothing bright drifts across
+       the middle of your diary.
+     --------------------------------------------------------------------- */
+  --ourdiary-motion-speed: 1.35;
+  --ourdiary-motion-strength: 1.6;
 }
 
 /* Rose Quartz Romance — tokens generated from a contrast-checked palette.

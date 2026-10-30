@@ -52,6 +52,7 @@ import {
   type WorldAvatars,
 } from '@/lib/world/avatar';
 import { worldAudio } from '@/lib/world/audio';
+import { applyPlaybackRate, motionSpeed } from '@/lib/motion';
 
 // The world's own palette, from the brief. Fixed rather than taken from the
 // app theme: this is a handmade object sitting on the page.
@@ -218,10 +219,10 @@ export function useWorldState(place: SoundPlace, forcePhase?: DayPhase): WorldSt
  * own clock and the whole world simply breathes slower or faster.
  */
 export function usePace(ref: React.RefObject<HTMLElement | null>, pace: number) {
+  // Mood's pace multiplied by the overall speed knob in globals.css.
   React.useEffect(() => {
     const el = ref.current;
-    if (!el || typeof el.getAnimations !== 'function') return;
-    for (const animation of el.getAnimations({ subtree: true })) animation.playbackRate = pace;
+    if (el) applyPlaybackRate(el, pace * motionSpeed());
   });
 }
 

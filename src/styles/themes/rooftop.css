@@ -109,13 +109,13 @@
 /* Each bulb gets its own duration and a negative delay, so the strand is already
      mid-breath on first paint and no two bulbs share a phase. */
 @keyframes rooftop-breathe {
-    from { opacity: 0.55; }
+    from { opacity: calc(1.0 - 0.45 * var(--ourdiary-motion-strength, 1)); }
     to { opacity: 1; }
   }
 
 @keyframes rooftop-sway {
-    from { transform: rotate(-2.4deg); }
-    to { transform: rotate(2.4deg); }
+    from { transform: rotate(calc(-2.4deg * var(--ourdiary-motion-strength, 1))); }
+    to { transform: rotate(calc(2.4deg * var(--ourdiary-motion-strength, 1))); }
   }
 
 @keyframes rooftop-drift {
@@ -133,13 +133,13 @@
   }
 
 @keyframes rooftop-lamp-pulse {
-    from { opacity: 0.46; }
+    from { opacity: calc(0.68 - 0.22 * var(--ourdiary-motion-strength, 1)); }
     to { opacity: 0.68; }
   }
 
 @keyframes rooftop-blanket {
-    from { transform: rotate(-1.1deg); }
-    to { transform: rotate(1.6deg); }
+    from { transform: rotate(calc(-1.1deg * var(--ourdiary-motion-strength, 1))); }
+    to { transform: rotate(calc(1.6deg * var(--ourdiary-motion-strength, 1))); }
   }
 
 :root[data-motion="on"] .rooftop-bulb {

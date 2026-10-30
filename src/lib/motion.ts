@@ -57,3 +57,27 @@ export const MOTION_OPTIONS: { id: MotionPreference; name: string; description: 
   { id: 'on', name: 'Always on', description: 'The scenery moves, whatever your device says.' },
   { id: 'off', name: 'Always still', description: 'A painted scene, with nothing moving.' },
 ];
+
+/**
+ * How fast the scenery moves, from --ourdiary-motion-speed in globals.css.
+ * 1 is the original pace. Clamped so a typo cannot freeze the world or
+ * make it strobe.
+ */
+export function motionSpeed(): number {
+  if (typeof window === 'undefined') return 1;
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--ourdiary-motion-speed');
+  const value = parseFloat(raw);
+  return Number.isFinite(value) && value > 0 ? Math.min(4, Math.max(0.25, value)) : 1;
+}
+
+/**
+ * Sets every running animation under `root` to play at `rate`. Done with
+ * playbackRate rather than by rewriting durations, so each creature keeps
+ * its own clock and they speed up together without falling into step.
+ */
+export function applyPlaybackRate(root: Element, rate: number) {
+  if (typeof root.getAnimations !== 'function') return;
+  for (const animation of root.getAnimations({ subtree: true })) {
+    if (animation.playbackRate !== rate) animation.playbackRate = rate;
+  }
+}

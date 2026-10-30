@@ -170,10 +170,10 @@
 @keyframes od-moonlit-sway {
     0%,
     100% {
-      transform: rotate(calc(var(--sway) * -1deg));
+      transform: rotate(calc((calc(var(--sway) * -1deg)) * var(--ourdiary-motion-strength, 1)));
     }
     50% {
-      transform: rotate(calc(var(--sway) * 1deg));
+      transform: rotate(calc((calc(var(--sway) * 1deg)) * var(--ourdiary-motion-strength, 1)));
     }
   }
 
@@ -212,63 +212,63 @@
      jump back to the start position when the loop restarts. */
 @keyframes od-moonlit-wander-a {
     0% {
-      transform: translate(0, 0);
+      transform: translate(0,   0);
       opacity: 0;
     }
     18% {
       opacity: 0.9;
     }
     50% {
-      transform: translate(26px, -20px);
+      transform: translate(calc(26px * var(--ourdiary-motion-strength, 1)),  calc(-20px * var(--ourdiary-motion-strength, 1)));
       opacity: 0.5;
     }
     78% {
       opacity: 0.85;
     }
     100% {
-      transform: translate(-8px, -38px);
+      transform: translate(calc(-8px * var(--ourdiary-motion-strength, 1)),  calc(-38px * var(--ourdiary-motion-strength, 1)));
       opacity: 0;
     }
   }
 
 @keyframes od-moonlit-wander-b {
     0% {
-      transform: translate(0, 0);
+      transform: translate(0,   0);
       opacity: 0;
     }
     22% {
       opacity: 0.8;
     }
     55% {
-      transform: translate(-24px, -16px);
+      transform: translate(calc(-24px * var(--ourdiary-motion-strength, 1)),  calc(-16px * var(--ourdiary-motion-strength, 1)));
       opacity: 0.45;
     }
     80% {
       opacity: 0.9;
     }
     100% {
-      transform: translate(14px, -34px);
+      transform: translate(calc(14px * var(--ourdiary-motion-strength, 1)),  calc(-34px * var(--ourdiary-motion-strength, 1)));
       opacity: 0;
     }
   }
 
 @keyframes od-moonlit-wander-c {
     0% {
-      transform: translate(0, 0);
+      transform: translate(0,   0);
       opacity: 0;
     }
     20% {
       opacity: 0.85;
     }
     48% {
-      transform: translate(18px, -26px);
+      transform: translate(calc(18px * var(--ourdiary-motion-strength, 1)),  calc(-26px * var(--ourdiary-motion-strength, 1)));
       opacity: 0.55;
     }
     76% {
       opacity: 0.75;
     }
     100% {
-      transform: translate(-20px, -30px);
+      transform: translate(calc(-20px * var(--ourdiary-motion-strength, 1)),  calc(-30px * var(--ourdiary-motion-strength, 1)));
       opacity: 0;
     }
   }
