@@ -1,0 +1,153 @@
+/* The little world.
+
+   Motion follows the same contract as the theme scenery: nothing animates
+   until :root[data-motion="on"], which lib/motion.ts resolves from the
+   device preference and the viewer's own choice. Keyframes live at the top
+   level because a style rule cannot contain them.
+
+   Every animated element is an inner group with no transform attribute of
+   its own. A CSS transform animation on an SVG element REPLACES that
+   element's transform rather than composing with it, so placement always
+   lives on the wrapper and only the inner group moves. */
+
+.living-world .lw-handwritten {
+  font-family: var(--font-hand), 'Caveat', 'Segoe Print', cursive;
+}
+
+.living-world .lw-hot { cursor: pointer; outline: none; }
+.living-world .lw-hot .lw-ring { opacity: 0; transition: opacity 160ms ease; }
+.living-world .lw-hot:hover .lw-ring,
+.living-world .lw-hot:focus-visible .lw-ring { opacity: 1; }
+.living-world .lw-river { cursor: pointer; }
+.living-world .lw-glide { cursor: pointer; }
+
+/* Pivots: things that sway bend from their base, not their middle. */
+.living-world .lw-sway,
+.living-world .lw-flutter-flag { transform-box: fill-box; transform-origin: 50% 100%; }
+.living-world .lw-flutter-flag { transform-origin: 0% 50%; }
+.living-world .lw-breathe,
+.living-world .lw-breathe-slow { transform-box: fill-box; transform-origin: 50% 100%; }
+.living-world .lw-wings,
+.living-world .lw-wings-x { transform-box: fill-box; transform-origin: 50% 50%; }
+.living-world .lw-ripple { transform-box: fill-box; transform-origin: 50% 50%; }
+
+/* Scrolled out of view: everything holds still and costs nothing. */
+.living-world[data-onscreen="false"] * { animation-play-state: paused !important; }
+
+/* ------------------------------------------------------------ keyframes */
+
+@keyframes lw-drift {
+  from { transform: translateX(var(--from, -200px)); }
+  to { transform: translateX(var(--to, 1200px)); }
+}
+@keyframes lw-twinkle {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+@keyframes lw-sway {
+  0%, 100% { transform: rotate(-1.6deg); }
+  50% { transform: rotate(1.8deg); }
+}
+@keyframes lw-sway-strong {
+  0%, 100% { transform: rotate(-4.5deg); }
+  50% { transform: rotate(5deg); }
+}
+@keyframes lw-flag {
+  0%, 100% { transform: scaleX(1) skewY(0deg); }
+  50% { transform: scaleX(0.8) skewY(-6deg); }
+}
+@keyframes lw-shimmer {
+  0%, 100% { opacity: 0.15; transform: translateX(0); }
+  50% { opacity: 0.85; transform: translateX(4px); }
+}
+@keyframes lw-bob {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-1.6px) rotate(2deg); }
+}
+@keyframes lw-breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.035); }
+}
+@keyframes lw-smoke {
+  0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
+  20% { opacity: var(--smoke, 0.4); }
+  100% { transform: translate(16px, -52px) scale(1.7); opacity: 0; }
+}
+@keyframes lw-wings {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.3); }
+}
+@keyframes lw-wings-x {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.25); }
+}
+@keyframes lw-flutter {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(14px, -10px); }
+  50% { transform: translate(26px, 2px); }
+  75% { transform: translate(10px, 8px); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes lw-firefly {
+  0% { transform: translate(0, 0); opacity: 0.15; }
+  30% { transform: translate(12px, -14px); opacity: 1; }
+  60% { transform: translate(-8px, -22px); opacity: 0.5; }
+  100% { transform: translate(0, 0); opacity: 0.15; }
+}
+@keyframes lw-glow {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+@keyframes lw-leaf {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translate(40px, 190px) rotate(320deg); opacity: 0; }
+}
+@keyframes lw-rain {
+  from { transform: translateY(-40px); }
+  to { transform: translateY(620px); }
+}
+@keyframes lw-snow {
+  from { transform: translate(0, -20px); }
+  to { transform: translate(34px, 600px); }
+}
+@keyframes lw-fog {
+  0%, 100% { transform: translateX(-36px); }
+  50% { transform: translateX(36px); }
+}
+@keyframes lw-ripple {
+  from { transform: scale(0.2); opacity: 0.95; }
+  to { transform: scale(2.6); opacity: 0; }
+}
+@keyframes lw-startle {
+  0% { transform: translate(0, 0); }
+  35% { transform: translate(70px, -60px); }
+  70% { transform: translate(40px, -30px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ------------------------------------------------------- motion, gated */
+
+:root[data-motion="on"] .living-world .lw-drift { animation: lw-drift linear infinite; }
+:root[data-motion="on"] .living-world .lw-glide { animation: lw-drift linear infinite; }
+:root[data-motion="on"] .living-world .lw-train { animation: lw-drift 46s linear infinite; }
+:root[data-motion="on"] .living-world .lw-twinkle { animation: lw-twinkle ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-sway { animation: lw-sway ease-in-out infinite; }
+:root[data-motion="on"] .living-world[data-weather="windy"] .lw-sway { animation-name: lw-sway-strong; }
+:root[data-motion="on"] .living-world .lw-flutter-flag { animation: lw-flag ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-shimmer { animation: lw-shimmer ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-bob { animation: lw-bob ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-breathe { animation: lw-breathe 4.2s ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-breathe-slow { animation: lw-breathe 6.5s ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-smoke { animation: lw-smoke 4.8s ease-out infinite; }
+:root[data-motion="on"] .living-world .lw-wings { animation: lw-wings ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-wings-x { animation: lw-wings-x ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-flutter { animation: lw-flutter ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-firefly { animation: lw-firefly ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-glow { animation: lw-glow 5s ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-leaf { animation: lw-leaf ease-in infinite; }
+:root[data-motion="on"] .living-world .lw-rain { animation: lw-rain linear infinite; }
+:root[data-motion="on"] .living-world .lw-snow { animation: lw-snow linear infinite; }
+:root[data-motion="on"] .living-world .lw-fog { animation: lw-fog ease-in-out infinite; }
+:root[data-motion="on"] .living-world .lw-ripple { animation: lw-ripple 1.4s ease-out forwards; }
+:root[data-motion="on"] .living-world .lw-startled { animation: lw-startle 2.2s ease-in-out; }

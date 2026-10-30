@@ -42,6 +42,7 @@ import { HeartbeatLovePingModal } from '@/components/widgets/HeartbeatLovePingMo
 import { OnThisDayCard } from '@/components/widgets/OnThisDayCard';
 import { DailyQuestionCard } from '@/components/widgets/DailyQuestionCard';
 import { CassettePlayerWidget } from '@/components/widgets/CassettePlayerWidget';
+import { LivingWorld } from '@/components/world/LivingWorld';
 import { CoupleStreakChip } from '@/components/widgets/CoupleStreakChip';
 import { GoodMorningHandoff } from '@/components/widgets/GoodMorningHandoff';
 import { DistanceCounter } from '@/components/widgets/DistanceCounter';
@@ -294,6 +295,10 @@ export default function DashboardPage() {
             </div>
           </div>
         </header>
+
+        {/* Your little world — the atmosphere of Today. Every object in it
+            leads to something real; the diary below stays the content. */}
+        <LivingWorld />
 
         {/* Only appears when one of you is awake into the other's night. */}
         <GoodMorningHandoff />

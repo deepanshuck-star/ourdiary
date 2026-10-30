@@ -447,8 +447,8 @@ export default function SettingsPage() {
         <div className="rounded-3xl bg-white border border-line p-6 shadow-sm">
           <h3 className="font-extrabold text-base text-slate-900 mb-1">Background motion</h3>
           <p className="text-xs text-slate-500 mb-4">
-            Whether the scenery behind your diary moves — the grass, the water, the
-            lanterns. Only applies to the six environments. Saved on this device only.
+            Whether the scenery moves — the grass, the water, the lanterns, and the
+            little world on Today. Saved on this device only.
           </p>
           <div role="radiogroup" aria-label="Background motion" className="grid sm:grid-cols-3 gap-2">
             {MOTION_OPTIONS.map((option) => (

@@ -9,6 +9,7 @@ import {
   Manrope,
   Nunito_Sans,
   Inter,
+  Caveat,
 } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers/Providers';
@@ -80,6 +81,16 @@ const nunitoFont = Nunito_Sans({
 const interFont = Inter({
   variable: '--font-inter',
   subsets: ['latin'],
+  display: 'swap',
+  preload: false,
+});
+
+// Handwriting for the little world's captions — the diary's own voice.
+// Not preloaded: it is only ever used inside the world card.
+const handFont = Caveat({
+  variable: '--font-hand',
+  subsets: ['latin'],
+  weight: ['500', '700'],
   display: 'swap',
   preload: false,
 });
@@ -186,7 +197,7 @@ export default function RootLayout({
       data-appearance="light"
       data-palette="rose"
       suppressHydrationWarning
-      className={`${roseDisplayFont.variable} ${roseBodyFont.variable} ${peachDisplayFont.variable} ${peachBodyFont.variable} ${cormorantFont.variable} ${dmSerifFont.variable} ${manropeFont.variable} ${nunitoFont.variable} ${interFont.variable} h-full antialiased`}
+      className={`${roseDisplayFont.variable} ${roseBodyFont.variable} ${peachDisplayFont.variable} ${peachBodyFont.variable} ${cormorantFont.variable} ${dmSerifFont.variable} ${manropeFont.variable} ${nunitoFont.variable} ${interFont.variable} ${handFont.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: preferencesScript }} />

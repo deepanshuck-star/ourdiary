@@ -1777,9 +1777,9 @@
    someone who asks for the scenery anyway can have it, which this blanket
    !important rule would otherwise make impossible. */
 @media (prefers-reduced-motion: reduce) {
-  *:not(.ourdiary-scene, .ourdiary-scene *),
-  *:not(.ourdiary-scene, .ourdiary-scene *)::before,
-  *:not(.ourdiary-scene, .ourdiary-scene *)::after {
+  *:not(.ourdiary-scene, .ourdiary-scene *, .living-world, .living-world *),
+  *:not(.ourdiary-scene, .ourdiary-scene *, .living-world, .living-world *)::before,
+  *:not(.ourdiary-scene, .ourdiary-scene *, .living-world, .living-world *)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
