@@ -6,6 +6,7 @@ import {Sparkles, Lock, Unlock, ArrowRight} from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
 import { useLocalState } from '@/lib/local-store';
 import { FlipCard } from '@/components/fx/FlipCard';
+import { toLocalDayKey } from '@/lib/date-utils';
 
 const QUESTIONS_POOL = [
   'What is one small thing I did this week that made your heart melt?',
@@ -30,7 +31,7 @@ export function DailyQuestionCard() {
     );
     setDayInfo({
       dayOfYear: doy,
-      todayStr: now.toISOString().split('T')[0],
+      todayStr: toLocalDayKey(now),
     });
   }, []);
 

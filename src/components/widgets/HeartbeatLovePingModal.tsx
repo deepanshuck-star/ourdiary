@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import {Heart, Send, Flame, X} from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
+import { nextHeartbeatStreak } from '@/lib/features/streak';
+import { getNow, toLocalDayKey } from '@/lib/date-utils';
 
 interface HeartbeatLovePingModalProps {
   isOpen: boolean;
@@ -16,7 +18,9 @@ export function HeartbeatLovePingModal({ isOpen, onClose }: HeartbeatLovePingMod
 
   if (!isOpen) return null;
 
-  const streak = data.heartbeatStreak || 1;
+  // What the streak WILL be once this ping is sent, so the modal never
+  // promises a number the send does not deliver.
+  const streak = nextHeartbeatStreak(data.heartbeatStreak, data.lastHeartbeatDate, toLocalDayKey(getNow()));
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();

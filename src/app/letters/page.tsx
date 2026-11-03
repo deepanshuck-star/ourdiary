@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
-import { formatDate, getDaysUntil, isPastOrToday } from '@/lib/date-utils';
+import { toLocalDayKey, formatDate, getDaysUntil, isPastOrToday } from '@/lib/date-utils';
 import { Letter } from '@/types';
 import confetti from 'canvas-confetti';
 import { EnvelopeGate } from '@/components/fx/EnvelopeOpening';
@@ -35,7 +35,7 @@ export default function LettersPage() {
   React.useEffect(() => {
     const d = new Date();
     d.setMonth(d.getMonth() + 1);
-    setUnlockDate(d.toISOString().split('T')[0]);
+    setUnlockDate(toLocalDayKey(d));
   }, []);
   const [envelopeColor, setEnvelopeColor] = useState('#F8C8D8');
   const [, setIsDraft] = useState(false);

@@ -187,3 +187,40 @@ export function milestoneToCelebrate(current: number, celebrated: number[]): num
 export function nextMilestone(current: number): number | null {
   return STREAK_MILESTONES.find((m) => m > current) ?? null;
 }
+
+// ------------------------------------------------------------ heartbeat ---
+//
+// The love-ping streak used to add one on any new day and never reset, so a
+// couple who pinged once a week watched "12d" keep climbing. It was a count
+// of days with a ping, shown as a streak. These two rules make it one.
+
+function cleanCount(streak: number | undefined): number {
+  return typeof streak === 'number' && Number.isFinite(streak) && streak > 0 ? Math.floor(streak) : 0;
+}
+
+/**
+ * The streak after a ping today. Same day as the last ping: unchanged. The
+ * day after: one longer. Any gap: it starts again at 1.
+ *
+ * A last day AFTER today counts as today — a ping saved while a device's
+ * clock or time zone was ahead must not break the streak.
+ */
+export function nextHeartbeatStreak(streak: number | undefined, lastDay: string | undefined, today: string): number {
+  const current = cleanCount(streak);
+  if (!lastDay || !DAY_KEY.test(lastDay)) return 1;
+  if (lastDay >= today) return Math.max(1, current);
+  if (addDays(lastDay, 1) === today) return current + 1;
+  return 1;
+}
+
+/**
+ * The streak to show today. Still alive if the last ping was today or
+ * yesterday — yesterday's streak is not lost until today ends — and 0 once
+ * a whole day has gone by without one.
+ */
+export function liveHeartbeatStreak(streak: number | undefined, lastDay: string | undefined, today: string): number {
+  if (!lastDay || !DAY_KEY.test(lastDay)) return 0;
+  const current = cleanCount(streak);
+  if (lastDay >= today || addDays(lastDay, 1) === today) return current;
+  return 0;
+}

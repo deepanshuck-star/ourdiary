@@ -19,6 +19,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { fetchMyCouple, createCoupleSpaceRemote, joinCoupleByCodeRemote } from '@/lib/supabase/couple';
 import { friendlyAuthError } from '@/lib/friendlyError';
 import { useDiary } from '@/store/DiaryContext';
+import { toLocalDayKey } from '@/lib/date-utils';
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -61,7 +62,7 @@ export default function OnboardingPage() {
 
   // Check auth state on mount & auto-redirect if couple space already exists!
   useEffect(() => {
-    setStartDate(new Date().toISOString().split('T')[0]);
+    setStartDate(toLocalDayKey(new Date()));
     async function checkAuth() {
       if (!supabase) {
         setAuthLoading(false);
@@ -235,8 +236,8 @@ export default function OnboardingPage() {
     initCleanCoupleSpace({
       id: 'c_' + Date.now(),
       name: 'Our Couple Space',
-      startDate: new Date().toISOString().split('T')[0],
-      anniversaryDate: new Date().toISOString().split('T')[0],
+      startDate: toLocalDayKey(new Date()),
+      anniversaryDate: toLocalDayKey(new Date()),
       theme: 'candy',
       animationsEnabled: true,
       inviteCode: cleanedCode,

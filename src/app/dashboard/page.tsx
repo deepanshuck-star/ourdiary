@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { SecureImage } from '@/components/ui/SecureImage';
 import { useDiary } from '@/store/DiaryContext';
-import {
+import { toLocalDayKey,
   calculateDaysTogether,
   calculateNextAnniversary,
   formatDate,
@@ -47,6 +47,7 @@ import { CoupleStreakChip } from '@/components/widgets/CoupleStreakChip';
 import { GoodMorningHandoff } from '@/components/widgets/GoodMorningHandoff';
 import { DistanceCounter } from '@/components/widgets/DistanceCounter';
 import { MoodHistoryRecorder } from '@/components/widgets/MoodHistoryRecorder';
+import { liveHeartbeatStreak } from '@/lib/features/streak';
 
 type Ritual = {
   key: string;
@@ -189,7 +190,7 @@ export default function DashboardPage() {
   // Today's rituals — read-only summaries of state the widgets below already manage.
   const partnerId = data.activeProfileId === 'user_1' ? 'user_2' : 'user_1';
   const now = getNow();
-  const todayStr = now.toISOString().split('T')[0];
+  const todayStr = toLocalDayKey(now);
   const dayOfYear = Math.floor(
     (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 1000 / 60 / 60 / 24
   );
@@ -843,7 +844,7 @@ export default function DashboardPage() {
           <span className="hidden xs:inline">Send love</span>
           <span className="px-2 py-0.5 rounded-full bg-on-primary/15 text-[11px] font-semibold tracking-wide flex items-center gap-1">
             <Flame className="w-3 h-3" />
-            {data.heartbeatStreak || 1}d
+            {liveHeartbeatStreak(data.heartbeatStreak, data.lastHeartbeatDate, todayStr)}d
           </span>
         </button>
       </div>

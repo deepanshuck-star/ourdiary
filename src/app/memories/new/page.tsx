@@ -26,6 +26,7 @@ import {
   Sparkles,
   ArrowLeft,
 } from 'lucide-react';
+import { toLocalDayKey } from '@/lib/date-utils';
 
 const CATEGORIES: MemoryCategory[] = [
   'First date',
@@ -65,7 +66,7 @@ export default function NewMemoryPage() {
   const [date, setDate] = useState('2025-04-12');
 
   React.useEffect(() => {
-    setDate(new Date().toISOString().split('T')[0]);
+    setDate(toLocalDayKey(new Date()));
   }, []);
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState<MemoryCategory>('Outing');

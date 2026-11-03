@@ -9,6 +9,19 @@ export function getNow(): Date {
   return new Date();
 }
 
+/**
+ * A Date as YYYY-MM-DD in the viewer's own time zone.
+ *
+ * Never use toISOString().split('T')[0] for this. That is the date in UTC,
+ * and for a couple in India (UTC+5:30) it is yesterday from midnight until
+ * 5:30 am — and for a Date that is already a local midnight, such as a
+ * milestone built from the start date, it is yesterday all day long.
+ */
+export function toLocalDayKey(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 export function parseDate(dateStr: string): Date {
   // Handles YYYY-MM-DD
   const parts = dateStr.split('-');
@@ -121,7 +134,7 @@ export function getMilestones(startDateStr: string) {
     return {
       days: m.days,
       label: m.label,
-      targetDate: targetDate.toISOString().split('T')[0],
+      targetDate: toLocalDayKey(targetDate),
       daysLeft,
       reached: daysLeft <= 0,
     };

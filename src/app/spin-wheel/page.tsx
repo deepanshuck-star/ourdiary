@@ -12,6 +12,7 @@ import {
   Smile,
   X,
 } from 'lucide-react';
+import { toLocalDayKey } from '@/lib/date-utils';
 
 const SLICE_COLORS = [
   '#F8C8D8',
@@ -79,7 +80,7 @@ export default function SpinWheelPage() {
 
     addEvent({
       title: `Date: ${winner}`,
-      date: tomorrow.toISOString().split('T')[0],
+      date: toLocalDayKey(tomorrow),
       category: 'Date Night',
       description: 'Chosen by spinning the Couple Date Wheel! 🎡',
     });

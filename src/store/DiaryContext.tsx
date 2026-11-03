@@ -53,6 +53,8 @@ import {
 } from '@/lib/supabase/sync';
 import { sendPushNotification } from '@/lib/notifications';
 import { destroyCloudinaryAsset } from '@/lib/cloudinary/upload';
+import { toLocalDayKey } from '@/lib/date-utils';
+import { nextHeartbeatStreak } from '@/lib/features/streak';
 
 export interface ToastInfo {
   id: string;
@@ -153,8 +155,8 @@ function buildCleanCoupleData(couple: Couple): OurDiaryData {
     letters: [],
     bucketList: [],
     moodBeacons: {},
-    heartbeatStreak: 1,
-    lastHeartbeatDate: new Date().toISOString().split('T')[0],
+    // No ping has been sent yet, so there is no streak to show.
+    heartbeatStreak: 0,
     dailySparkAnswers: [],
     customWheelOptions: [
       { id: 'w_1', text: 'Wood-fired Neapolitan Pizza 🍕', category: 'food' },
@@ -1279,7 +1281,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         const willComplete = !b.completed;
         nextUpdates = {
           completed: willComplete,
-          completedDate: willComplete ? new Date().toISOString().split('T')[0] : undefined,
+          completedDate: willComplete ? toLocalDayKey(new Date()) : undefined,
         };
         return { ...b, ...nextUpdates };
       }),
@@ -1317,7 +1319,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
 
     const newMem = addMemory({
       title: `Achieved: ${item.title}`,
-      date: item.completedDate || new Date().toISOString().split('T')[0],
+      date: item.completedDate || toLocalDayKey(new Date()),
       description: item.notes || `We finally crossed off "${item.title}" together from our couple bucket list!`,
       mood: 'happy',
       category: 'Special moment',
@@ -1357,12 +1359,11 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
   };
 
   const sendHeartbeatPing = (message?: string) => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = toLocalDayKey(new Date());
     const senderName = data.activeProfileId === 'user_1' ? data.couple.user1.name : data.couple.user2.name;
     setData((prev) => {
-      const isNewDay = prev.lastHeartbeatDate !== today;
-      const currentStreak = prev.heartbeatStreak || 0;
-      const newStreak = isNewDay ? currentStreak + 1 : currentStreak;
+      // Consecutive days only: a missed day starts the streak again at 1.
+      const newStreak = nextHeartbeatStreak(prev.heartbeatStreak, prev.lastHeartbeatDate, today);
 
       return {
         ...prev,
@@ -1437,7 +1438,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
   };
 
   const answerDailySpark = (questionId: string, question: string, content: string) => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = toLocalDayKey(new Date());
     const senderName = data.activeProfileId === 'user_1' ? data.couple.user1.name : data.couple.user2.name;
     setData((prev) => {
       const existingAnswers = prev.dailySparkAnswers || [];
@@ -1582,7 +1583,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
   const redeemLoveCoupon = (id: string) => {
     const redeemerName = activeProfile.name;
     const targetCoupon = data.loveCoupons?.find((c) => c.id === id);
-    const redeemedDate = new Date().toISOString().split('T')[0];
+    const redeemedDate = toLocalDayKey(new Date());
     setData((prev) => ({
       ...prev,
       loveCoupons: (prev.loveCoupons || []).map((c) =>

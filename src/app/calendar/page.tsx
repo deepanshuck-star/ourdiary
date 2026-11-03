@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
-import { formatDate } from '@/lib/date-utils';
+import { toLocalDayKey, formatDate } from '@/lib/date-utils';
 import { CalendarEvent, EventCategory } from '@/types';
 import {
   CalendarDays,
@@ -39,7 +39,7 @@ export default function CalendarPage() {
   useEffect(() => {
     const now = new Date();
     setCurrentDate(now);
-    const dateFormatted = now.toISOString().split('T')[0];
+    const dateFormatted = toLocalDayKey(now);
     setSelectedDateStr(dateFormatted);
     setTodayStr(dateFormatted);
   }, []);
@@ -123,7 +123,7 @@ export default function CalendarPage() {
   const handleToday = () => {
     const today = new Date();
     setCurrentDate(today);
-    setSelectedDateStr(today.toISOString().split('T')[0]);
+    setSelectedDateStr(toLocalDayKey(today));
   };
 
   // Memories on selected date
