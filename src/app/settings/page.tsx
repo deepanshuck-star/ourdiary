@@ -44,6 +44,7 @@ export default function SettingsPage() {
     activeProfile,
     updateCouple,
     updateProfile,
+    canSwitchProfile,
     resetAllData,
     exportJSON,
     importJSON,
@@ -95,6 +96,13 @@ export default function SettingsPage() {
   const [notificationPreviews, setNotificationPreviews] = useState(
     data.couple.notificationPreviews === true
   );
+
+  // Whose profile is whose. On a signed-in account you edit only your own;
+  // your partner's card is shown as they set it. In demo mode one device
+  // plays both, so both stay editable.
+  const mySlot = data.activeProfileId;
+  const canEditUser1 = canSwitchProfile || mySlot === 'user_1';
+  const canEditUser2 = canSwitchProfile || mySlot === 'user_2';
 
   // Profile 1 Settings
   const [user1Name, setUser1Name] = useState(data.couple.user1.name);
@@ -519,12 +527,18 @@ export default function SettingsPage() {
                 className="w-10 h-10 rounded-full object-cover ring-2 ring-secondary"
               />
               <div>
-                <h3 className="font-extrabold text-base text-slate-900">User 1 (You)</h3>
+                <h3 className="font-extrabold text-base text-slate-900">{data.couple.user1.name} {mySlot === 'user_1' ? '(You)' : '(Partner)'}</h3>
                 <span className="text-xs text-slate-400">Default: Alex</span>
               </div>
             </div>
 
-            <form onSubmit={handleSaveUser1} className="space-y-3">
+            <form onSubmit={handleSaveUser1}>
+              {/* disabled on the partner's card: native, so every input, the
+                  photo upload and the save button go read-only together. */}
+              <fieldset disabled={!canEditUser1} className="space-y-3 min-w-0 disabled:opacity-60">
+              {!canEditUser1 && (
+                <p className="text-xs text-ink-muted">Only {data.couple.user1.name} can change this. It's how they chose to appear.</p>
+              )}
               <div>
                 <label className="block text-xs font-bold text-slate-600 mb-1">Display Name</label>
                 <input
@@ -593,6 +607,7 @@ export default function SettingsPage() {
                   Update User 1
                 </button>
               </div>
+              </fieldset>
             </form>
           </div>
 
@@ -605,12 +620,18 @@ export default function SettingsPage() {
                 className="w-10 h-10 rounded-full object-cover ring-2 ring-secondary"
               />
               <div>
-                <h3 className="font-extrabold text-base text-slate-900">User 2 (Partner)</h3>
+                <h3 className="font-extrabold text-base text-slate-900">{data.couple.user2.name} {mySlot === 'user_2' ? '(You)' : '(Partner)'}</h3>
                 <span className="text-xs text-slate-400">Default: Maya</span>
               </div>
             </div>
 
-            <form onSubmit={handleSaveUser2} className="space-y-3">
+            <form onSubmit={handleSaveUser2}>
+              {/* disabled on the partner's card: native, so every input, the
+                  photo upload and the save button go read-only together. */}
+              <fieldset disabled={!canEditUser2} className="space-y-3 min-w-0 disabled:opacity-60">
+              {!canEditUser2 && (
+                <p className="text-xs text-ink-muted">Only {data.couple.user2.name} can change this. It's how they chose to appear.</p>
+              )}
               <div>
                 <label className="block text-xs font-bold text-slate-600 mb-1">Display Name</label>
                 <input
@@ -679,6 +700,7 @@ export default function SettingsPage() {
                   Update User 2
                 </button>
               </div>
+              </fieldset>
             </form>
           </div>
         </div>

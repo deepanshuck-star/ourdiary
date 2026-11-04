@@ -12,7 +12,7 @@ import {
 } from '@/lib/features/games';
 
 export function WouldYouRatherGame() {
-  const { data, activeProfile, partnerProfile, switchProfile } = useDiary();
+  const { data, activeProfile, partnerProfile, switchProfile, canSwitchProfile } = useDiary();
   const coupleId = data.couple.id;
 
   const [mode, setMode] = useState<'wyr' | 'nhie'>('wyr');
@@ -103,13 +103,18 @@ export function WouldYouRatherGame() {
           <strong className="text-ink">{activeProfile.name}</strong>
         </div>
 
-        <button
-          type="button"
-          onClick={() => switchProfile(partnerProfile.id)}
-          className="text-xs font-semibold text-primary hover:underline"
-        >
-          Switch to {partnerProfile.name} to vote for both →
-        </button>
+        {canSwitchProfile ? (
+          <button
+            type="button"
+            onClick={() => switchProfile(partnerProfile.id)}
+            className="text-xs font-semibold text-primary hover:underline"
+          >
+            Demo: switch to {partnerProfile.name} →
+          </button>
+        ) : (
+          // Each partner votes for themselves, on their own phone.
+          <span className="text-xs text-ink-muted">{partnerProfile.name} votes from their own phone</span>
+        )}
       </div>
 
       {mode === 'wyr' ? (

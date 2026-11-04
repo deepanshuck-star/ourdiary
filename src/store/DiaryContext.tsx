@@ -55,6 +55,12 @@ import { sendPushNotification } from '@/lib/notifications';
 import { destroyCloudinaryAsset } from '@/lib/cloudinary/upload';
 import { toLocalDayKey } from '@/lib/date-utils';
 import { nextHeartbeatStreak } from '@/lib/features/streak';
+import {
+  accountSlot as accountSlotFor,
+  canSwitchProfile as canSwitchProfileFor,
+  mayEditProfile,
+  mayRedeemCoupon,
+} from '@/lib/features/identity';
 
 export interface ToastInfo {
   id: string;
@@ -68,6 +74,12 @@ interface DiaryContextValue {
   activeProfile: DemoProfile;
   partnerProfile: DemoProfile;
   switchProfile: (id: ProfileId) => void;
+  /**
+   * False for a signed-in account: who you are comes from your login, and a
+   * partner can never act as the other. True only in demo mode, where one
+   * device stands in for both people.
+   */
+  canSwitchProfile: boolean;
   updateCouple: (updates: Partial<Couple>) => void;
   updateProfile: (profileId: ProfileId, updates: Partial<DemoProfile>) => void;
   addMemory: (memory: Omit<Memory, 'id' | 'reactions' | 'notes'>) => Memory;
@@ -309,13 +321,30 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
     return data.activeProfileId === 'user_1' ? data.couple.user2 : data.couple.user1;
   }, [data.activeProfileId, data.couple]);
 
+  // A signed-in account is one person, full stop. Switching exists only for
+  // demo mode, where a single device has to play both partners.
+  const canSwitchProfile = canSwitchProfileFor(isLiveUser, currentUserId);
+
+  // Which partner this account IS, from the role the database gave it at
+  // sign-in: whoever created the space is user_1, whoever joined is user_2.
+  const accountSlot: ProfileId | null = accountSlotFor(isLiveUser, currentUserId, data.couple.myRole);
+
+  // Pin it. The active profile is restored from this browser's saved copy on
+  // reload, so a view switched before this change — or any stale copy —
+  // would otherwise carry on acting as the other partner after a refresh.
+  useEffect(() => {
+    if (!accountSlot) return;
+    setData((prev) => (prev.activeProfileId === accountSlot ? prev : { ...prev, activeProfileId: accountSlot }));
+  }, [accountSlot, data.activeProfileId]);
+
   const switchProfile = (id: ProfileId) => {
+    if (!canSwitchProfile) return;
     setData((prev) => ({
       ...prev,
       activeProfileId: id,
     }));
     const newName = id === 'user_1' ? data.couple.user1.name : data.couple.user2.name;
-    showToast(`Switched view to ${newName}`, 'heart');
+    showToast(`Demo: now viewing as ${newName}`, 'heart');
   };
 
   const updateCouple = (updates: Partial<Couple>) => {
@@ -382,6 +411,13 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateProfile = (profileId: ProfileId, updates: Partial<DemoProfile>) => {
+    // Your own profile only. Before this, switching view and changing your
+    // partner's photo wrote it onto YOUR account and then deleted what it
+    // took for the old photo — your partner's real one.
+    if (!mayEditProfile(canSwitchProfile, profileId, accountSlot ?? data.activeProfileId)) {
+      showToast('Only they can change their own profile 💕', 'warn');
+      return;
+    }
     setData((prev) => {
       const isUser1 = profileId === 'user_1';
       return {
@@ -1583,6 +1619,12 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
   const redeemLoveCoupon = (id: string) => {
     const redeemerName = activeProfile.name;
     const targetCoupon = data.loveCoupons?.find((c) => c.id === id);
+    // A coupon is the recipient's to use. The giver could redeem it before,
+    // and the notification then told the recipient they had.
+    if (targetCoupon && !mayRedeemCoupon(targetCoupon, data.activeProfileId)) {
+      showToast(`That coupon is ${partnerProfile.name}'s to redeem 🎟️`, 'warn');
+      return;
+    }
     const redeemedDate = toLocalDayKey(new Date());
     setData((prev) => ({
       ...prev,
@@ -1615,6 +1657,7 @@ export function DiaryProvider({ children }: { children: React.ReactNode }) {
         activeProfile,
         partnerProfile,
         switchProfile,
+        canSwitchProfile,
         updateCouple,
         updateProfile,
         addMemory,

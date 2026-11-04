@@ -96,7 +96,7 @@ function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) 
 }
 
 export default function DashboardPage() {
-  const {
+  const { canSwitchProfile,
     data,
     activeProfile,
     partnerProfile,
@@ -271,7 +271,7 @@ export default function DashboardPage() {
                   Day {daysTogether} together
                 </h1>
                 <p className="text-sm text-slate-700 mt-1.5">
-                  Viewing as <strong className="font-semibold text-ink">{activeProfile.name}</strong>
+                  {canSwitchProfile ? 'Demo: viewing as' : 'Signed in as'} <strong className="font-semibold text-ink">{activeProfile.name}</strong>
                   <span aria-hidden="true"> · </span>
                   Year {anniversaryInfo.yearsCount} of your story
                 </p>

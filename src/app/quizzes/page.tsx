@@ -124,7 +124,7 @@ function WaitingCard({
   total: number;
   onRetake: () => void;
 }) {
-  const { isLiveUser, switchProfile } = useDiary();
+  const { canSwitchProfile, switchProfile } = useDiary();
   return (
     <div className="text-center space-y-4 py-6">
       <span className="mx-auto w-14 h-14 rounded-full bg-purple-100 text-primary flex items-center justify-center">
@@ -136,7 +136,7 @@ function WaitingCard({
         {partnerProgress > 0 ? ` — they’re on ${partnerProgress} of ${total}` : ''}. Then you’ll see them side by side.
       </p>
       <div className="flex flex-wrap justify-center gap-3">
-        {!isLiveUser && (
+        {canSwitchProfile && (
           <button
             type="button"
             onClick={() => switchProfile(partnerId)}

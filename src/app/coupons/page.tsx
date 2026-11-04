@@ -14,6 +14,7 @@ import { useLocalState } from '@/lib/local-store';
 import { addUniqueId } from '@/lib/features/fx-math';
 import { TiltCard } from '@/components/fx/TiltCard';
 import { ScratchLayer } from '@/components/fx/ScratchLayer';
+import { mayRedeemCoupon } from '@/lib/features/identity';
 
 const NO_REVEALED: string[] = [];
 
@@ -177,7 +178,12 @@ export default function CouponsPage() {
                       : 'Valid forever 💕'}
                   </span>
 
-                  {!isRedeemed ? (
+                  {!isRedeemed && !mayRedeemCoupon(coupon, data.activeProfileId) ? (
+                    // A coupon you gave is theirs to use, not yours.
+                    <span className="text-xs text-slate-400 font-semibold">
+                      Waiting for {coupon.toId === 'user_1' ? data.couple.user1.name : data.couple.user2.name}
+                    </span>
+                  ) : !isRedeemed ? (
                     <button
                       onClick={() => redeemLoveCoupon(coupon.id)}
                       className="px-3.5 py-1.5 font-bold text-xs transition-opacity active:scale-95 bg-primary hover:bg-primary-hover text-on-primary shadow-cta rounded-full"

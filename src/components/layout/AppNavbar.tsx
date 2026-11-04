@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 export function AppNavbar() {
-  const { data, activeProfile, partnerProfile, switchProfile, logout, isLiveUser, isHydrated } = useDiary();
+  const { data, activeProfile, partnerProfile, switchProfile, canSwitchProfile, logout, isLiveUser, isHydrated } = useDiary();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const daysTogether = calculateDaysTogether(data.couple.startDate);
@@ -122,10 +122,10 @@ export function AppNavbar() {
                     {activeProfile.name}
                   </span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-700 font-semibold">
-                    Active
+                    {canSwitchProfile ? 'Demo' : 'You'}
                   </span>
                 </div>
-                <p className="text-[10px] text-ink-muted">Switch view</p>
+                <p className="text-[10px] text-ink-muted">{canSwitchProfile ? 'Switch view' : 'Your account'}</p>
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-transform" />
             </button>
@@ -163,29 +163,45 @@ export function AppNavbar() {
                     </div>
                   </div>
 
-                  {/* Switch to Partner */}
-                  <button
-                    onClick={() => {
-                      switchProfile(partnerProfile.id);
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors text-left group"
-                  >
-                    <SecureImage
-                      src={partnerProfile.avatar}
-                      alt={partnerProfile.name}
-                      className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-200 group-hover:ring-secondary"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-slate-700 group-hover:text-purple-600">
-                          Switch to {partnerProfile.name}
-                        </span>
-                        <Users className="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-500" />
+                  {canSwitchProfile ? (
+                    // Demo only: one device stands in for both partners.
+                    <button
+                      onClick={() => {
+                        switchProfile(partnerProfile.id);
+                        setShowProfileMenu(false);
+                      }}
+                      className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors text-left group"
+                    >
+                      <SecureImage
+                        src={partnerProfile.avatar}
+                        alt={partnerProfile.name}
+                        className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-200 group-hover:ring-secondary"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-slate-700 group-hover:text-purple-600">
+                            Switch to {partnerProfile.name}
+                          </span>
+                          <Users className="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-500" />
+                        </div>
+                        <p className="text-xs text-slate-400">Demo mode only — see their side</p>
                       </div>
-                      <p className="text-xs text-slate-400">View as your partner</p>
+                    </button>
+                  ) : (
+                    // A signed-in account is one person. Your partner is shown
+                    // as your partner, never as a profile you can step into.
+                    <div className="w-full flex items-center gap-3 p-2 rounded-xl text-left">
+                      <SecureImage
+                        src={partnerProfile.avatar}
+                        alt={partnerProfile.name}
+                        className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-200"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-semibold text-slate-700">{partnerProfile.name}</span>
+                        <p className="text-xs text-slate-400">Your partner · signs in on their own phone</p>
+                      </div>
                     </div>
-                  </button>
+                  )}
 
                   <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between px-1">
                     <Link
