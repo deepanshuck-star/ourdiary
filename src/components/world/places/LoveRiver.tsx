@@ -255,7 +255,7 @@ export function LoveRiver() {
         <Birds points={birds} night={night} />
       </PlaceFrame>
 
-      <div className="grid lg:grid-cols-[2fr_1fr] gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-5">
         <PlacePanel title="On the water">
           {boats.length === 0 ? (
             <EmptyNote>No messages yet. Anything either of you writes in chat floats down this river.</EmptyNote>

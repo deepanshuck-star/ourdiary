@@ -1704,13 +1704,18 @@
 @layer base {
   html {
     background-color: var(--color-canvas);
+    /* Phones ignore overflow on body alone and let the page be panned
+       sideways by anything a few pixels too wide. clip on both stops that,
+       and unlike hidden it never creates a scroll container, so the sticky
+       top bar keeps sticking. */
+    overflow-x: clip;
   }
 
   body {
     background-color: var(--color-canvas);
     color: var(--color-ink);
     font-feature-settings: "rlig" 1, "calt" 1;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   h1,

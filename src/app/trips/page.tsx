@@ -151,7 +151,7 @@ function TripCard({
           </ul>
         )}
 
-        <form onSubmit={submitCost} className="grid sm:grid-cols-2 gap-3 mt-4" noValidate>
+        <form onSubmit={submitCost} className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4" noValidate>
           <div>
             <label htmlFor={`cost-label-${trip.id}`} className="block text-xs font-semibold text-ink-muted mb-1">
               What was it?
@@ -428,7 +428,7 @@ export default function TripsPage() {
           <h2 id="add-trip" className="text-xl font-semibold text-ink flex items-center gap-2">
             <Plane className="w-5 h-5 text-primary" aria-hidden="true" /> Plan a visit
           </h2>
-          <form onSubmit={submit} className="grid sm:grid-cols-2 gap-4 mt-4" noValidate>
+          <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4" noValidate>
             <div className="sm:col-span-2">
               <label htmlFor="trip-title" className="block text-xs font-semibold text-ink-muted mb-1">What is it?</label>
               <input

@@ -177,7 +177,7 @@ export default function CarePackagesPage() {
               />
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="pkg-sent" className="block text-xs font-semibold text-ink mb-1">
                   Posted on
@@ -205,7 +205,7 @@ export default function CarePackagesPage() {
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="pkg-carrier" className="block text-xs font-semibold text-ink mb-1">
                   Carrier <span className="font-normal text-ink-muted">(optional)</span>

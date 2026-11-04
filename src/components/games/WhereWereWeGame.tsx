@@ -114,7 +114,7 @@ export function WhereWereWeGame() {
           <p className="font-display text-xl font-semibold text-ink mt-1">{round.title}</p>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {round.options.map((option) => {
             const isAnswer = option.id === round.answerId;
             const isChosen = option.id === picked;

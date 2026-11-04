@@ -86,7 +86,7 @@ export function WatchTogetherSync() {
       {game.loading || now === null ? (
         <Loader2 className="w-5 h-5 text-primary animate-spin" aria-label="Loading" />
       ) : !state || phase === 'idle' || phase === 'over' ? (
-        <form onSubmit={begin} className="grid sm:grid-cols-[1fr_auto] gap-3 items-end">
+        <form onSubmit={begin} className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-end">
           <div>
             <label htmlFor="watch-sync-title" className="block text-xs font-semibold text-ink-muted mb-1">
               What are you watching?

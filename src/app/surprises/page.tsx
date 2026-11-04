@@ -263,7 +263,7 @@ export default function SurprisesPage() {
               Nothing waiting yet. Maybe drop a hint to {partnerProfile.name}.
             </p>
           ) : (
-            <ul className="grid md:grid-cols-2 gap-4">
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {received.map((n) => (
                 <ReceivedNote
                   key={n.id}

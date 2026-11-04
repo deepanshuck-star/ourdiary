@@ -145,7 +145,7 @@ export default function BudgetPage() {
           </div>
         </header>
 
-        <section aria-label={`Summary for ${formatMonthLabel(month)}`} className="grid sm:grid-cols-3 gap-4">
+        <section aria-label={`Summary for ${formatMonthLabel(month)}`} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { label: 'Spent', value: money(summary.total) },
             { label: 'Monthly budget', value: monthlyBudget > 0 ? money(monthlyBudget) : 'Not set' },
@@ -185,7 +185,7 @@ export default function BudgetPage() {
           </div>
         )}
 
-        <div className="grid lg:grid-cols-2 gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           <section aria-labelledby="by-category" className="rounded-[1.25rem] bg-surface border border-line p-5 sm:p-6 shadow-card">
             <h2 id="by-category" className="text-xl font-semibold text-ink">Where it went</h2>
             <ul className="mt-4 space-y-4">
@@ -242,10 +242,10 @@ export default function BudgetPage() {
           </section>
         </div>
 
-        <div className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-6 items-start">
           <section aria-labelledby="add-expense" className="rounded-[1.25rem] bg-surface border border-line p-5 sm:p-6 shadow-card">
             <h2 id="add-expense" className="text-xl font-semibold text-ink">Add an expense</h2>
-            <form onSubmit={addExpense} className="grid sm:grid-cols-2 gap-4 mt-4" noValidate>
+            <form onSubmit={addExpense} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4" noValidate>
               <div className="sm:col-span-2">
                 <label htmlFor="exp-title" className="block text-xs font-semibold text-ink-muted mb-1">What was it?</label>
                 <input id="exp-title" required maxLength={60} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Dinner at the rooftop place" className={inputClass} />

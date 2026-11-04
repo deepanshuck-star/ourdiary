@@ -97,7 +97,7 @@ export default function MusicPage() {
           ) : song ? (
             editing ? (
               <form onSubmit={saveRename} className="space-y-3">
-                <div className="grid sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input
                     value={editing.title}
                     onChange={(e) => setEditing({ ...editing, title: e.target.value })}
@@ -200,7 +200,7 @@ export default function MusicPage() {
                   {isRemote ? ', and deletes its file for good.' : '.'}
                 </p>
               )}
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="song-title" className="block text-xs font-semibold text-ink mb-1">
                     Title

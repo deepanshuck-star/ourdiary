@@ -40,7 +40,10 @@ export function OnThisDayCard() {
 
   return (
     <div className="rounded-[1.25rem] bg-surface border border-line p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-      <div className="flex items-center gap-3.5 flex-1 min-w-0">
+      {/* w-full on phones: the card stacks as a column with items-start, which
+          sizes this row to its content, so a long title pushed it past the
+          screen instead of truncating. */}
+      <div className="flex items-center gap-3.5 flex-1 min-w-0 w-full sm:w-auto">
         {throwbackMemory.photos?.[0] ? (
           <img
             src={throwbackMemory.photos[0].url}

@@ -314,7 +314,7 @@ export default function DateIdeasPage() {
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-8 items-start">
           <section aria-label="Idea deck" className="space-y-4">
             <div className="relative h-[22rem] sm:h-[24rem]">
               {current && (
@@ -408,7 +408,7 @@ export default function DateIdeasPage() {
         <section aria-labelledby="custom-heading" className="rounded-[1.25rem] bg-surface border border-line p-5 sm:p-6 shadow-card">
           <h2 id="custom-heading" className="text-xl font-semibold text-ink">Add an idea of your own</h2>
           <p className="text-xs text-ink-muted mt-1">It joins the top of the deck for both of you.</p>
-          <form onSubmit={handleAddCustom} className="grid sm:grid-cols-[1fr_12rem] gap-4 mt-4">
+          <form onSubmit={handleAddCustom} className="grid grid-cols-1 sm:grid-cols-[1fr_12rem] gap-4 mt-4">
             <div>
               <label htmlFor="idea-title" className="block text-xs font-semibold text-ink-muted mb-1">
                 Idea

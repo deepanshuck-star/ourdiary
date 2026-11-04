@@ -21,7 +21,7 @@ export function ToastContainer() {
       aria-live="polite"
       // Announce only what was just added, not the whole stack again.
       aria-atomic="false"
-      className="fixed bottom-20 md:bottom-6 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+      className="fixed bottom-20 md:bottom-6 left-4 right-4 sm:left-auto z-50 flex flex-col gap-2 sm:w-full sm:max-w-sm pointer-events-none">
       {toasts.map((toast) => {
         const getIcon = () => {
           switch (toast.type) {

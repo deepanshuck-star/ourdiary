@@ -65,7 +65,7 @@ export function WorldMap() {
           A little world, and every place in it leads to something of yours.
         </p>
       </header>
-      <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {places.map((p) => (
           <li key={p.href}>
             <Link

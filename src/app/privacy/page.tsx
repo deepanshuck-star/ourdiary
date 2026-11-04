@@ -92,7 +92,7 @@ export default function PrivacyPage() {
       <div className="max-w-5xl mx-auto space-y-10 animate-in fade-in duration-300">
         {/* Hero */}
         <section className="relative overflow-hidden rounded-[1.25rem] bg-hero border border-line shadow-card">
-          <div className="grid lg:grid-cols-[1.15fr_1fr] gap-8 p-6 sm:p-10 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-8 p-6 sm:p-10 items-center">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
                 Privacy
@@ -153,7 +153,7 @@ export default function PrivacyPage() {
             </p>
           </div>
 
-          <ol className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {UPLOAD_STEPS.map((step, index) => (
               <li
                 key={step.title}
@@ -192,7 +192,7 @@ export default function PrivacyPage() {
             </h2>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {PROMISES.map(({ icon: Icon, title, body }) => (
               <article
                 key={title}
@@ -228,7 +228,7 @@ export default function PrivacyPage() {
                 </p>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="rounded-2xl bg-hero border border-line p-5">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
                     Off — the default
@@ -275,7 +275,7 @@ export default function PrivacyPage() {
           <h2 id="straight" className="font-display text-2xl  sm:text-3xl font-semibold text-ink">
             Being straight with you
           </h2>
-          <div className="grid sm:grid-cols-2 gap-5 mt-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
             <p className="text-sm text-ink leading-relaxed">
               Encrypting your media protects it from the things that actually go wrong: a stolen
               backup, a leaked bucket, a misconfigured server. That is a real and worthwhile

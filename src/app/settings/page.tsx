@@ -450,7 +450,7 @@ export default function SettingsPage() {
             Whether the scenery moves — the grass, the water, the lanterns, and the
             little world on Today. Saved on this device only.
           </p>
-          <div role="radiogroup" aria-label="Background motion" className="grid sm:grid-cols-3 gap-2">
+          <div role="radiogroup" aria-label="Background motion" className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {MOTION_OPTIONS.map((option) => (
               <button
                 key={option.id}

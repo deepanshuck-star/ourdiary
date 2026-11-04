@@ -96,7 +96,7 @@ export function GuessTheMemoryGame() {
         </div>
         <div className="p-5 space-y-4">
           <p className="font-semibold text-ink">{FIELD_LABEL[round.field]}</p>
-          <div className="grid sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {round.options.map((option) => {
               const isAnswer = option === round.answer;
               const chosen = option === picked;

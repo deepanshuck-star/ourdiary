@@ -155,7 +155,7 @@ export default function GamesPage() {
                 <p className="text-sm text-ink-muted mt-0.5 max-w-2xl">{category.blurb}</p>
               </div>
 
-              <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {games.map((gameMeta) => {
                   const blocked = unmetRequirement(gameMeta, stats);
                   return (

@@ -193,7 +193,7 @@ export function DreamMountains() {
         <Birds points={birds} night={night} />
       </PlaceFrame>
 
-      <div className="grid lg:grid-cols-[2fr_1fr] gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-5">
         <PlacePanel
           title={dreams.length ? `${reached} of ${dreams.length} dreams reached` : 'No dreams on the trail yet'}
           action={

@@ -216,7 +216,7 @@ export default function CountdownsPage() {
         {rest.length > 0 && now !== null && (
           <section aria-labelledby="all-countdowns" className="space-y-4">
             <h2 id="all-countdowns" className="text-2xl font-semibold text-ink">All countdowns</h2>
-            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {rest.map((item) => {
                 const parts = splitDuration(item.target - now);
                 const Icon = iconFor(item);
@@ -257,7 +257,7 @@ export default function CountdownsPage() {
 
         <section aria-labelledby="new-countdown" className="rounded-[1.25rem] bg-surface border border-line p-5 sm:p-6 shadow-card">
           <h2 id="new-countdown" className="text-xl font-semibold text-ink">Start a countdown</h2>
-          <form onSubmit={handleAdd} className="grid sm:grid-cols-3 gap-4 mt-4">
+          <form onSubmit={handleAdd} className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
             <div className="sm:col-span-3">
               <label htmlFor="cd-title" className="block text-xs font-semibold text-ink-muted mb-1">What are you waiting for?</label>
               <input

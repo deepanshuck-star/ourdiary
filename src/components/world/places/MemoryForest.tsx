@@ -205,7 +205,7 @@ export function MemoryForest() {
         {all.length === 0 ? (
           <EmptyNote>Save your first memory and it will hang here, on the nearest tree.</EmptyNote>
         ) : (
-          <ul className="grid sm:grid-cols-2 gap-2">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {all.map((m) => (
               <li key={m.id}>
                 <Link

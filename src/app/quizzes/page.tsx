@@ -242,7 +242,7 @@ function YouOrMeQuiz() {
               <Sparkles className="w-5 h-5 text-primary" aria-hidden="true" />
               You both said the same ({inSync.length})
             </h3>
-            <ul className="grid gap-2.5 sm:grid-cols-2">
+            <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               {inSync.map((item) => (
                 <li key={item.question} className="p-4 rounded-[1.25rem] bg-surface border border-line">
                   <p className="text-sm text-ink">{item.question}</p>
@@ -376,7 +376,7 @@ function LoveLanguageQuiz() {
               : `${data.couple.user1.name} lights up with ${LOVE_LANGUAGE_LABELS[top1].name.toLowerCase()}; ${data.couple.user2.name} with ${LOVE_LANGUAGE_LABELS[top2].name.toLowerCase()}. Try speaking each other’s this week.`}
           </p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <LoveLanguageRanking name={data.couple.user1.name} choices={p1.answers} />
           <LoveLanguageRanking name={data.couple.user2.name} choices={p2.answers} />
         </div>

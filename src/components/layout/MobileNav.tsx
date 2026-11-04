@@ -22,9 +22,11 @@ import {
   HeartHandshake,
   Gamepad2,
   Mountain,
+  ChevronDown,
 } from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
 import { exploreItems } from './exploreNav';
+import { groupDrawerItems, groupForPath } from '@/lib/features/nav-groups';
 
 // Today · Us · Memories · Play · More, as the little world's brief asks.
 // Journey and Calendar moved into More rather than disappearing.
@@ -38,6 +40,14 @@ const mainMobileItems = [
 export function MobileNav() {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const [openGroup, setOpenGroup] = React.useState<string | null>(null);
+
+  // Opening the drawer unfolds the section that holds the current page, so
+  // "where am I" is answered without a tap.
+  const openDrawer = () => {
+    setOpenGroup(groupForPath(pathname));
+    setDrawerOpen(true);
+  };
   const { isLiveUser, logout } = useDiary();
 
   const moreItems = [
@@ -54,6 +64,7 @@ export function MobileNav() {
     ...exploreItems,
     { name: 'Settings', href: '/settings', icon: SlidersHorizontal },
   ];
+  const groups = groupDrawerItems(moreItems);
 
   return (
     <>
@@ -75,24 +86,61 @@ export function MobileNav() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {moreItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname.startsWith(item.href);
+            {/* Seven folding sections instead of one wall of thirty tiles.
+                Only the section you tap unfolds; the one holding the page
+                you are on opens by itself. */}
+            <div className="space-y-2">
+              {groups.map((group) => {
+                const isOpen = openGroup === group.title;
+                const panelId = `drawer-group-${group.title.replace(/[^a-z]+/gi, '-').toLowerCase()}`;
+                const holdsCurrent = group.items.some((item) => pathname.startsWith(item.href));
                 return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setDrawerOpen(false)}
-                    className={`flex items-center gap-3 p-3 rounded-2xl border transition-colors ${
-                      isActive
-                        ? 'border-purple-200 bg-purple-50 text-purple-900 font-semibold'
-                        : 'border-line hover:bg-slate-50 text-slate-700'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5 text-primary" />
-                    <span className="text-sm">{item.name}</span>
-                  </Link>
+                  <section key={group.title} className="rounded-2xl border border-line overflow-hidden">
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      aria-controls={panelId}
+                      onClick={() => setOpenGroup(isOpen ? null : group.title)}
+                      className={`w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors ${
+                        isOpen ? 'bg-purple-50' : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2 min-w-0">
+                        <span className={`text-sm font-semibold truncate ${holdsCurrent ? 'text-primary' : 'text-ink'}`}>{group.title}</span>
+                        <span className="shrink-0 text-[11px] font-semibold text-ink-muted bg-slate-100 rounded-full px-2 py-0.5">
+                          {group.items.length}
+                        </span>
+                      </span>
+                      <ChevronDown
+                        aria-hidden="true"
+                        className={`w-4 h-4 shrink-0 text-ink-muted transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                    {isOpen && (
+                      <div id={panelId} className="grid grid-cols-2 gap-2 p-3 pt-1">
+                        {group.items.map((item) => {
+                          const Icon = item.icon;
+                          const isActive = pathname.startsWith(item.href);
+                          return (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              aria-current={isActive ? 'page' : undefined}
+                              onClick={() => setDrawerOpen(false)}
+                              className={`flex items-center gap-2.5 p-2.5 rounded-xl border min-w-0 transition-colors ${
+                                isActive
+                                  ? 'border-purple-200 bg-purple-50 text-purple-900 font-semibold'
+                                  : 'border-line hover:bg-slate-50 text-slate-700'
+                              }`}
+                            >
+                              <Icon className="w-4 h-4 shrink-0 text-primary" />
+                              <span className="text-[13px] leading-tight truncate">{item.name}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </section>
                 );
               })}
             </div>
@@ -147,7 +195,7 @@ export function MobileNav() {
           );
         })}
         <button
-          onClick={() => setDrawerOpen(true)}
+          onClick={openDrawer}
           className="flex flex-col items-center justify-center py-1 px-3.5 rounded-full text-ink-muted hover:text-ink"
         >
           <Menu className="w-5 h-5" />

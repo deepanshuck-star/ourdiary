@@ -359,7 +359,7 @@ export default function HabitsPage() {
         {loading ? (
           <p className="text-sm text-ink-muted">Loading…</p>
         ) : (
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <section aria-labelledby="theirs-heading" className="space-y-3">
               <h2 id="theirs-heading" className="text-2xl font-semibold text-ink">
                 {partnerProfile.name}

@@ -339,7 +339,7 @@ export default function LongDistancePage() {
 
         <DistanceCounter />
 
-        <section aria-label="Both local times" className="grid md:grid-cols-2 gap-4">
+        <section aria-label="Both local times" className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <PersonClock profile={activeProfile} zone={myZone} zoneIsSet={myZoneIsSet} now={now} isMe />
           <PersonClock
             profile={partnerProfile}
@@ -488,7 +488,7 @@ export default function LongDistancePage() {
             </div>
           )}
 
-          <form onSubmit={handleWatch} className="grid sm:grid-cols-[1fr_auto_auto] gap-3 items-end">
+          <form onSubmit={handleWatch} className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-3 items-end">
             <div>
               <label htmlFor="watch-title" className="block text-xs font-semibold text-ink-muted mb-1">What are you watching?</label>
               <input

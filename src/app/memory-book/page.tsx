@@ -85,7 +85,7 @@ function MemoryPage({ memory, couple, pageNo }: { memory: Memory; couple: Couple
         <p className="text-sm leading-relaxed text-[#4A2E3B] line-clamp-[8] whitespace-pre-line">{memory.description}</p>
       )}
       {perspectives.length > 0 && (
-        <div className="grid gap-3 sm:grid-cols-2 min-h-0">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 min-h-0">
           {perspectives.map((p) => (
             <blockquote key={p.id} className="border-l-2 border-[#BE185D] pl-3 text-xs italic text-[#4A2E3B] line-clamp-5">
               “{p.text}”

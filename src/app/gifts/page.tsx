@@ -248,7 +248,7 @@ export default function GiftsPage() {
               </div>
             </fieldset>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="gift-title" className="block text-xs font-semibold text-ink mb-1">
                   The gift
@@ -282,7 +282,7 @@ export default function GiftsPage() {
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="gift-date" className="block text-xs font-semibold text-ink mb-1">
                   When <span className="font-normal text-ink-muted">(optional)</span>
@@ -390,7 +390,7 @@ export default function GiftsPage() {
                 : `You haven't logged anything you've given ${partnerProfile.name} yet.`}
             </p>
           ) : (
-            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {visible.map((gift) => (
                 <li
                   key={gift.id}

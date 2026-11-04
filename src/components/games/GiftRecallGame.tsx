@@ -149,7 +149,7 @@ export function GiftRecallGame() {
           <p className="font-display text-xl font-semibold text-ink mt-1">{round.giftTitle}</p>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {round.options.map((option) => {
             const isAnswer = option === round.answer;
             const chosen = option === picked;

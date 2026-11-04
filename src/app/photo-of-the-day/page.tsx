@@ -124,7 +124,7 @@ export default function PhotoOfTheDayPage() {
             </div>
           ) : (
             <div className="rounded-[1.25rem] bg-hero border border-line shadow-card p-5 sm:p-6 space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
                     {activeProfile.name}
@@ -163,7 +163,7 @@ export default function PhotoOfTheDayPage() {
                 </div>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                 <div>
                   <label htmlFor="pod-caption" className="block text-xs font-semibold text-ink mb-1">
                     Caption <span className="font-normal text-ink-muted">(optional)</span>
