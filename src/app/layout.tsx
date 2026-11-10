@@ -179,11 +179,8 @@ export const metadata: Metadata = {
       'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1200&h=630&auto=format&fit=crop&q=80',
     ],
   },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/apple-icon.png',
-  },
+  // No `icons` here: app/favicon.ico, app/icon.svg and app/apple-icon.png are
+  // picked up by Next's file conventions, which add the <link> tags themselves.
 };
 
 export default function RootLayout({
