@@ -3,6 +3,8 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowLeft, Gamepad2, Lock } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
+import { LiveRoomProvider } from '@/components/providers/LiveRoomProvider';
+import { GameRoomBar } from '@/components/live/GameRoomBar';
 import { useDiary } from '@/store/DiaryContext';
 import { useCoupleMembers } from '@/hooks/useCoupleMembers';
 import { useLocalState } from '@/lib/local-store';
@@ -123,7 +125,13 @@ export default function GamesPage() {
             </ul>
           </details>
 
-          <OpenComponent />
+          {/* One live room per game: the bar shows whether your partner is
+              on this same game screen and sends reactions, and the game
+              inside reads the same room for its own presence tags. */}
+          <LiveRoomProvider roomKey={`game:${open.id}`}>
+            <GameRoomBar />
+            <OpenComponent />
+          </LiveRoomProvider>
         </div>
       </AppShell>
     );

@@ -1729,6 +1729,54 @@
     color: var(--color-ink);
   }
 
+  /* Typed text always takes the ink of the surface it sits on.
+     body sets color: var(--color-ink) once, and a child that merely inherits
+     gets body's already-resolved value — not the variable. The immersive
+     themes switch --color-ink to a dark ink inside their light cards, so an
+     input with no colour class of its own kept body's light scene ink and
+     whatever you typed vanished into the card (login, Truth or Dare prompts,
+     every form). Re-reading the variable on the field itself picks up the
+     card's ink. :where() keeps this at zero specificity, so any text-* class
+     on a field still wins. */
+  :where(
+    input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]),
+    textarea,
+    select,
+    [contenteditable="true"]
+  ) {
+    color: var(--color-ink);
+  }
+
+  /* The same inheritance problem for ordinary words inside a light card on
+     the six immersive themes: re-resolve the ink on the card itself so plain
+     text with no colour class reads dark on the light card. Scoped to the
+     themes that turn these classes into light cards; in the default palettes
+     a translucent bg-white/20 chip on a coloured banner is meant to inherit
+     the banner's white text, and this must not reach it. */
+  :where(
+    [data-theme="moonlit"],
+    [data-theme="rooftop"],
+    [data-theme="blossom"],
+    [data-theme="forest"],
+    [data-theme="ocean"],
+    [data-theme="lantern"]
+  )
+    :where(
+      .bg-surface,
+      .bg-white,
+      .bg-snow,
+      .bg-hero-soft,
+      [class^="bg-surface/"],
+      [class*=" bg-surface/"],
+      [class^="bg-white/"],
+      [class*=" bg-white/"],
+      [class^="bg-snow/"],
+      [class*=" bg-snow/"],
+      .bg-canvas
+    ) {
+    color: var(--color-ink);
+  }
+
   /* Visible, on-brand focus for every interactive element (keyboard only). */
   :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
     outline: 2px solid var(--color-focus);
@@ -5527,4 +5575,42 @@
    reduced-motion rule still stops it for anyone who asked. */
 .ourdiary-scene-quiet .ourdiary-scene {
   opacity: 0.38;
+}
+
+/* Live reactions (components/live/FloatingReactions). An emoji pops in near
+   the bottom of the screen, sways and rises, then fades. --od-drift is set
+   per reaction so a burst fans out instead of stacking in one column. */
+@keyframes od-reaction-float {
+  0% { transform: translate(-50%, 0) scale(0.5); opacity: 0; }
+  12% { transform: translate(-50%, -6vh) scale(1.2); opacity: 1; }
+  55% { transform: translate(calc(-50% + var(--od-drift, 16px)), -36vh) scale(1); opacity: 1; }
+  100% { transform: translate(calc(-50% - var(--od-drift, 16px)), -68vh) scale(0.9); opacity: 0; }
+}
+
+@keyframes od-reaction-fade {
+  0% { transform: translate(-50%, 0) scale(0.9); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translate(-50%, 0) scale(1); opacity: 0; }
+}
+
+.od-reaction {
+  animation: od-reaction-float 2.6s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* Anyone who asked for less motion still sees the reaction — it is a message
+   from their partner — just without the flight. Declared after, and with the
+   same weight as, the blanket reduced-motion rule so it wins over it. */
+@media (prefers-reduced-motion: reduce) {
+  .od-reaction {
+    animation: od-reaction-fade 2.4s ease-out forwards !important;
+  }
+}
+
+/* Horizontal button rows (reactions) scroll without a scrollbar track. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }

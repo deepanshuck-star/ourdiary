@@ -3,123 +3,165 @@
 import React, { useState } from 'react';
 import { RotateCcw, Trophy, Gift } from 'lucide-react';
 import { useDiary } from '@/store/DiaryContext';
-import { useLocalState } from '@/lib/local-store';
+import { useGameSession } from '@/hooks/useGameSession';
+import { useLiveRoomContext } from '@/components/providers/LiveRoomProvider';
+import { PresenceTag } from '@/components/live/PresenceTag';
+import { COUPLE_STAKES } from '@/lib/features/games';
 import {
-  checkTicTacToeWinner,
-  COUPLE_STAKES,
-  type TicTacToeCell,
-} from '@/lib/features/games';
+  canChangeStake,
+  createHeartsKisses,
+  isRoundOver,
+  markFor,
+  nextRound,
+  placeMark,
+  resetScore,
+  setStake,
+  type HeartsKissesState,
+} from '@/lib/features/games/heartsKisses';
 
-interface TicTacToeState {
-  board: TicTacToeCell[];
-  turn: 'user_1' | 'user_2';
-  score: { user_1: number; user_2: number; draws: number };
-  stake: string;
-}
+type HKState = HeartsKissesState & Record<string, unknown>;
 
+/**
+ * Hearts & Kisses — tic-tac-toe between the two of you, on two phones.
+ *
+ * The board is a shared game session: each person places only their own mark,
+ * only on their own turn, and every move appears on the other phone as it is
+ * made. It used to live in localStorage, which made it a one-phone game where
+ * either person could tap both hearts and kisses and nothing reached the other.
+ */
 export function TicTacToeGame() {
-  const { data } = useDiary();
-  const coupleId = data.couple.id;
-
-  const [gameState, setGameState] = useLocalState<TicTacToeState>(
-    `games:tictactoe:${coupleId || 'demo'}`,
-    {
-      board: Array(9).fill(null),
-      turn: 'user_1',
-      score: { user_1: 0, user_2: 0, draws: 0 },
-      stake: COUPLE_STAKES[0],
-    }
-  );
+  const { activeProfile, partnerProfile } = useDiary();
+  const game = useGameSession<HKState>('tictactoe');
+  const room = useLiveRoomContext();
+  const { state, myId, partnerId, isMyTurn, loading, notice, isRemote } = game;
 
   const [customStake, setCustomStake] = useState('');
   const [showStakePicker, setShowStakePicker] = useState(false);
 
-  const { board, turn, score, stake } = gameState;
-  const { winner, line } = checkTicTacToeWinner(board);
+  const nameFor = (id: string | null) =>
+    id === myId ? activeProfile.name : id === partnerId ? partnerProfile.name : 'Someone';
 
-  const user1Name = data.couple.user1.name;
-  const user2Name = data.couple.user2.name;
-
-  const handleCellClick = (index: number) => {
-    if (board[index] !== null || winner !== null) return;
-
-    const newBoard = [...board];
-    newBoard[index] = turn;
-    const nextTurn = turn === 'user_1' ? 'user_2' : 'user_1';
-
-    const check = checkTicTacToeWinner(newBoard);
-    const newScore = { ...score };
-    if (check.winner === 'user_1') newScore.user_1 += 1;
-    else if (check.winner === 'user_2') newScore.user_2 += 1;
-    else if (check.winner === 'draw') newScore.draws += 1;
-
-    setGameState((prev) => ({
-      ...prev,
-      board: newBoard,
-      turn: nextTurn,
-      score: newScore,
-    }));
+  const begin = async () => {
+    if (!myId || !partnerId) return;
+    // Whoever presses start opens the first round and plays hearts.
+    const initial = createHeartsKisses([myId, partnerId], myId, COUPLE_STAKES[0]) as HKState;
+    await game.start(initial, myId);
   };
 
-  const handleResetBoard = () => {
-    setGameState((prev) => ({
-      ...prev,
-      board: Array(9).fill(null),
-      turn: prev.turn === 'user_1' ? 'user_2' : 'user_1', // rotate first turn
-    }));
+  const save = (next: HeartsKissesState) => game.move(next as HKState, next.turn, 'active');
+
+  if (loading) {
+    return <p className="text-sm text-ink-muted">Loading the board…</p>;
+  }
+
+  if (!state) {
+    return (
+      <div className="rounded-[1.25rem] border border-dashed border-line bg-surface p-8 text-center space-y-3">
+        <p className="text-4xl" aria-hidden="true">
+          💖 💋
+        </p>
+        <p className="text-sm text-ink-muted">
+          Three in a row wins, loser pays the stake.{' '}
+          {isRemote ? 'Each of you plays from your own phone.' : ''}
+        </p>
+        <button
+          type="button"
+          onClick={begin}
+          disabled={!partnerId}
+          className="px-5 py-2.5 rounded-full text-xs font-semibold bg-primary hover:bg-primary-hover text-on-primary shadow-cta disabled:opacity-60"
+        >
+          Start a game
+        </button>
+        {!partnerId && <p className="text-xs text-ink-muted">Your partner needs to join your space first.</p>}
+      </div>
+    );
+  }
+
+  const roundOver = isRoundOver(state);
+  // Mid-round the stake is locked; before the first move only the opener may
+  // change it, because the server only accepts a write from whoever's turn it is.
+  const stakeEditable = canChangeStake(state) && isMyTurn;
+  const [hearts, kisses] = state.players;
+
+  const handleCellClick = async (index: number) => {
+    if (!myId) return;
+    const next = placeMark(state, index, myId);
+    if (next) await save(next);
   };
 
-  const handleResetScore = () => {
-    setGameState((prev) => ({
-      ...prev,
-      board: Array(9).fill(null),
-      score: { user_1: 0, user_2: 0, draws: 0 },
-    }));
+  const applyStake = async (value: string) => {
+    const next = setStake(state, value);
+    if (!next) return;
+    if (await save(next)) {
+      setCustomStake('');
+      setShowStakePicker(false);
+    }
   };
 
-  const currentTurnName = turn === 'user_1' ? user1Name : user2Name;
-  const currentTurnIcon = turn === 'user_1' ? '💖' : '💋';
+  const playerCard = (id: string) => {
+    const isTurn = state.turn === id && !roundOver;
+    const isMe = id === myId;
+    return (
+      <div
+        className={`p-3.5 rounded-2xl border transition-all ${
+          // Always bg-surface: a tinted bg-primary/5 card is not a "light card"
+          // to the night themes, so it went dark while its neighbours stayed light.
+          isTurn ? 'border-primary bg-surface shadow-xs ring-2 ring-primary/30' : 'border-line bg-surface'
+        }`}
+      >
+        <div className="flex items-center justify-center gap-1.5">
+          <span className="text-lg" aria-hidden="true">
+            {markFor(state, id)}
+          </span>
+          <p className="text-xs font-bold text-ink truncate max-w-[100px]">{nameFor(id)}</p>
+        </div>
+        <div className="h-4 mt-1 flex items-center justify-center">
+          <PresenceTag available={room.available} here={room.partnerHere} isMe={isMe} />
+        </div>
+        <p className="text-2xl font-display font-extrabold text-primary mt-1">{state.score[id] ?? 0}</p>
+        <span className="text-[10px] text-ink-muted">Wins</span>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
-      {/* Game Stakes Header */}
-      <div className="bg-gradient-to-r from-rose-50 via-pink-50 to-purple-50 dark:from-rose-950/30 dark:via-pink-950/20 dark:to-purple-950/30 border border-line rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* Stake */}
+      <div className="bg-surface border border-line rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <Gift className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Playing For High Stakes</p>
-            <p className="text-sm font-semibold text-ink truncate mt-0.5">{stake}</p>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Playing for</p>
+            <p className="text-sm font-semibold text-ink mt-0.5">{state.stake}</p>
           </div>
         </div>
 
         <button
           type="button"
           onClick={() => setShowStakePicker((v) => !v)}
-          className="px-3.5 py-1.5 text-xs font-semibold rounded-full border border-line bg-surface hover:bg-canvas text-ink transition-colors shadow-2xs shrink-0"
+          disabled={!stakeEditable}
+          title={stakeEditable ? undefined : 'The stake is locked once a round has started'}
+          className="px-3.5 py-1.5 text-xs font-semibold rounded-full border border-line bg-surface hover:bg-canvas text-ink transition-colors shadow-2xs shrink-0 disabled:opacity-50"
         >
-          {showStakePicker ? 'Close Stakes' : 'Change Stake'}
+          {showStakePicker ? 'Close' : 'Change stake'}
         </button>
       </div>
 
-      {/* Stake Picker Dropdown */}
-      {showStakePicker && (
-        <div className="bg-surface border border-line rounded-2xl p-4 shadow-card space-y-3 animate-in fade-in zoom-in-95">
-          <p className="text-xs font-bold text-ink uppercase tracking-wider">Select or write a romantic stake:</p>
+      {showStakePicker && stakeEditable && (
+        <div className="bg-surface border border-line rounded-2xl p-4 shadow-card space-y-3">
+          <p className="text-xs font-bold text-ink uppercase tracking-wider">Pick or write a stake</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {COUPLE_STAKES.map((s) => (
               <button
                 key={s}
                 type="button"
-                onClick={() => {
-                  setGameState((prev) => ({ ...prev, stake: s }));
-                  setShowStakePicker(false);
-                }}
+                onClick={() => applyStake(s)}
                 className={`text-left text-xs p-2.5 rounded-xl border transition-all ${
-                  stake === s
+                  state.stake === s
                     ? 'border-primary bg-primary/10 text-primary font-semibold'
-                    : 'border-line hover:border-primary/50 text-ink bg-canvas/40'
+                    : 'border-line hover:border-primary/50 text-ink bg-surface'
                 }`}
               >
                 {s}
@@ -130,21 +172,16 @@ export function TicTacToeGame() {
           <div className="flex gap-2 pt-2 border-t border-line">
             <input
               type="text"
-              placeholder="Or write custom reward (e.g. Winner gets breakfast in bed)..."
+              maxLength={200}
+              placeholder="Or write your own (e.g. Winner gets breakfast in bed)…"
               value={customStake}
               onChange={(e) => setCustomStake(e.target.value)}
-              className="flex-1 px-3 py-1.5 text-xs rounded-xl border border-line bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-focus"
+              className="flex-1 min-w-0 px-3 py-1.5 text-xs rounded-xl border border-line bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-focus"
             />
             <button
               type="button"
               disabled={!customStake.trim()}
-              onClick={() => {
-                if (customStake.trim()) {
-                  setGameState((prev) => ({ ...prev, stake: customStake.trim() }));
-                  setCustomStake('');
-                  setShowStakePicker(false);
-                }
-              }}
+              onClick={() => applyStake(customStake)}
               className="px-3.5 py-1.5 rounded-xl bg-primary text-on-primary text-xs font-semibold disabled:opacity-50"
             >
               Apply
@@ -155,110 +192,109 @@ export function TicTacToeGame() {
 
       {/* Scoreboard */}
       <div className="grid grid-cols-3 gap-3 text-center">
-        <div className={`p-3.5 rounded-2xl border transition-all ${
-          turn === 'user_1' && !winner
-            ? 'border-primary bg-primary/5 shadow-xs ring-2 ring-primary/20'
-            : 'border-line bg-surface'
-        }`}>
-          <div className="flex items-center justify-center gap-1.5 mb-1">
-            <span className="text-lg">💖</span>
-            <p className="text-xs font-bold text-ink truncate max-w-[100px]">{user1Name}</p>
-          </div>
-          <p className="text-2xl font-display font-extrabold text-primary">{score.user_1}</p>
-          <span className="text-[10px] text-ink-muted">Wins</span>
-        </div>
-
-        <div className="p-3.5 rounded-2xl border border-line bg-surface/60 flex flex-col items-center justify-center">
-          <p className="text-xs font-semibold text-ink-muted mb-1">Ties</p>
-          <p className="text-2xl font-display font-bold text-ink-muted">{score.draws}</p>
+        {playerCard(hearts)}
+        <div className="p-3.5 rounded-2xl border border-line bg-surface flex flex-col items-center justify-center">
+          <p className="text-xs font-semibold text-ink-muted mb-1">Round {state.round}</p>
+          <p className="text-2xl font-display font-bold text-ink-muted">{state.score.draws}</p>
           <span className="text-[10px] text-ink-muted">Draws</span>
         </div>
-
-        <div className={`p-3.5 rounded-2xl border transition-all ${
-          turn === 'user_2' && !winner
-            ? 'border-rose-400 bg-rose-50/50 shadow-xs ring-2 ring-rose-400/20'
-            : 'border-line bg-surface'
-        }`}>
-          <div className="flex items-center justify-center gap-1.5 mb-1">
-            <span className="text-lg">💋</span>
-            <p className="text-xs font-bold text-ink truncate max-w-[100px]">{user2Name}</p>
-          </div>
-          <p className="text-2xl font-display font-extrabold text-rose-500">{score.user_2}</p>
-          <span className="text-[10px] text-ink-muted">Wins</span>
-        </div>
+        {playerCard(kisses)}
       </div>
 
-      {/* Status Banner */}
-      <div className="text-center py-2">
-        {winner ? (
-          winner === 'draw' ? (
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 text-slate-700 text-sm font-semibold">
-              <span>🤝 It’s a tie! Rematch time!</span>
-            </div>
-          ) : (
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-sm font-bold shadow-xs animate-bounce">
-              <Trophy className="w-4 h-4 text-emerald-600" />
-              <span>
-                {winner === 'user_1' ? user1Name : user2Name} WINS! 🎉 ({stake})
-              </span>
-            </div>
-          )
+      {/* Status */}
+      <div className="text-center py-1" aria-live="polite">
+        {state.winner ? (
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-sm font-bold shadow-xs">
+            <Trophy className="w-4 h-4 text-emerald-600" />
+            <span>
+              {state.winner === myId ? 'You win! 🎉' : `${nameFor(state.winner)} wins! 🎉`} ({state.stake})
+            </span>
+          </div>
+        ) : state.draw ? (
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface border border-line text-ink text-sm font-semibold">
+            🤝 A draw — rematch?
+          </div>
         ) : (
           <div className="inline-flex items-center gap-2 text-xs font-medium text-ink-muted">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-emerald-500 motion-safe:animate-pulse" />
             <span>
-              Turn: <strong className="text-ink">{currentTurnName}</strong> ({currentTurnIcon})
+              {isMyTurn ? (
+                <>
+                  <strong className="text-ink">Your turn</strong> — place a {markFor(state, myId)}
+                </>
+              ) : (
+                <>
+                  Waiting for <strong className="text-ink">{nameFor(state.turn)}</strong> ({markFor(state, state.turn)})
+                </>
+              )}
             </span>
           </div>
         )}
       </div>
 
-      {/* 3x3 Game Board */}
+      {notice && (
+        <p role="status" className="text-xs text-ink-muted rounded-2xl bg-surface border border-line p-3 text-center">
+          {notice}
+        </p>
+      )}
+
+      {/* Board */}
       <div className="max-w-[320px] mx-auto">
         <div className="grid grid-cols-3 gap-2.5 p-3 rounded-3xl bg-surface border-2 border-line shadow-card">
-          {board.map((cell, idx) => {
-            const isWinningCell = line?.includes(idx);
+          {state.board.map((cell, idx) => {
+            const winning = state.winningLine?.includes(idx);
+            const playable = !roundOver && isMyTurn && cell === null;
             return (
               <button
                 key={idx}
                 type="button"
                 onClick={() => handleCellClick(idx)}
-                disabled={cell !== null || winner !== null}
+                disabled={!playable}
+                aria-label={cell ? `Square ${idx + 1}: ${nameFor(cell)}` : `Square ${idx + 1}, empty`}
                 className={`h-24 sm:h-28 rounded-2xl flex items-center justify-center text-4xl sm:text-5xl transition-all select-none ${
-                  isWinningCell
-                    ? 'bg-amber-100 border-2 border-amber-400 ring-4 ring-amber-300/40 animate-pulse'
+                  winning
+                    ? 'bg-amber-100 border-2 border-amber-400 ring-4 ring-amber-300/40 motion-safe:animate-pulse'
                     : cell !== null
-                    ? 'bg-canvas/80 border border-line'
-                    : 'bg-canvas/40 hover:bg-canvas border border-transparent hover:border-primary/40 active:scale-95'
+                      ? 'bg-primary/5 border border-line'
+                      : playable
+                        ? 'bg-primary/5 hover:bg-primary/10 border border-transparent hover:border-primary/40 active:scale-95'
+                        : 'bg-primary/5 border border-transparent'
                 }`}
               >
-                {cell === 'user_1' && <span className="transform animate-in zoom-in-75 duration-150">💖</span>}
-                {cell === 'user_2' && <span className="transform animate-in zoom-in-75 duration-150">💋</span>}
+                {cell && <span className="animate-in zoom-in-75 duration-150">{markFor(state, cell)}</span>}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Control Buttons */}
+      {/* Controls */}
       <div className="flex items-center justify-center gap-3 pt-2">
         <button
           type="button"
-          onClick={handleResetBoard}
-          className="px-4 py-2 rounded-full bg-primary hover:bg-primary-hover text-on-primary text-xs font-semibold flex items-center gap-2 shadow-cta transition-transform active:scale-95"
+          onClick={() => save(nextRound(state))}
+          disabled={!roundOver}
+          className="px-4 py-2 rounded-full bg-primary hover:bg-primary-hover text-on-primary text-xs font-semibold flex items-center gap-2 shadow-cta transition-transform active:scale-95 disabled:opacity-50"
         >
           <RotateCcw className="w-3.5 h-3.5" />
-          <span>New Round</span>
+          <span>Next round</span>
         </button>
 
         <button
           type="button"
-          onClick={handleResetScore}
-          className="px-4 py-2 rounded-full border border-line bg-surface hover:bg-canvas text-ink-muted hover:text-ink text-xs font-medium transition-colors"
+          onClick={() => save(resetScore(state))}
+          disabled={!isMyTurn}
+          className="px-4 py-2 rounded-full border border-line bg-surface hover:bg-canvas text-ink-muted hover:text-ink text-xs font-medium transition-colors disabled:opacity-50"
         >
-          Reset Score
+          Reset score
         </button>
       </div>
+
+      {!isRemote && (
+        <p className="text-center text-xs italic text-ink-muted">
+          Demo mode — switch profiles to play the other side on this device.
+        </p>
+      )}
     </div>
   );
 }

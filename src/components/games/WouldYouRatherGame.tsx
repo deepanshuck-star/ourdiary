@@ -231,7 +231,9 @@ export function WouldYouRatherGame() {
       ) : (
         /* Never Have I Ever Card */
         <div className="space-y-4">
-          <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-surface to-canvas border-2 border-line shadow-card text-center space-y-4">
+          {/* Solid surface, as in Truth or Dare: a gradient into the dark
+              canvas left the statement unreadable on the night themes. */}
+          <div className="rounded-3xl p-6 sm:p-8 bg-surface border-2 border-line shadow-card text-center space-y-4">
             <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-xs uppercase tracking-widest">
               Card #{nhieIndex + 1} of {NEVER_HAVE_I_EVER_ITEMS.length}
             </span>

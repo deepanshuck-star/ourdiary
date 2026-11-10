@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { CheckCheck, Clock, Loader2, MessagesSquare, Send, Trash2 } from 'lucide-react';
+import { CheckCheck, Clock, Loader2, MessagesSquare, Send, Smile, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useDiary } from '@/store/DiaryContext';
 import { SecureImage } from '@/components/ui/SecureImage';
 import { usePresence } from '@/components/providers/PresenceProvider';
 import { PresenceDot } from '@/components/widgets/PartnerPresence';
+import { useLiveRoom } from '@/components/providers/LiveRoomProvider';
+import { ReactionBar } from '@/components/live/ReactionBar';
+import { FloatingReactions } from '@/components/live/FloatingReactions';
 import { newId, useNow } from '@/hooks/useNow';
 import { useCoupleMembers } from '@/hooks/useCoupleMembers';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -59,6 +62,10 @@ interface ViewMessage {
 export default function ChatPage() {
   const { data, activeProfile, partnerProfile, isLiveUser, currentUserId, showToast } = useDiary();
   const presence = usePresence();
+  // Reactions float up both screens while you're both in the chat. They are
+  // broadcast, not messages: nothing is stored, nothing lands in the thread.
+  const room = useLiveRoom('chat');
+  const [showReactions, setShowReactions] = useState(false);
   const { partnerId } = useCoupleMembers();
   const coupleId = data.couple.id;
   const supabase = isLiveUser && currentUserId ? getSupabaseBrowserClient() : null;
@@ -365,7 +372,9 @@ export default function ChatPage() {
                 >
                   {presence.partnerTyping
                     ? 'typing…'
-                    : presence.available
+                    : room.partnerHere
+                      ? 'In the chat now'
+                      : presence.available
                       ? presence.label.text
                       : 'Incoming on left • Yours on right'}
                 </p>
@@ -522,8 +531,25 @@ export default function ChatPage() {
             <div ref={endRef} />
           </div>
 
+          {showReactions && (
+            <div className="border-t border-line px-2.5 sm:px-3.5 pt-2.5 bg-surface">
+              <ReactionBar onReact={room.sendReaction} label={`Send ${partnerProfile.name} a reaction`} />
+            </div>
+          )}
+
           {/* Form input bar */}
           <form onSubmit={send} className="border-t border-line p-2.5 sm:p-3.5 flex items-end gap-2 bg-surface">
+            <button
+              type="button"
+              onClick={() => setShowReactions((v) => !v)}
+              aria-expanded={showReactions}
+              aria-label={showReactions ? 'Hide reactions' : 'Send a reaction'}
+              className={`p-3 rounded-full border flex-shrink-0 transition-colors ${
+                showReactions ? 'border-primary bg-primary/10 text-primary' : 'border-line text-ink-muted hover:text-primary'
+              }`}
+            >
+              <Smile className="w-4 h-4" />
+            </button>
             <label htmlFor="chat-draft" className="sr-only">
               Message {partnerProfile.name}
             </label>
@@ -553,6 +579,7 @@ export default function ChatPage() {
             </button>
           </form>
         </section>
+        <FloatingReactions reactions={room.reactions} myId={room.myId} />
 
         {error && (
           <p role="alert" className="text-sm text-danger font-medium">

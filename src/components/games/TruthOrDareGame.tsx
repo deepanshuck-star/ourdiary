@@ -153,7 +153,11 @@ export function TruthOrDareGame() {
       </div>
 
       {/* Main Interactive Card */}
-      <div className="relative rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-surface via-surface to-canvas border-2 border-line shadow-card text-center overflow-hidden">
+      {/* A solid bg-surface card, not a surface-to-canvas gradient: on the
+          night themes canvas is the dark sky, so the old gradient ran from a
+          light card into near-black and no single ink could be read across
+          it — the prompt itself was pale peach on cream. */}
+      <div className="relative rounded-3xl p-6 sm:p-8 bg-surface border-2 border-line shadow-card text-center overflow-hidden">
         {/* Type Badge */}
         <div className="flex items-center justify-center gap-2 mb-4">
           <span

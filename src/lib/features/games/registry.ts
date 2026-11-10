@@ -154,12 +154,13 @@ export const GAMES: GameMeta[] = [
     title: 'Hearts & Kisses',
     tagline: 'Tic-tac-toe, with stakes',
     rules: [
-      'The usual three in a row.',
-      'The loser owes whatever the stake card says.',
-      'Mostly ends in a draw — that’s the game, not a bug.',
+      'The usual three in a row — one of you is hearts, the other kisses.',
+      'Each of you plays from your own phone, on your own turn.',
+      'The loser owes whatever the stake says.',
     ],
     category: 'head-to-head',
     players: 'Two players',
+    requires: ['partner'],
   },
   {
     id: 'memorymatch',
