@@ -18,6 +18,7 @@ import {
   Plane,
   Bell,
   ShieldCheck,
+  CloudRain,
 } from 'lucide-react';
 
 // Newer features — synced to the shared couple space in Supabase (see
@@ -27,6 +28,7 @@ export const exploreItems = [
   { name: 'Our Chat', href: '/chat', icon: MessagesSquare },
   { name: 'Notifications', href: '/notifications', icon: Bell },
   { name: 'Our Soundtrack', href: '/music', icon: Music4 },
+  { name: 'Barsaat', href: '/barsaat', icon: CloudRain },
   { name: 'Gifts Wardrobe', href: '/gifts', icon: ShoppingBag },
   { name: 'Bad Habits', href: '/habits', icon: ThumbsDown },
   { name: 'Memory Globe', href: '/globe', icon: Globe2 },

@@ -1,0 +1,590 @@
+/*
+ * The Barsaat film: ink on old paper, in the rain.
+ *
+ * Every animated element's resting style is its finished look, and the
+ * keyframes only describe how it arrives (fill-mode `both`). So when motion
+ * is off and every animation is removed, the page is the finished painting
+ * rather than a blank sheet.
+ */
+
+.bs-film {
+  --bs-ink: #1f1813;
+  --bs-red: #8e1b1b;
+  --bs-paper: #e9dfca;
+  --bs-fade: 1400ms;
+
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bs-paper);
+  color: var(--bs-ink);
+  font-family: var(--font-bs-hand), 'Kalam', serif;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---- Paper -------------------------------------------------------- */
+
+.bs-paper,
+.bs-vignette,
+.bs-rain,
+.bs-leaves {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bs-paper {
+  z-index: 0;
+  background:
+    /* Fine grain. */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.33  0 0 0 0 0.25  0 0 0 0 0.16  0 0 0 0.42 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+    /* Old water stains. */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='s'><feTurbulence type='fractalNoise' baseFrequency='0.006' numOctaves='3' seed='11' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.45  0 0 0 0 0.34  0 0 0 0 0.2  0 0 0 0.5 -0.18'/></filter><rect width='100%25' height='100%25' filter='url(%23s)'/></svg>"),
+    /* The uneven vertical creases of a page that has been folded and kept. */
+    repeating-linear-gradient(90deg, transparent 0 91px, rgba(110, 84, 52, 0.09) 91px 92px, transparent 92px 157px),
+    repeating-linear-gradient(90deg, transparent 0 233px, rgba(110, 84, 52, 0.07) 233px 235px),
+    radial-gradient(ellipse at 45% 42%, #f1e8d6 0%, #e8dcc5 55%, #d9c9aa 100%);
+  /* The stain layer is one sheet stretched over the page: tiled, its seams
+     show as straight edges across the paper. */
+  background-repeat: repeat, no-repeat, repeat, repeat, no-repeat;
+  background-size: 240px 240px, cover, auto, auto, cover;
+}
+
+.bs-vignette {
+  z-index: 4;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(84, 60, 32, 0.3) 100%);
+}
+
+/* ---- Scenes ------------------------------------------------------- */
+
+.bs-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 72px 6vw 64px;
+  animation: bs-fade var(--bs-fade) ease both;
+}
+
+.bs-scene.is-leaving {
+  animation: bs-fade-out var(--bs-fade) ease both;
+}
+
+.bs-split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4vw;
+  width: min(1180px, 100%);
+}
+
+.bs-split > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.bs-split > .bs-oval {
+  flex: 0 0 auto;
+}
+
+.bs-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: min(900px, 100%);
+}
+
+/* ---- Lettering ---------------------------------------------------- */
+
+.bs-titleblock {
+  text-align: center;
+}
+
+.bs-title {
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  font-family: var(--font-bs-title), serif;
+  font-weight: 400;
+  font-size: clamp(72px, 12vw, 160px);
+  line-height: 1.15;
+  color: var(--bs-red);
+}
+
+.bs-title-ink {
+  display: inline-block;
+  animation: bs-reveal 1900ms cubic-bezier(0.5, 0, 0.3, 1) 300ms both;
+}
+
+.bs-title-drips {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 80%;
+  height: 0;
+}
+
+.bs-title-drips svg {
+  position: absolute;
+  top: 0;
+  /* In em, so the drips shrink with the title on a phone and never reach
+     the line below. */
+  width: 0.09em;
+  height: 0.36em;
+  overflow: visible;
+  transform: translateX(-50%);
+}
+
+.bs-subtitle {
+  margin: 0.55em 0 0;
+  font-size: clamp(24px, 3.2vw, 40px);
+  color: var(--bs-ink);
+}
+
+.bs-lines {
+  margin: 0;
+  font-size: clamp(28px, 3.8vw, 50px);
+  line-height: 1.55;
+  color: var(--bs-ink);
+}
+
+.bs-lines-center {
+  text-align: center;
+}
+
+.bs-lines-big {
+  font-size: clamp(34px, 5vw, 66px);
+}
+
+.bs-line {
+  display: block;
+}
+
+.bs-word {
+  display: inline-block;
+  white-space: pre;
+  animation: bs-ink 1100ms ease both;
+  animation-delay: var(--d, 0ms);
+}
+
+.bs-signature {
+  margin: 0;
+  font-size: clamp(18px, 2.2vw, 26px);
+  opacity: 0.8;
+}
+
+/* ---- Drawings ----------------------------------------------------- */
+
+.bs-art {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.bs-cloud {
+  max-width: 520px;
+  max-height: 64vh;
+  margin: 0 auto;
+}
+
+.bs-umbrella {
+  width: min(420px, 78vw);
+  max-height: 56vh;
+}
+
+.bs-closing-heart {
+  width: min(120px, 28vw);
+  margin-top: 8px;
+}
+
+.bs-fade {
+  animation: bs-fade 1600ms ease both;
+  animation-delay: var(--d, 0ms);
+}
+
+.bs-drip,
+.bs-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: bs-draw 2200ms cubic-bezier(0.4, 0, 0.6, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+
+.bs-draw {
+  animation-duration: 2600ms;
+}
+
+/* The drop swells at the end of its line, hangs, lets go, and comes again. */
+.bs-drop {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: bs-drop 3400ms ease-in infinite backwards;
+  animation-delay: calc(var(--d, 0ms) + 1900ms);
+}
+
+.bs-bob {
+  animation: bs-bob 3200ms ease-in-out infinite alternate;
+}
+
+.bs-bob-late {
+  animation-delay: -1600ms;
+}
+
+.bs-ripple {
+  opacity: 0.3;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bs-ripple 2800ms ease-out infinite both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* ---- The ovals: a soft-edged window into another picture ---------- */
+
+.bs-oval {
+  position: relative;
+  width: min(400px, 36vw);
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+  filter: grayscale(0.55) sepia(0.3) contrast(1.05);
+}
+
+.bs-oval > * {
+  position: absolute;
+}
+
+.bs-city-sky {
+  inset: 0;
+  background: linear-gradient(#5d574d 0%, #8b8374 36%, #a49b8a 50%, #3f3a33 100%);
+}
+
+.bs-city-skyline {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.bs-bokeh {
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(252, 246, 232, 0.95) 0%, rgba(252, 246, 232, 0.4) 55%, transparent 72%);
+  animation: bs-twinkle 3800ms ease-in-out infinite alternate both;
+  animation-delay: var(--d, 0ms);
+}
+
+.bs-city-water {
+  left: 0;
+  right: 0;
+  top: 57%;
+  bottom: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 250, 238, 0.06) 0 1px, transparent 1px 7px),
+    linear-gradient(#4b463e, #29251f);
+}
+
+.bs-reflection {
+  top: 58%;
+  height: 24%;
+  transform: translateX(-50%);
+  background: linear-gradient(rgba(252, 246, 232, 0.5), transparent);
+  filter: blur(2px);
+  animation: bs-shimmer 2600ms ease-in-out infinite alternate;
+}
+
+.bs-boat {
+  left: 28%;
+  top: 64%;
+  width: 30%;
+  overflow: visible;
+  animation: bs-boat 4200ms ease-in-out infinite alternate;
+}
+
+.bs-oval-rain {
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='90'><g stroke='%23f4ecdc' stroke-opacity='0.45' stroke-linecap='round'><path d='M8 4 l-3 18'/><path d='M31 38 l-3 18'/><path d='M50 10 l-2.5 15'/><path d='M19 62 l-3 18'/><path d='M44 66 l-2 12'/></g></svg>");
+  background-size: 60px 90px;
+  animation: bs-oval-rain 600ms linear infinite;
+}
+
+.bs-window-glass {
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 40% 35%, #cfc5b1 0%, #9d9381 55%, #6f6759 100%);
+}
+
+.bs-window-frame {
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 48.5%, rgba(42, 34, 26, 0.8) 48.5% 51.5%, transparent 51.5%),
+    linear-gradient(0deg, transparent 47%, rgba(42, 34, 26, 0.8) 47% 49.5%, transparent 49.5%);
+}
+
+.bs-window-heart {
+  left: 55%;
+  top: 54%;
+  width: 36%;
+  overflow: visible;
+}
+
+.bs-run {
+  top: 6%;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(rgba(246, 239, 224, 0), rgba(246, 239, 224, 0.75));
+  animation: bs-run 5600ms ease-in infinite both;
+  animation-delay: var(--d, 0ms);
+}
+
+.bs-run::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -3px;
+  width: 7px;
+  height: 9px;
+  border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+  transform: translateX(-50%);
+  background: rgba(248, 242, 228, 0.9);
+}
+
+/* ---- Weather over everything -------------------------------------- */
+
+.bs-leaves {
+  z-index: 2;
+  overflow: hidden;
+}
+
+.bs-leaf {
+  position: absolute;
+  top: -8%;
+  animation: bs-leaf-fall var(--dur, 20s) linear infinite;
+  animation-delay: var(--d, 0s);
+  opacity: 0.85;
+}
+
+.bs-leaf svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: bs-leaf-spin 3400ms ease-in-out infinite alternate;
+}
+
+.bs-rain {
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: multiply;
+}
+
+/* ---- Controls ----------------------------------------------------- */
+
+.bs-controls {
+  position: absolute;
+  z-index: 5;
+  top: max(14px, env(safe-area-inset-top));
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.bs-button {
+  pointer-events: auto;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(31, 24, 19, 0.22);
+  background: rgba(241, 232, 214, 0.78);
+  color: var(--bs-ink);
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.bs-button:focus-visible,
+.bs-dot:focus-visible {
+  outline: 2px solid var(--bs-red);
+  outline-offset: 2px;
+}
+
+.bs-progress {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+}
+
+.bs-dot {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  background: radial-gradient(circle, rgba(31, 24, 19, 0.3) 0 3.5px, transparent 4.5px);
+}
+
+.bs-dot.is-current {
+  background: radial-gradient(circle, var(--bs-red) 0 4.5px, transparent 5.5px);
+}
+
+/* ---- Phones: picture above, words below ---------------------------- */
+
+@media (max-width: 720px) {
+  .bs-scene {
+    padding: 64px 16px 56px;
+  }
+
+  .bs-split,
+  .bs-split-reverse {
+    flex-direction: column;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .bs-split > * {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .bs-split-reverse > .bs-lines {
+    order: 2;
+  }
+
+  .bs-split > .bs-oval {
+    width: min(300px, 72vw);
+    aspect-ratio: 1 / 1;
+  }
+
+  .bs-lines {
+    text-align: center;
+  }
+
+  .bs-cloud {
+    max-height: 40vh;
+  }
+}
+
+/* ---- Pause and stillness ------------------------------------------ */
+
+.bs-film.is-paused *,
+.bs-film.is-paused *::after {
+  animation-play-state: paused !important;
+}
+
+:root[data-motion="off"] .bs-film *,
+:root[data-motion="off"] .bs-film *::after {
+  animation: none !important;
+}
+
+/* With nothing fading, the outgoing scene would sit on top of the new one. */
+:root[data-motion="off"] .bs-scene.is-leaving {
+  display: none;
+}
+
+:root[data-motion="off"] .bs-leaf {
+  top: var(--rest, 20%);
+}
+
+/* ---- Keyframes ---------------------------------------------------- */
+
+@keyframes bs-fade {
+  from { opacity: 0; }
+}
+
+@keyframes bs-fade-out {
+  to { opacity: 0; }
+}
+
+/* Ink soaking into paper: blurred and faint, then crisp. */
+@keyframes bs-ink {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(3px);
+  }
+  60% {
+    opacity: 1;
+  }
+}
+
+@keyframes bs-reveal {
+  from {
+    clip-path: inset(-20% 100% -20% 0);
+    filter: blur(4px);
+  }
+  70% {
+    filter: blur(0);
+  }
+  to {
+    clip-path: inset(-20% -5% -20% 0);
+  }
+}
+
+@keyframes bs-draw {
+  from { stroke-dashoffset: 1; }
+}
+
+@keyframes bs-drop {
+  0% { opacity: 0; transform: scale(0.3); }
+  25% { opacity: 1; transform: scale(1); }
+  55% { opacity: 1; transform: translateY(2px) scale(1, 1.08); }
+  100% { opacity: 0; transform: translateY(170px) scale(0.9, 1.2); }
+}
+
+@keyframes bs-bob {
+  to { transform: translateY(-5px); }
+}
+
+@keyframes bs-ripple {
+  from { opacity: 0.7; transform: scale(0.2); }
+  to { opacity: 0; transform: scale(1.6); }
+}
+
+@keyframes bs-twinkle {
+  from { opacity: 0.6; }
+}
+
+@keyframes bs-shimmer {
+  to { opacity: 0.55; transform: translateX(-50%) scaleX(1.25); }
+}
+
+@keyframes bs-boat {
+  from { transform: translateY(0) rotate(-3deg); }
+  to { transform: translateY(-4px) rotate(3deg); }
+}
+
+@keyframes bs-oval-rain {
+  to { background-position: -15px 90px; }
+}
+
+@keyframes bs-run {
+  0% { clip-path: inset(0 -6px 100% -6px); opacity: 0; }
+  8% { opacity: 1; }
+  70% { clip-path: inset(0 -6px -12px -6px); opacity: 1; }
+  100% { clip-path: inset(0 -6px -12px -6px); opacity: 0; }
+}
+
+@keyframes bs-leaf-fall {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(var(--sway), 30vh); }
+  50% { transform: translate(0, 60vh); }
+  75% { transform: translate(var(--sway), 90vh); }
+  100% { transform: translate(0, 122vh); }
+}
+
+@keyframes bs-leaf-spin {
+  from { transform: rotate(-35deg); }
+  to { transform: rotate(40deg); }
+}

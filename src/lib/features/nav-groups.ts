@@ -19,7 +19,7 @@ export const DRAWER_GROUPS: DrawerGroup[] = [
   { title: 'Far apart', hrefs: ['/long-distance', '/trips', '/care-packages'] },
   { title: 'Little gestures', hrefs: ['/letters', '/coupons', '/surprises', '/gifts'] },
   { title: 'Talk & play', hrefs: ['/chat', '/games', '/quizzes', '/daily-spark'] },
-  { title: 'Us & our world', hrefs: ['/world', '/journey', '/our-stats', '/habits'] },
+  { title: 'Us & our world', hrefs: ['/world', '/journey', '/our-stats', '/habits', '/barsaat'] },
   { title: 'Settings & privacy', hrefs: ['/notifications', '/privacy', '/settings'] },
 ];
 
